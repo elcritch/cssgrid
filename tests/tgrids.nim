@@ -22,8 +22,8 @@ suite "grids":
   test "basic grid template":
 
     var gt = newGridTemplate(
-      columns = @[initGridLine(mkFrac(1))],
-      rows = @[initGridLine(mkFrac(1))],
+      columns = @[initGridLine(csFrac(1))],
+      rows = @[initGridLine(csFrac(1))],
     )
     check gt.columns.len() == 1
     check gt.rows.len() == 1
@@ -58,7 +58,7 @@ suite "grids":
 
   test "4x1 grid test":
     var gt = newGridTemplate(
-      columns = @[1'fr.gl, initGridLine(5.mkFixed), 1'fr.gl, 1'fr.gl],
+      columns = @[1'fr.gl, initGridLine(5.csFixed), 1'fr.gl, 1'fr.gl],
     )
     gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
@@ -78,22 +78,22 @@ suite "grids":
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
-    check gt.columns[0].track.kind == grFixed
+    check gt.columns[0].track.kind == UiFixed
     check gt.columns[0].track.coord == 40.0.UiScalar
     echo repr gt.columns[0].aliases.toSeq.mapIt(it.int), repr toLineNames("first").toSeq.mapIt(it.int)
     check gt.columns[0].aliases == toLineNames("first")
-    check gt.columns[1].track.kind == grPerc
+    check gt.columns[1].track.kind == UiPerc
     check gt.columns[1].track.perc == 50.0.UiScalar
     check gt.columns[1].aliases == toLineNames("second", "line2")
-    check gt.columns[2].track.kind == grAuto
+    check gt.columns[2].track.kind == UiAuto
     check gt.columns[2].aliases == toLineNames("line3")
-    check gt.columns[3].track.kind == grFixed
+    check gt.columns[3].track.kind == UiFixed
     check gt.columns[3].track.coord == 50.0.UiScalar
     check gt.columns[3].aliases == toLineNames("col4-start")
-    check gt.columns[4].track.kind == grFixed
+    check gt.columns[4].track.kind == UiFixed
     check gt.columns[4].track.coord == 40.0.UiScalar
     check gt.columns[4].aliases == toLineNames("five")
-    check gt.columns[5].track.kind == grEnd
+    check gt.columns[5].track.kind == UiEnd
     check toLineNames("end") == gt.columns[5].aliases
 
     # print "grid template: ", gridTemplate
@@ -208,8 +208,8 @@ suite "grids":
     check abs(itemBox.h.float - 350.0) < 1.0e-3
 
     ## test start
-    gridTemplate.justifyItems = gcStart
-    gridTemplate.alignItems = gcStart
+    gridTemplate.justifyItems = cxStart
+    gridTemplate.alignItems = cxStart
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
     # print itemBox
     check abs(itemBox.x.float - 40.0) < 1.0e-3
@@ -218,8 +218,8 @@ suite "grids":
     check abs(itemBox.h.float - 200.0) < 1.0e-3
 
     ## test end
-    gridTemplate.justifyItems = gcEnd
-    gridTemplate.alignItems = gcEnd
+    gridTemplate.justifyItems = cxEnd
+    gridTemplate.alignItems = cxEnd
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
     print itemBox
     check abs(itemBox.x.float - 460.0) < 1.0e-3
@@ -228,8 +228,8 @@ suite "grids":
     check abs(itemBox.h.float - 200.0) < 1.0e-3
     
     ## test start / stretch
-    gridTemplate.justifyItems = gcStart
-    gridTemplate.alignItems = gcStretch
+    gridTemplate.justifyItems = cxStart
+    gridTemplate.alignItems = cxStretch
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
     # print itemBox
     check abs(itemBox.x.float - 40.0) < 1.0e-3
@@ -285,8 +285,8 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["a"] 60'ui ["b"] 60'ui
     parseGridTemplateRows gridTemplate, 90'ui 90'ui
-    gridTemplate.autoColumns = 60.mkFixed()
-    gridTemplate.autoRows = 20.mkFixed()
+    gridTemplate.autoColumns = 60.csFixed()
+    gridTemplate.autoRows = 20.csFixed()
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.columns.len() == 3
     check gridTemplate.rows.len() == 3
@@ -329,7 +329,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, 60'ui 60'ui 60'ui 60'ui 60'ui
     parseGridTemplateRows gridTemplate, 33'ui 33'ui
-    gridTemplate.justifyItems = gcStretch
+    gridTemplate.justifyItems = cxStretch
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.columns.len() == 6
     check gridTemplate.rows.len() == 3

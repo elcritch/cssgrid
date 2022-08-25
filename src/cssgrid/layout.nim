@@ -1,12 +1,11 @@
 import std/rationals
 import patty
 
-import basic, gridtypes, parser
+import basic, constraints, gridtypes, parser
 
-export rationals, gridtypes
+export rationals, constraints, gridtypes
 
-
-let defaultLine = GridLine(track: mkFrac(1))
+let defaultLine = GridLine(track: csFrac(1))
 
 proc newGridTemplate*(
   columns = @[defaultLine],
@@ -15,8 +14,8 @@ proc newGridTemplate*(
   new(result)
   result.columns = columns
   result.rows = rows
-  result.autoColumns = mkFixed(0)
-  result.autoRows = mkFixed(0)
+  result.autoColumns = csFixed(0)
+  result.autoRows = csFixed(0)
 
 proc newGridItem*(): GridItem =
   new(result)
@@ -34,11 +33,11 @@ proc computeLineLayout*(
   # compute total fixed sizes and fracs
   for grdLn in lines:
     match grdLn.track:
-      grFixed(coord): fixed += coord
-      grFrac(frac): totalFracs += frac.UiScalar
-      grAuto(): totalAutos += 1
-      grPerc(): discard
-      grEnd(): discard
+      UiFixed(coord): fixed += coord
+      UiFrac(frac): totalFracs += frac
+      UiAuto(): totalAutos += 1
+      UiPerc(): discard
+      UiEnd(): discard
   fixed += spacing * UiScalar(lines.len() - 1)
 
   var
@@ -47,19 +46,19 @@ proc computeLineLayout*(
   
   # frac's
   for grdLn in lines.mitems():
-    if grdLn.track.kind == grFrac:
+    if grdLn.track.kind == UiFrac:
       grdLn.width =
         freeSpace * grdLn.track.frac/totalFracs
       remSpace -= max(grdLn.width, 0.UiScalar)
-    elif grdLn.track.kind == grFixed:
+    elif grdLn.track.kind == UiFixed:
       grdLn.width = grdLn.track.coord
-    elif grdLn.track.kind == grPerc:
+    elif grdLn.track.kind == UiPerc:
       grdLn.width = length * grdLn.track.perc / 100
       remSpace -= max(grdLn.width, 0.UiScalar)
   
   # auto's
   for grdLn in lines.mitems():
-    if grdLn.track.kind == grAuto:
+    if grdLn.track.kind == UiAuto:
       grdLn.width = remSpace / totalAutos.UiScalar
 
   var cursor = 0.0.UiScalar
@@ -69,10 +68,10 @@ proc computeLineLayout*(
 
 proc computeLayout*(grid: GridTemplate, UiBox: UiBox) =
   ## computing grid layout
-  if grid.columns[^1].track.kind != grEnd:
-    grid.columns.add initGridLine(mkEndTrack())
-  if grid.rows[^1].track.kind != grEnd:
-    grid.rows.add initGridLine(mkEndTrack())
+  if grid.columns[^1].track.kind != UiEnd:
+    grid.columns.add initGridLine(csEnd())
+  if grid.rows[^1].track.kind != UiEnd:
+    grid.rows.add initGridLine(csEnd())
   # The free space is calculated after any non-flexible items. In 
   let
     colLen = UiBox.w
@@ -83,11 +82,11 @@ proc computeLayout*(grid: GridTemplate, UiBox: UiBox) =
 proc reComputeLayout(grid: GridTemplate) =
   var w, h: float32
   for col in grid.columns:
-    if col.track.kind == grEnd:
+    if col.track.kind == UiEnd:
       w = col.start.float32
       break
   for row in grid.rows:
-    if row.track.kind == grEnd:
+    if row.track.kind == UiEnd:
       h = row.start.float32
       break
   # echo "reCompute"
@@ -121,7 +120,7 @@ proc setGridSpans(
       while idx >= grid.`lines`.len():
         let offset = grid.`lines`.len() - 1
         var ln = initGridLine(track = grid.`auto lines`)
-        if offset+1 == idx and ln.track.kind == grFixed:
+        if offset+1 == idx and ln.track.kind == UiFixed:
           # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
           ln.track.coord = max(ln.track.coord, cz)
         grid.`lines`.insert(ln, offset)
@@ -161,14 +160,14 @@ proc computePosition*(
   let rxw = grid.columns.getGrid(item.span[dcol].b)
   let rww = (rxw - result.x) - grid.columnGap
   case grid.justifyItems:
-  of gcStretch:
+  of cxStretch:
     result.w = rww
-  of gcCenter:
+  of cxCenter:
     result.x = result.x + (rww - contentSize.x)/2.0
     result.w = contentSize.x
-  of gcStart:
+  of cxStart:
     result.w = contentSize.x
-  of gcEnd:
+  of cxEnd:
     result.x = rxw - contentSize.x
     result.w = contentSize.x
 
@@ -177,14 +176,14 @@ proc computePosition*(
   let ryh = grid.rows.getGrid(item.span[drow].b)
   let rhh = (ryh - result.y) - grid.rowGap
   case grid.alignItems:
-  of gcStretch:
+  of cxStretch:
     result.h = rhh
-  of gcCenter:
+  of cxCenter:
     result.y = result.y + (rhh - contentSize.y)/2.0
     result.h = contentSize.y
-  of gcStart:
+  of cxStart:
     result.h = contentSize.y
-  of gcEnd:
+  of cxEnd:
     result.y = ryh - contentSize.y
     result.h = contentSize.y
 

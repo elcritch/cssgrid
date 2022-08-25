@@ -4,7 +4,7 @@ import rationals
 import typetraits
 import patty
 
-import basic
+import basic, constraints
 export sets, tables
 
 type
@@ -16,72 +16,20 @@ type
     dcol
     drow
 
-  GridConstraint* = enum
-    gcStretch
-    gcStart
-    gcEnd
-    gcCenter
-
-  GridUnits* = enum
-    grFrac
-    grAuto
-    grPerc
-    grFixed
-    grEnd
-
   GridFlow* = enum
     grRow
     grRowDense
     grColumn
     grColumnDense
 
-type
-  TrackSize* = object
-    case kind*: GridUnits
-    of grFrac:
-      frac*: UiScalar
-    of grAuto:
-      discard
-    of grPerc:
-      perc*: UiScalar
-    of grFixed:
-      coord*: UiScalar
-    of grEnd:
-      discard
-  
-proc mkFrac*(size: int|float|UiScalar): TrackSize =
-  TrackSize(kind: grFrac, frac: size.UiScalar)
-proc mkFixed*(coord: int|float|UiScalar): TrackSize =
-  TrackSize(kind: grFixed, coord: coord.UiScalar)
-proc mkPerc*(perc: int|float|UiScalar): TrackSize =
-  TrackSize(kind: grPerc, perc: perc.UiScalar)
-proc mkAuto*(): TrackSize =
-  TrackSize(kind: grAuto)
-proc mkEndTrack*(): TrackSize =
-  TrackSize(kind: grEnd)
 
-proc `'ui`*(n: string): TrackSize =
-  ## numeric literal UI Coordinate unit
-  result = mkFixed(parseFloat(n))
-
-proc `'fr`*(n: string): TrackSize =
-  ## numeric literal UI Coordinate unit
-  let f = parseFloat(n)
-  result = TrackSize(kind: grFrac, frac: f.UiScalar)
-
-proc `'pp`*(n: string): TrackSize =
-  ## numeric literal UI Coordinate unit
-  let f = parseFloat(n)
-  result = TrackSize(kind: grFrac, frac: f.UiScalar)
-
-
-proc repr*(a: TrackSize): string =
+proc repr*(a: ConstraintSize): string =
   match a:
-    grFrac(frac): result = $frac & "'fr"
-    grFixed(coord): result = $coord & "'ui"
-    grPerc(perc): result = $perc & "'perc"
-    grAuto(): result = "auto"
-    grEnd(): result = "ends"
+    UiFrac(frac): result = $frac & "'fr"
+    UiFixed(coord): result = $coord & "'ui"
+    UiPerc(perc): result = $perc & "'perc"
+    UiAuto(): result = "auto"
+    UiEnd(): result = "ends"
 
 type
   LineName* = distinct int
@@ -89,21 +37,21 @@ type
 
   GridLine* = object
     aliases*: HashSet[LineName]
-    track*: TrackSize
+    track*: ConstraintSize
     start*: UiScalar
     width*: UiScalar
 
   GridTemplate* = ref object
     columns*: seq[GridLine]
     rows*: seq[GridLine]
-    autoColumns*: TrackSize
-    autoRows*: TrackSize
+    autoColumns*: ConstraintSize
+    autoRows*: ConstraintSize
     rowGap*: UiScalar
     columnGap*: UiScalar
-    justifyItems*: GridConstraint
-    alignItems*: GridConstraint
-    justifyContent*: GridConstraint
-    alignContent*: GridConstraint
+    justifyItems*: Constraint
+    alignItems*: Constraint
+    justifyContent*: Constraint
+    alignContent*: Constraint
     autoFlow*: GridFlow
 
   GridIndex* = object
@@ -199,10 +147,10 @@ proc repr*(a: GridTemplate): string =
     result &= &"\n\t\t{r.repr}"
 
 proc initGridLine*(
-    track = mkFrac(1),
+    track = csFrac(1),
     aliases: varargs[LineName, toLineName],
 ): GridLine =
   GridLine(track: track, aliases: toHashSet(aliases))
 
-proc gl*(track: TrackSize): GridLine =
+proc gl*(track: ConstraintSize): GridLine =
   GridLine(track: track)

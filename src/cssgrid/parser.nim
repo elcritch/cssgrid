@@ -18,20 +18,20 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
       let kd = item[1].strVal
       if kd == "'fr":
         result.add quote do:
-          `tgt`[`idxLit`].track = mkFrac(`n`)
+          `tgt`[`idxLit`].track = csFrac(`n`)
       elif kd == "'perc":
         result.add quote do:
-          `tgt`[`idxLit`].track = mkPerc(`n`)
+          `tgt`[`idxLit`].track = csPerc(`n`)
       elif kd == "'ui":
         result.add quote do:
-          `tgt`[`idxLit`].track = mkFixed(`n`)
+          `tgt`[`idxLit`].track = csFixed(`n`)
       else:
         # error("error: unknown argument ", item)
         result.add quote do:
-          `tgt`[`idxLit`].track = mkFixed(`item`)
+          `tgt`[`idxLit`].track = csFixed(`item`)
     else:
       result.add quote do:
-        `tgt`[`idxLit`].track = mkFixed(`item`)
+        `tgt`[`idxLit`].track = csFixed(`item`)
   proc prepareNames(item: NimNode): NimNode =
     result = newStmtList()
     for x in item:
@@ -74,7 +74,7 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
         if item.strVal != "auto":
           error("argument must be 'auto'", item)
         result[1].add quote do:
-          `tgt`[`idxLit`].track = mkAuto()
+          `tgt`[`idxLit`].track = csAuto()
         idxIncr()
       of nnkDotExpr:
         result[1].handleDotExpr(item, tgt)
@@ -90,7 +90,7 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
     idxIncr()
 
   result[1].add quote do:
-    `tgt`[`idxLit`].track = mkEndTrack()
+    `tgt`[`idxLit`].track = csEnd()
     # grids.add move(gl)
   result[0] = idx + 1
 

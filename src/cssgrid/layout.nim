@@ -160,14 +160,14 @@ proc computePosition*(
   let rxw = grid.columns.getGrid(item.span[dcol].b)
   let rww = (rxw - result.x) - grid.columnGap
   case grid.justifyItems:
-  of cxStretch:
+  of CxStretch:
     result.w = rww
-  of cxCenter:
+  of CxCenter:
     result.x = result.x + (rww - contentSize.x)/2.0
     result.w = contentSize.x
-  of cxStart:
+  of CxStart:
     result.w = contentSize.x
-  of cxEnd:
+  of CxEnd:
     result.x = rxw - contentSize.x
     result.w = contentSize.x
 
@@ -176,14 +176,14 @@ proc computePosition*(
   let ryh = grid.rows.getGrid(item.span[drow].b)
   let rhh = (ryh - result.y) - grid.rowGap
   case grid.alignItems:
-  of cxStretch:
+  of CxStretch:
     result.h = rhh
-  of cxCenter:
+  of CxCenter:
     result.y = result.y + (rhh - contentSize.y)/2.0
     result.h = contentSize.y
-  of cxStart:
+  of CxStart:
     result.h = contentSize.y
-  of cxEnd:
+  of CxEnd:
     result.y = ryh - contentSize.y
     result.h = contentSize.y
 

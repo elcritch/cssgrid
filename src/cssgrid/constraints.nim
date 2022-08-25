@@ -10,10 +10,10 @@ export sets, tables
 
 type
   Constraint* = enum
-    cxStretch
-    cxStart
-    cxEnd
-    cxCenter
+    CxStretch
+    CxStart
+    CxEnd
+    CxCenter
 
   ConstraintKind* = enum
     UiFrac

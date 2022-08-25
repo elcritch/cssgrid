@@ -208,8 +208,8 @@ suite "grids":
     check abs(itemBox.h.float - 350.0) < 1.0e-3
 
     ## test start
-    gridTemplate.justifyItems = cxStart
-    gridTemplate.alignItems = cxStart
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.alignItems = CxStart
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
     # print itemBox
     check abs(itemBox.x.float - 40.0) < 1.0e-3
@@ -218,8 +218,8 @@ suite "grids":
     check abs(itemBox.h.float - 200.0) < 1.0e-3
 
     ## test end
-    gridTemplate.justifyItems = cxEnd
-    gridTemplate.alignItems = cxEnd
+    gridTemplate.justifyItems = CxEnd
+    gridTemplate.alignItems = CxEnd
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
     print itemBox
     check abs(itemBox.x.float - 460.0) < 1.0e-3
@@ -228,8 +228,8 @@ suite "grids":
     check abs(itemBox.h.float - 200.0) < 1.0e-3
     
     ## test start / stretch
-    gridTemplate.justifyItems = cxStart
-    gridTemplate.alignItems = cxStretch
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.alignItems = CxStretch
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
     # print itemBox
     check abs(itemBox.x.float - 40.0) < 1.0e-3
@@ -329,7 +329,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, 60'ui 60'ui 60'ui 60'ui 60'ui
     parseGridTemplateRows gridTemplate, 33'ui 33'ui
-    gridTemplate.justifyItems = cxStretch
+    gridTemplate.justifyItems = CxStretch
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.columns.len() == 6
     check gridTemplate.rows.len() == 3

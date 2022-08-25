@@ -1,9 +1,4 @@
 
-import std/[strformat, sugar]
-import std/[sequtils, strutils, hashes, sets, tables]
-import rationals
-import typetraits
-import patty
 
 import basic
 export sets, tables

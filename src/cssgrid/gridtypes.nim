@@ -49,11 +49,6 @@ type
     of grEnd:
       discard
   
-proc `'fr`*(n: string): TrackSize =
-  ## numeric literal UI Coordinate unit
-  let f = parseFloat(n)
-  result = TrackSize(kind: grFrac, frac: f.UiScalar)
-
 proc mkFrac*(size: int|float|UiScalar): TrackSize =
   TrackSize(kind: grFrac, frac: size.UiScalar)
 proc mkFixed*(coord: int|float|UiScalar): TrackSize =
@@ -64,6 +59,29 @@ proc mkAuto*(): TrackSize =
   TrackSize(kind: grAuto)
 proc mkEndTrack*(): TrackSize =
   TrackSize(kind: grEnd)
+
+proc `'ui`*(n: string): TrackSize =
+  ## numeric literal UI Coordinate unit
+  result = mkFixed(parseFloat(n))
+
+proc `'fr`*(n: string): TrackSize =
+  ## numeric literal UI Coordinate unit
+  let f = parseFloat(n)
+  result = TrackSize(kind: grFrac, frac: f.UiScalar)
+
+proc `'pp`*(n: string): TrackSize =
+  ## numeric literal UI Coordinate unit
+  let f = parseFloat(n)
+  result = TrackSize(kind: grFrac, frac: f.UiScalar)
+
+
+proc repr*(a: TrackSize): string =
+  match a:
+    grFrac(frac): result = $frac & "'fr"
+    grFixed(coord): result = $coord & "'ui"
+    grPerc(perc): result = $perc & "'perc"
+    grAuto(): result = "auto"
+    grEnd(): result = "ends"
 
 type
   LineName* = distinct int
@@ -168,14 +186,6 @@ proc `column=`*(item: GridItem, rat: Rational[int]) =
 proc `row=`*(item: GridItem, rat: Rational[int]) =
   item.rowStart = rat.num.mkIndex
   item.rowEnd = rat.den.mkIndex
-
-proc repr*(a: TrackSize): string =
-  match a:
-    grFrac(frac): result = $frac & "'fr"
-    grFixed(coord): result = $coord & "'ui"
-    grPerc(perc): result = $perc & "'perc"
-    grAuto(): result = "auto"
-    grEnd(): result = "ends"
 
 proc repr*(a: GridLine): string =
   result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {a.aliases.repr})"

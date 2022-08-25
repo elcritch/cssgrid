@@ -11,7 +11,7 @@ import print
 type
   GridNode* = ref object
     id: string
-    box: Box
+    box: UiBox
     gridItem: GridItem
 
 suite "grids":
@@ -30,7 +30,7 @@ suite "grids":
       columns = @[initGridLine 1'fr, initGridLine 1'fr],
       rows = @[gl 1'fr, gl 1'fr],
     )
-    gt.computeLayout(initBox(0, 0, 100, 100))
+    gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
     check gt.columns[0].start == 0'ui
@@ -43,7 +43,7 @@ suite "grids":
       columns = @[gl 1'fr, gl 1'fr, gl 1'fr],
       rows = @[gl 1'fr, gl 1'fr, gl 1'fr],
     )
-    gt.computeLayout(initBox(0, 0, 100, 100))
+    gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
     check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
@@ -57,7 +57,7 @@ suite "grids":
     var gt = newGridTemplate(
       columns = @[1'fr.gl, initGridLine(5.mkFixed), 1'fr.gl, 1'fr.gl],
     )
-    gt.computeLayout(initBox(0, 0, 100, 100))
+    gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
     check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
@@ -72,7 +72,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'perc ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 
-    # gridTemplate.computeLayout(initBox(0, 0, 100, 100))
+    # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
     check gt.columns[0].track.kind == grFixed
@@ -107,7 +107,7 @@ suite "grids":
       ["five"] 40'ui ["end"]
     parseGridTemplateRows tmpl, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
-    tmpl.computeLayout(initBox(0, 0, 1000, 1000))
+    tmpl.computeLayout(uiBox(0, 0, 1000, 1000))
     let gt = tmpl
     # print "grid template: ", gridTemplate
     check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
@@ -135,7 +135,7 @@ suite "grids":
 
     gt.columnGap = 10'ui
     gt.rowGap = 10'ui
-    gt.computeLayout(initBox(0, 0, 1000, 1000))
+    gt.computeLayout(uiBox(0, 0, 1000, 1000))
     # print "grid template: ", gt
     check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
     check abs(gt.columns[1].start.float - 40.0 - 10.0) < 1.0e-3
@@ -155,7 +155,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
-    gridTemplate.computeLayout(initBox(0, 0, 1000, 1000))
+    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
@@ -165,7 +165,7 @@ suite "grids":
     gridItem.rowEnd = 3.mkIndex
     print gridItem
 
-    let contentSize = initPosition(0, 0)
+    let contentSize = uiSize(0, 0)
     let itemBox = gridItem.computePosition(gridTemplate, contentSize)
     print itemBox
     print "post: ", gridItem
@@ -183,7 +183,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
-    gridTemplate.computeLayout(initBox(0, 0, 1000, 1000))
+    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
@@ -193,8 +193,8 @@ suite "grids":
     gridItem.rowEnd = 3.mkIndex
     # print gridItem
 
-    let contentSize = initPosition(500, 200)
-    var itemBox: Box
+    let contentSize = uiSize(500, 200)
+    var itemBox: UiBox
 
     ## test stretch
     itemBox = gridItem.computePosition(gridTemplate, contentSize)
@@ -243,10 +243,10 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.columns.len() == 3
     check gridTemplate.rows.len() == 3
-    gridTemplate.computeLayout(initBox(0, 0, 1000, 1000))
+    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
-    let contentSize = initPosition(30, 30)
+    let contentSize = uiSize(30, 30)
 
     # item a
     var itema = newGridItem()
@@ -287,10 +287,10 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.columns.len() == 3
     check gridTemplate.rows.len() == 3
-    gridTemplate.computeLayout(initBox(0, 0, 1000, 1000))
+    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
-    let contentSize = initPosition(30, 30)
+    let contentSize = uiSize(30, 30)
 
     # item a
     var itema = newGridItem()
@@ -330,11 +330,11 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.columns.len() == 6
     check gridTemplate.rows.len() == 3
-    gridTemplate.computeLayout(initBox(0, 0, 1000, 1000))
+    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
 
-    let contentSize = initPosition(30, 30)
+    let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](8)
 
     # item a

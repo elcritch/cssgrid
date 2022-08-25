@@ -67,7 +67,7 @@ proc computeLineLayout*(
     grdLn.start = cursor
     cursor += grdLn.width + spacing
 
-proc computeLayout*(grid: GridTemplate, box: Box) =
+proc computeLayout*(grid: GridTemplate, UiBox: UiBox) =
   ## computing grid layout
   if grid.columns[^1].track.kind != grEnd:
     grid.columns.add initGridLine(mkEndTrack())
@@ -75,8 +75,8 @@ proc computeLayout*(grid: GridTemplate, box: Box) =
     grid.rows.add initGridLine(mkEndTrack())
   # The free space is calculated after any non-flexible items. In 
   let
-    colLen = box.w
-    rowLen = box.h
+    colLen = UiBox.w
+    rowLen = UiBox.h
   grid.columns.computeLineLayout(length=colLen, spacing=grid.columnGap)
   grid.rows.computeLineLayout(length=rowLen, spacing=grid.rowGap)
 
@@ -91,7 +91,7 @@ proc reComputeLayout(grid: GridTemplate) =
       h = row.start.float32
       break
   # echo "reCompute"
-  grid.computeLayout(initBox(0, 0, w, h))
+  grid.computeLayout(uiBox(0, 0, w, h))
 
 template parseGridTemplateColumns*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, columns)
@@ -112,7 +112,7 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
 proc setGridSpans(
     item: GridItem,
     grid: GridTemplate,
-    contentSize: Position
+    contentSize: UiSize
 ) =
   ## computing grid layout
   template gridAutoInsert(target, index, lines, idx, cz: untyped) =
@@ -150,8 +150,8 @@ proc setGridSpans(
 proc computePosition*(
     item: GridItem,
     grid: GridTemplate,
-    contentSize: Position
-): Box =
+    contentSize: UiSize
+): UiBox =
   ## computing grid layout
   assert not item.isNil
   item.setGridSpans(grid, contentSize)
@@ -194,7 +194,7 @@ proc fixedCount*(gridItem: GridItem): range[0..4] =
   if gridItem.rowStart.line.int != 0: result.inc
   if gridItem.rowEnd.line.int != 0: result.inc
 
-proc isAutoPositioned*(gridItem: GridItem): bool =
+proc isAutoUiSizeed*(gridItem: GridItem): bool =
   gridItem.fixedCount() == 0
 
 proc `in`(cur: (LinePos, LinePos), col: HashSet[GridSpan]): bool =
@@ -231,7 +231,7 @@ proc computeAutoFlow[N](
     else:
       autos.add child
 
-  # setup cursor for current grid position
+  # setup cursor for current grid UiSize
   var cursor = (1.LinePos, 1.LinePos)
   var i = 0
 
@@ -265,7 +265,7 @@ proc computeGridLayout*[N](
 ) =
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has
-  ## both `box: Box` and `gridItem: GridItem` fields. 
+  ## both `UiBox: UiBox` and `gridItem: GridItem` fields. 
   ## 
   ## this algorithm tries to follow the specification at:
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
@@ -281,18 +281,18 @@ proc computeGridLayout*[N](
       child.gridItem = GridItem()
       hasAutos = true
     elif fixedCount(child.gridItem) == 4:
-      # compute positions for fixed children
+      # compute UiSizes for fixed children
       child.box = child.gridItem.computePosition(gridTemplate, child.box.wh)
     else:
       hasAutos = true
     
-  # compute positions for partially fixed children
+  # compute UiSizes for partially fixed children
   for child in children:
     if fixedCount(child.gridItem) in 1..3:
-      # child.box = child.gridItem.computePosition(gridTemplate, child.box.wh)
+      # child.UiBox = child.gridItem.computeUiSize(gridTemplate, child.UiBox.wh)
       assert false, "todo: implement me!"
 
-  # compute positions for auto flow items
+  # compute UiSizes for auto flow items
   if hasAutos:
     computeAutoFlow(gridTemplate, node, children)
 

@@ -83,17 +83,6 @@ macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
 type
-  PercKind* = enum
-    relative
-    absolute
-  Percent* = distinct float32
-  Percentages* = tuple[value: float32, kind: PercKind]
-
-borrowMaths(Percent, float32)
-# borrowMathsMixed(Percent)
-
-type
-  # ScaledCoord* = distinct float32
   UiScalar* = distinct float32
 
 # borrowMaths(ScaledCoord)
@@ -115,86 +104,78 @@ template descaled*(a: float32): UiScalar =
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
 type
-  Position* = distinct Vec2
+  UiSize* = distinct Vec2
 
-proc initPosition*(x, y: float32): Position = Position(vec2(x, y))
-genBoolOp[Position, Vec2](`==`)
-genBoolOp[Position, Vec2](`!=`)
-genBoolOp[Position, Vec2](`~=`)
+proc uiSize*(x, y: float32): UiSize = UiSize(vec2(x, y))
+genBoolOp[UiSize, Vec2](`==`)
+genBoolOp[UiSize, Vec2](`!=`)
+genBoolOp[UiSize, Vec2](`~=`)
 
-applyOps(Position, Vec2, genOp, `+`, `-`, `/`, `*`, `mod`, `zmod`, `min`, `zmod`)
-applyOps(Position, Vec2, genEqOp, `+=`, `-=`, `*=`, `/=`)
-applyOps(Position, Vec2, genMathFn, `-`, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
-applyOps(Position, Vec2, genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
-applyOps(Position, Vec2, genFloatOp, `*`, `/`)
+applyOps(UiSize, Vec2, genOp, `+`, `-`, `/`, `*`, `mod`, `zmod`, `min`, `zmod`)
+applyOps(UiSize, Vec2, genEqOp, `+=`, `-=`, `*=`, `/=`)
+applyOps(UiSize, Vec2, genMathFn, `-`, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
+applyOps(UiSize, Vec2, genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
+applyOps(UiSize, Vec2, genFloatOp, `*`, `/`)
 
 type
-  Box* = distinct Rect
+  UiBox* = distinct Rect
 
-proc initBox*(x, y, w, h: float32): Box = Box(rect(x, y, w, h))
-proc initBox*(x, y, w, h: UiScalar): Box = Box(rect(x.float32, y.float32, w.float32, h.float32))
+proc uiBox*(x, y, w, h: float32): UiBox = UiBox(rect(x, y, w, h))
+proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(rect(x.float32, y.float32, w.float32, h.float32))
 
-applyOps(Box, Rect, genOp, `+`)
-applyOps(Box, Rect, genFloatOp, `*`, `/`)
-genBoolOp[Box, Rect](`==`)
-genEqOpC[Box, Rect, Vec2](`xy=`)
+applyOps(UiBox, Rect, genOp, `+`)
+applyOps(UiBox, Rect, genFloatOp, `*`, `/`)
+genBoolOp[UiBox, Rect](`==`)
+genEqOpC[UiBox, Rect, Vec2](`xy=`)
 
-template x*(r: Box): UiScalar = r.Rect.x.UiScalar
-template y*(r: Box): UiScalar = r.Rect.y.UiScalar
-template w*(r: Box): UiScalar = r.Rect.w.UiScalar
-template h*(r: Box): UiScalar = r.Rect.h.UiScalar
-template `x=`*(r: Box, v: UiScalar) = r.Rect.x = v.float32
-template `y=`*(r: Box, v: UiScalar) = r.Rect.y = v.float32
-template `w=`*(r: Box, v: UiScalar) = r.Rect.w = v.float32
-template `h=`*(r: Box, v: UiScalar) = r.Rect.h = v.float32
+template x*(r: UiBox): UiScalar = r.Rect.x.UiScalar
+template y*(r: UiBox): UiScalar = r.Rect.y.UiScalar
+template w*(r: UiBox): UiScalar = r.Rect.w.UiScalar
+template h*(r: UiBox): UiScalar = r.Rect.h.UiScalar
+template `x=`*(r: UiBox, v: UiScalar) = r.Rect.x = v.float32
+template `y=`*(r: UiBox, v: UiScalar) = r.Rect.y = v.float32
+template `w=`*(r: UiBox, v: UiScalar) = r.Rect.w = v.float32
+template `h=`*(r: UiBox, v: UiScalar) = r.Rect.h = v.float32
 
-template xy*(r: Box): Position = Position r.Rect.xy
-template wh*(r: Box): Position = initPosition(r.w.float32, r.h.float32)
+template xy*(r: UiBox): UiSize = UiSize r.Rect.xy
+template wh*(r: UiBox): UiSize = uiSize(r.w.float32, r.h.float32)
 
-template x*(r: Position): UiScalar = r.Vec2.x.UiScalar
-template y*(r: Position): UiScalar = r.Vec2.y.UiScalar
-template `x=`*(r: Position, v: UiScalar) = r.Vec2.x = v.float32
-template `y=`*(r: Position, v: UiScalar) = r.Vec2.y = v.float32
+template x*(r: UiSize): UiScalar = r.Vec2.x.UiScalar
+template y*(r: UiSize): UiScalar = r.Vec2.y.UiScalar
+template `x=`*(r: UiSize, v: UiScalar) = r.Vec2.x = v.float32
+template `y=`*(r: UiSize, v: UiScalar) = r.Vec2.y = v.float32
 
-proc `+`*(rect: Box, xy: Position): Box =
+proc `+`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
   result = rect
   result.x += xy.x
   result.y += xy.y
 
-proc `-`*(rect: Box, xy: Position): Box =
+proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
   result = rect
   result.x -= xy.x
   result.y -= xy.y
 
-# proc `$`*(a: Position): string {.borrow.}
-# proc `$`*(a: Box): string {.borrow.}
+template scaled*(a: UiBox): Rect = Rect(a * common.uiScale.UiScalar)
+template descaled*(a: Rect): UiBox = UiBox(a / common.uiScale)
 
-template scaled*(a: Box): Rect = Rect(a * common.uiScale.UiScalar)
-template descaled*(a: Rect): Box = Box(a / common.uiScale)
-
-template scaled*(a: Position): Vec2 = Vec2(a * common.uiScale.UiScalar)
-template descaled*(a: Vec2): Position = Position(a / common.uiScale)
-
-proc overlaps*(a, b: Position): bool = overlaps(Vec2(a), Vec2(b))
-proc overlaps*(a: Position, b: Box): bool = overlaps(Vec2(a), Rect(b))
-proc overlaps*(a: Box, b: Position): bool = overlaps(Rect(a), Vec2(b))
-proc overlaps*(a: Box, b: Box): bool = overlaps(Rect(a), Rect(b))
+template scaled*(a: UiSize): Vec2 = Vec2(a * common.uiScale.UiScalar)
+template descaled*(a: Vec2): UiSize = UiSize(a / common.uiScale)
 
 proc sum*(rect: Rect): float32 =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (float32, float32, float32, float32)): float32 =
   result = rect[0] + rect[1] + rect[2] + rect[3]
-proc sum*(rect: Box): UiScalar =
+proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
-proc `$`*(a: Position): string =
-  &"Position<{a.x:2.2f}, {a.y:2.2f}>"
-proc `$`*(b: Box): string =
+proc `$`*(a: UiSize): string =
+  &"UiSize<{a.x:2.2f}, {a.y:2.2f}>"
+proc `$`*(b: UiBox): string =
   let a = b.Rect
-  &"Box<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
+  &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
 
 

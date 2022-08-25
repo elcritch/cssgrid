@@ -10,3 +10,8 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 1.2"
+requires "patty >= 0.3.4"
+requires "vmath >= 1.2.0"
+requires "bumpy >= 1.1.0"
+requires "macroutils"
+requires "print"

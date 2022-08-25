@@ -36,10 +36,10 @@ suite "grids":
     gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
-    check gt.columns[0].start == 0'ui
-    check gt.columns[1].start == 50'ui
-    check gt.rows[0].start == 0'ui
-    check gt.rows[1].start == 50'ui
+    check gt.columns[0].start == 0.UiScalar
+    check gt.columns[1].start == 50.UiScalar
+    check gt.rows[0].start == 0.UiScalar
+    check gt.rows[1].start == 50.UiScalar
 
   test "3x3 grid compute with frac's":
     var gt = newGridTemplate(
@@ -79,19 +79,19 @@ suite "grids":
     let gt = gridTemplate
 
     check gt.columns[0].track.kind == grFixed
-    check gt.columns[0].track.coord == 40.0'ui
+    check gt.columns[0].track.coord == 40.0.UiScalar
     echo repr gt.columns[0].aliases.toSeq.mapIt(it.int), repr toLineNames("first").toSeq.mapIt(it.int)
     check gt.columns[0].aliases == toLineNames("first")
     check gt.columns[1].track.kind == grPerc
-    check gt.columns[1].track.perc == 50.0
+    check gt.columns[1].track.perc == 50.0.UiScalar
     check gt.columns[1].aliases == toLineNames("second", "line2")
     check gt.columns[2].track.kind == grAuto
     check gt.columns[2].aliases == toLineNames("line3")
     check gt.columns[3].track.kind == grFixed
-    check gt.columns[3].track.coord == 50.0'ui
+    check gt.columns[3].track.coord == 50.0.UiScalar
     check gt.columns[3].aliases == toLineNames("col4-start")
     check gt.columns[4].track.kind == grFixed
-    check gt.columns[4].track.coord == 40.0'ui
+    check gt.columns[4].track.coord == 40.0.UiScalar
     check gt.columns[4].aliases == toLineNames("five")
     check gt.columns[5].track.kind == grEnd
     check toLineNames("end") == gt.columns[5].aliases
@@ -136,8 +136,8 @@ suite "grids":
       ["five"] 40'ui ["end"]
     parseGridTemplateRows gt, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
-    gt.columnGap = 10'ui
-    gt.rowGap = 10'ui
+    gt.columnGap = 10.UiScalar
+    gt.rowGap = 10.UiScalar
     gt.computeLayout(uiBox(0, 0, 1000, 1000))
     # print "grid template: ", gt
     check abs(gt.columns[0].start.float - 0.0) < 1.0e-3

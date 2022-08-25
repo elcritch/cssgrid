@@ -85,24 +85,17 @@ macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
 type
   UiScalar* = distinct float32
 
-# borrowMaths(ScaledCoord)
 borrowMaths(UiScalar, float32)
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
-proc `'ui`*(n: string): UiScalar =
-  ## numeric literal UI Coordinate unit
-  result = UiScalar(parseFloat(n))
-
-template scaled*(a: UiScalar): float32 =
-  a.float32 * common.uiScale
-template descaled*(a: float32): UiScalar =
-  UiScalar(a / common.uiScale)
+# proc `'ui`*(n: string): UiScalar =
+#   ## numeric literal UI Coordinate unit
+#   result = UiScalar(parseFloat(n))
 
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 ## Distinct vec types
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
-
 type
   UiSize* = distinct Vec2
 

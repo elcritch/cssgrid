@@ -8,7 +8,7 @@ suite "grids":
     let x = uiSize(12.1, 13.4)
     let y = uiSize(10.0, 10.0)
     var z = uiSize(0.0, 0.0)
-    let c = 1.0'ui
+    let c = 1.0.UiScalar
 
     echo "x + y: ", repr(x + y)
     echo "x - y: ", repr(x - y)
@@ -30,7 +30,7 @@ suite "grids":
   test "box ":
     let x = uiBox(10.0, 10.0, 2.0, 2.0)
     let y = uiBox(10.0, 10.0, 5.0, 5.0)
-    let c = 10.0'ui
+    let c = 10.0.UiScalar
     var z = uiBox(10.0, 10.0, 5.0, 5.0)
     let v = uiSize(10.0, 10.0)
 

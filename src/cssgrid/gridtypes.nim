@@ -39,11 +39,11 @@ type
   TrackSize* = object
     case kind*: GridUnits
     of grFrac:
-      frac*: float
+      frac*: UiScalar
     of grAuto:
       discard
     of grPerc:
-      perc*: float
+      perc*: UiScalar
     of grFixed:
       coord*: UiScalar
     of grEnd:
@@ -52,13 +52,18 @@ type
 proc `'fr`*(n: string): TrackSize =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
-  result = TrackSize(kind: grFrac, frac: f)
+  result = TrackSize(kind: grFrac, frac: f.UiScalar)
 
-proc mkFrac*(size: float): TrackSize = TrackSize(kind: grFrac, frac: size)
-proc mkFixed*(coord: UiScalar): TrackSize = TrackSize(kind: grFixed, coord: coord)
-proc mkPerc*(perc: float): TrackSize = TrackSize(kind: grPerc, perc: perc)
-proc mkAuto*(): TrackSize = TrackSize(kind: grAuto)
-proc mkEndTrack*(): TrackSize = TrackSize(kind: grEnd)
+proc mkFrac*(size: int|float|UiScalar): TrackSize =
+  TrackSize(kind: grFrac, frac: size.UiScalar)
+proc mkFixed*(coord: int|float|UiScalar): TrackSize =
+  TrackSize(kind: grFixed, coord: coord.UiScalar)
+proc mkPerc*(perc: int|float|UiScalar): TrackSize =
+  TrackSize(kind: grPerc, perc: perc.UiScalar)
+proc mkAuto*(): TrackSize =
+  TrackSize(kind: grAuto)
+proc mkEndTrack*(): TrackSize =
+  TrackSize(kind: grEnd)
 
 type
   LineName* = distinct int

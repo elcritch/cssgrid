@@ -27,8 +27,8 @@ proc computeLineLayout*(
     spacing: UiScalar,
 ) =
   var
-    fixed = 0'ui
-    totalFracs = 0.0'ui
+    fixed = 0.UiScalar
+    totalFracs = 0.0.UiScalar
     totalAutos = 0
   
   # compute total fixed sizes and fracs
@@ -43,26 +43,26 @@ proc computeLineLayout*(
 
   var
     freeSpace = length - fixed
-    remSpace = max(freeSpace, 0.0'ui)
+    remSpace = max(freeSpace, 0.UiScalar)
   
   # frac's
   for grdLn in lines.mitems():
     if grdLn.track.kind == grFrac:
       grdLn.width =
-        freeSpace * grdLn.track.frac.UiScalar/totalFracs
-      remSpace -= max(grdLn.width, 0.0'ui)
+        freeSpace * grdLn.track.frac/totalFracs
+      remSpace -= max(grdLn.width, 0.UiScalar)
     elif grdLn.track.kind == grFixed:
       grdLn.width = grdLn.track.coord
     elif grdLn.track.kind == grPerc:
-      grdLn.width = length * UiScalar(grdLn.track.perc / 100.0)
-      remSpace -= max(grdLn.width, 0.0'ui)
+      grdLn.width = length * grdLn.track.perc / 100
+      remSpace -= max(grdLn.width, 0.UiScalar)
   
   # auto's
   for grdLn in lines.mitems():
     if grdLn.track.kind == grAuto:
       grdLn.width = remSpace / totalAutos.UiScalar
 
-  var cursor = 0.0'ui
+  var cursor = 0.0.UiScalar
   for grdLn in lines.mitems():
     grdLn.start = cursor
     cursor += grdLn.width + spacing

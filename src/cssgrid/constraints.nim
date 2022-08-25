@@ -1,5 +1,3 @@
-
-
 import basic
 export sets, tables
 

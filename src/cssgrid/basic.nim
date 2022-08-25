@@ -1,5 +1,4 @@
-
-import strformat, strutils, hashes
+import std/[strformat, sequtils, strutils, hashes, sets, tables]
 
 import patty
 export patty
@@ -10,13 +9,7 @@ export math, vmath, bumpy
 import macros, macroutils
 import typetraits
 
-import typography/font
-
-proc repr*(font: Font): string =
-  if font.isNil:
-    result = "Font(nil)"
-  else:
-    result = fmt"Font({font.typeface.name=}, {font.size=}, {font.weight=})"
+export sequtils, strutils, hashes, sets, tables, strformat
 
 template borrowMaths*(typ, base: typedesc) =
   proc `+` *(x, y: typ): typ = typ(`+`(base(x), base(y)))

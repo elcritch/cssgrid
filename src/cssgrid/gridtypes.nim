@@ -5,7 +5,7 @@ import typetraits
 import patty
 
 import basic
-export sets
+export sets, tables
 
 type
   GridDir* = enum
@@ -31,6 +31,7 @@ type
     grColumn
     grColumnDense
 
+type
   TrackSize* = object
     case kind*: GridUnits
     of grFrac:
@@ -44,6 +45,18 @@ type
     of grEnd:
       discard
   
+proc `'fr`*(n: string): TrackSize =
+  ## numeric literal UI Coordinate unit
+  let f = parseFloat(n)
+  result = TrackSize(kind: grFrac, frac: f)
+
+proc mkFrac*(size: float): TrackSize = TrackSize(kind: grFrac, frac: size)
+proc mkFixed*(coord: UiScalar): TrackSize = TrackSize(kind: grFixed, coord: coord)
+proc mkPerc*(perc: float): TrackSize = TrackSize(kind: grPerc, perc: perc)
+proc mkAuto*(): TrackSize = TrackSize(kind: grAuto)
+proc mkEndTrack*(): TrackSize = TrackSize(kind: grEnd)
+
+type
   LineName* = distinct int
   LinePos* = int16
 
@@ -147,7 +160,6 @@ proc `row=`*(item: GridItem, rat: Rational[int]) =
   item.rowStart = rat.num.mkIndex
   item.rowEnd = rat.den.mkIndex
 
-
 proc repr*(a: TrackSize): string =
   match a:
     grFrac(frac): result = $frac & "'fr"
@@ -155,6 +167,7 @@ proc repr*(a: TrackSize): string =
     grPerc(perc): result = $perc & "'perc"
     grAuto(): result = "auto"
     grEnd(): result = "ends"
+
 proc repr*(a: GridLine): string =
   result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {a.aliases.repr})"
 proc repr*(a: GridTemplate): string =
@@ -165,17 +178,6 @@ proc repr*(a: GridTemplate): string =
   result &= "\n\trows: "
   for r in a.rows:
     result &= &"\n\t\t{r.repr}"
-
-proc mkFrac*(size: float): TrackSize = TrackSize(kind: grFrac, frac: size)
-proc mkFixed*(coord: UiScalar): TrackSize = TrackSize(kind: grFixed, coord: coord)
-proc mkPerc*(perc: float): TrackSize = TrackSize(kind: grPerc, perc: perc)
-proc mkAuto*(): TrackSize = TrackSize(kind: grAuto)
-proc mkEndTrack*(): TrackSize = TrackSize(kind: grEnd)
-
-proc `'fr`*(n: string): TrackSize =
-  ## numeric literal UI Coordinate unit
-  let f = parseFloat(n)
-  result = TrackSize(kind: grFrac, frac: f)
 
 proc initGridLine*(
     track = mkFrac(1),

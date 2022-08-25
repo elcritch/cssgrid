@@ -14,6 +14,9 @@ type
     box: UiBox
     gridItem: GridItem
 
+proc `box=`*[T](v: T, box: UiBox) = 
+  v.box = box
+
 suite "grids":
 
   test "basic grid template":

@@ -8,6 +8,10 @@ import basic
 export sets, tables
 
 type
+  GridNodes* = concept node
+    node.box = uiBox(0, 0, 0, 0)
+
+type
   GridDir* = enum
     dcol
     drow

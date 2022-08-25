@@ -202,10 +202,10 @@ proc `in`(cur: (LinePos, LinePos), col: HashSet[GridSpan]): bool =
     if cur[0] in span[dcol] and cur[1] in span[drow]:
       return true
 
-proc computeAutoFlow[N](
+proc computeAutoFlow(
     gridTemplate: GridTemplate,
-    node: N,
-    allNodes: seq[N],
+    node: GridNodes,
+    allNodes: seq[GridNodes],
 ) =
   let mx = dcol
   let my = drow
@@ -213,7 +213,7 @@ proc computeAutoFlow[N](
   template mnLines(x: untyped): untyped = x.rows
 
   # setup caches
-  var autos = newSeqOfCap[N](allNodes.len())
+  var autos = newSeqOfCap[GridNodes](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
   for i in 1..gridTemplate.mjLines.len():
     fixedCache[i.LinePos] = initHashSet[GridSpan]()
@@ -258,10 +258,10 @@ proc computeAutoFlow[N](
             break autoflow
           incrCursor(1, childBlock, autoFlow)
 
-proc computeGridLayout*[N](
+proc computeGridLayout*(
     gridTemplate: GridTemplate,
-    node: N,
-    children: seq[N],
+    node: GridNodes,
+    children: seq[GridNodes],
 ) =
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has

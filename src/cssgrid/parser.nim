@@ -1,8 +1,41 @@
 import basic, gridtypes
 import typetraits
 import macros except `$`
+import std/macrocache
+import std/macros
 
 export gridtypes
+
+const lnTable = CacheTable"lnTable"
+
+proc contains(ct: CacheTable, nm: string): bool =
+  for k, v in ct:
+    if nm == k:
+      return true
+
+var lnNameCache* {.compileTime.}: Table[int, string]
+
+macro declLineName*(name: typed): LineName =
+  let nm = name.strVal
+  let id = nm.hash()
+  lnNameCache[id.int] = nm
+  let res = quote do:
+    LineName(`id`)
+  if nm in lnTable:
+    result = lnTable[nm]
+  else:
+    lnTable[nm] = res
+    result = res
+
+macro findLineNameImpl(name: typed): LineName =
+  let nm = name.strVal
+  if nm in lnTable:
+    result = lnTable[nm]
+  else:
+    error("LineName not declared: " & nm)
+
+template findLineName*(name: static string): LineName =
+  findLineNameImpl(name)
 
 proc flatten(arg: NimNode): NimNode {.compileTime.} =
   ## flatten the representation
@@ -34,7 +67,7 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
       for name in node:
         let n = newLit name.strVal
         result[1].add quote do:
-          `tgt`[`idxLit`].aliases.incl toLineName(`n`)
+          `tgt`[`idxLit`].aliases.incl declLineName(`n`)
     of nnkDotExpr:
       result[1].add quote do:
         `tgt`[`idxLit`].track = `node`

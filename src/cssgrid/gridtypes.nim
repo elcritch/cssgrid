@@ -68,7 +68,7 @@ type
     rowStart*: GridIndex
     rowEnd*: GridIndex
 
-var lineName: Table[LineName, string]
+var lineName: Table[int, string]
 
 proc `==`*(a, b: LineName): bool {.borrow.}
 proc hash*(a: LineName): Hash {.borrow.}
@@ -76,7 +76,11 @@ proc hash*(a: GridItem): Hash =
   if a != nil:
     result = hash(a.span[drow]) !& hash(a.span[dcol])
 
-proc `$`*(a: LineName): string = lineName[a]
+proc `$`*(a: LineName): string =
+  if a.int in lineName:
+    lineName[a.int]
+  else:
+    "int:" & $a.int
 
 proc `$`*(a: HashSet[LineName]): string =
   result = "{" & a.toSeq().mapIt($it).join(", ") & "}"
@@ -87,7 +91,7 @@ proc `$`*(a: HashSet[LineName]): string =
 proc `$`*(a: GridIndex): string =
   result = "GridIdx{"
   if a.isName:
-    result &= "" & $lineName.getOrDefault(a.line, $a.line.int)
+    result &= "" & $lineName.getOrDefault(a.line.int, $a.line.int)
   else:
     result &= "" & $a.line.int
   result &= ",s:" & $a.isSpan
@@ -111,13 +115,13 @@ proc `$`*(a: GridItem): string =
 
 proc toLineName*(name: int): LineName =
   result = LineName(name)
-  lineName[result] = "idx:" & $name
+  lineName[result.int] = "idx:" & $name
 proc toLineName*(name: string): LineName =
   result = LineName(name.hash())
-  if result in lineName:
-    assert lineName[result] == name
+  if result.int in lineName:
+    assert lineName[result.int] == name
   else:
-    lineName[result] = name
+    lineName[result.int] = name
 
 proc toLineNames*(names: varargs[string, toLineName]): HashSet[LineName] =
   toHashSet names.toSeq().mapIt(it.toLineName())

@@ -88,15 +88,13 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result[0] = result[0] + 1
   # echo "parseTmpl: ", result[1].repr
 
-var doPrints* {.compileTime.} = false
-
 macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
   result = newStmtList()
   let tgt = quote do:
     `gridTmpl`.`field`
-  if doPrints: echo "\ngridTemplateImpl: ", args.treeRepr
+  # echo "\ngridTemplateImpl: ", args.treeRepr
   let fargs = args.flatten()
-  if doPrints: echo "\ngridTemplatePost: ", fargs.treeRepr
+  # echo "\ngridTemplatePost: ", fargs.treeRepr
   let (colCount, cols) = parseTmplCmd(tgt, fargs)
   result.add quote do:
     if `gridTmpl`.isNil:

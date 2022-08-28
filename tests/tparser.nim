@@ -40,9 +40,6 @@ suite "grids":
       echo "nm: ", $nm
 
   test "simple macros":
-    static:
-      doPrints = true
-
     let ns = !["a", "b"]
     echo "ns: ", $ns
     var gt1 = newGridTemplate()

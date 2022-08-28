@@ -89,43 +89,44 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
   # if idx == -2: lines[idx-1].start else: lines[^1].start
   lines[idx-1].start
 
+proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
+  assert idx <= 1000, "max grids exceeded"
+  if idx >= grid.lines[`dir`].len():
+    while idx >= grid.lines[`dir`].len():
+      let offset = grid.lines[`dir`].len() - 1
+      var ln = initGridLine(track = grid.autos[`dir`])
+      if offset+1 == idx and ln.track.kind == UiFixed:
+        # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
+        ln.track.coord = max(ln.track.coord, cz)
+      grid.lines[`dir`].insert(ln, offset)
+    grid.reComputeLayout()
+  
+proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
+  ## todo: clean this up? maybe use static bools for col vs row
+  if not index.isName:
+    let idx = index.line.int - 1
+    grid.gridAutoInsert(dir, idx, cz)
+    index.line.int16
+  else:
+    findLine(index, grid.lines[`dir`])
+
 proc setGridSpans(
     item: GridItem,
     grid: GridTemplate,
     contentSize: UiSize
 ) =
   ## computing grid layout
-  template gridAutoInsert(target, index, dir, idx, cz: untyped) =
-    assert idx <= 1000, "max grids exceeded"
-    if idx >= grid.lines[`dir`].len():
-      while idx >= grid.lines[`dir`].len():
-        let offset = grid.lines[`dir`].len() - 1
-        var ln = initGridLine(track = grid.autos[`dir`])
-        if offset+1 == idx and ln.track.kind == UiFixed:
-          # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
-          ln.track.coord = max(ln.track.coord, cz)
-        grid.lines[`dir`].insert(ln, offset)
-      grid.reComputeLayout()
-  
-  template setSpan(index, dir, cz: untyped): int16 =
-    ## todo: clean this up? maybe use static bools for col vs row
-    if not item.`index`.isName:
-      let idx = item.`index`.line.int - 1
-      gridAutoInsert(target, index, dir, idx, cz)
-      item.`index`.line.int16
-    else:
-      findLine(item.`index`, grid.lines[`dir`])
   assert not item.isNil
 
   if item.span[dcol].a == 0:
-    item.span[dcol].a = setSpan(columnStart, dcol, 0)
+    item.span[dcol].a = grid.setSpan(item.columnStart, dcol, 0)
   if item.span[dcol].b == 0:
-    item.span[dcol].b = setSpan(columnEnd, dcol, contentSize.x)
+    item.span[dcol].b = grid.setSpan(item.columnEnd, dcol, contentSize.x)
 
   if item.span[drow].a == 0:
-    item.span[drow].a = setSpan(rowStart, drow, 0)
+    item.span[drow].a = grid.setSpan(item.rowStart, drow, 0)
   if item.span[drow].b == 0:
-    item.span[drow].b = setSpan(rowEnd, drow, contentSize.x)
+    item.span[drow].b = grid.setSpan(item.rowEnd, drow, contentSize.x)
 
 proc computePosition*(
     item: GridItem,

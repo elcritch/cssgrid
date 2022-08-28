@@ -22,6 +22,14 @@ suite "grids":
   test "initial macros":
     var gridTemplate: GridTemplate
 
+    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
+
+    # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
+    let gt = gridTemplate
+
+  test "initial macros":
+    var gridTemplate: GridTemplate
+
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 

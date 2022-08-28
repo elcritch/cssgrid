@@ -35,8 +35,9 @@ suite "grids":
     for (c1, c3) in zip(gt1.columns, gt3.columns):
       check c1 == c3
     
-    let nm = findLineName("first")
-    echo "nm: ", $nm
+    expandMacros:
+      let nm = findLineName("first")
+      echo "nm: ", $nm
 
   test "simple macros":
     static:

@@ -45,3 +45,14 @@ suite "grids":
     # z += 3.1'f32
     echo "z: ", repr(z)
     z = uiBox(10.0, 10.0, 5.0, 5.0)
+
+  test "example static dispatch":
+    type Url[T: static string] = distinct void
+
+    template url(s: static string): auto = Url[s]
+
+    proc doThing(_: typedesc[url"hello"]) = echo "hello"
+    proc doThing(_: typedesc[url"world"]) = echo "world"
+
+    doThing url"hello"
+    doThing url"world"

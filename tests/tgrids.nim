@@ -73,7 +73,7 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'perc ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
+    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
@@ -108,7 +108,7 @@ suite "grids":
       ["line3"] auto \
       ["col4-start"] 50'ui \
       ["five"] 40'ui ["end"]
-    parseGridTemplateRows tmpl, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
+    parseGridTemplateRows tmpl, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
     tmpl.computeLayout(uiBox(0, 0, 1000, 1000))
     let gt = tmpl
@@ -134,7 +134,7 @@ suite "grids":
       ["line3"] auto \
       ["col4-start"] 50'ui \
       ["five"] 40'ui ["end"]
-    parseGridTemplateRows gt, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
+    parseGridTemplateRows gt, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
     gt.columnGap = 10.UiScalar
     gt.rowGap = 10.UiScalar
@@ -157,7 +157,7 @@ suite "grids":
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
+    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
     gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     echo "grid template: ", repr gridTemplate
 
@@ -185,7 +185,7 @@ suite "grids":
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'perc ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
+    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
     gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 

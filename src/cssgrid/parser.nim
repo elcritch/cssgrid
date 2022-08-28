@@ -13,25 +13,25 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
     idxLit = newIntLitNode(idx)
   proc handleDotExpr(result, item, tgt: NimNode) =
     # echo item.lispRepr
-    if item[0].kind == nnkRStrLit:
-      let n = item[0].strVal.parseInt()
-      let kd = item[1].strVal
-      if kd == "'fr":
-        result.add quote do:
-          `tgt`[`idxLit`].track = csFrac(`n`)
-      elif kd == "'perc":
-        result.add quote do:
-          `tgt`[`idxLit`].track = csPerc(`n`)
-      elif kd == "'ui":
-        result.add quote do:
-          `tgt`[`idxLit`].track = csFixed(`n`)
-      else:
-        # error("error: unknown argument ", item)
-        result.add quote do:
-          `tgt`[`idxLit`].track = csFixed(`item`)
-    else:
-      result.add quote do:
-        `tgt`[`idxLit`].track = csFixed(`item`)
+    # if item[0].kind == nnkRStrLit:
+    #   let n = item[0].strVal.parseInt()
+    #   let kd = item[1].strVal
+    #   if kd == "'fr":
+    #     result.add quote do:
+    #       `tgt`[`idxLit`].track = csFrac(`n`)
+    #   elif kd == "'perc":
+    #     result.add quote do:
+    #       `tgt`[`idxLit`].track = csPerc(`n`)
+    #   elif kd == "'ui":
+    #     result.add quote do:
+    #       `tgt`[`idxLit`].track = csFixed(`n`)
+    #   else:
+    #     # error("error: unknown argument ", item)
+    #     result.add quote do:
+    #       `tgt`[`idxLit`].track = csFixed(`item`)
+    # else:
+    result.add quote do:
+      `tgt`[`idxLit`].track = `item`
   proc prepareNames(item: NimNode): NimNode =
     result = newStmtList()
     for x in item:

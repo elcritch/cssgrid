@@ -22,6 +22,11 @@ suite "grids":
       ["five"] 40'ui
       ["end"]
   
+    parseGridTemplateColumns gridTemplate, ["first"] 40'ui \
+      ["second", "line2"] 50'pp ["line3"] \
+      auto ["col4-start"] 50'ui ["five"] 40'ui \
+      ["end"]
+    
   # test "initial macros":
   #   var gridTemplate: GridTemplate
 

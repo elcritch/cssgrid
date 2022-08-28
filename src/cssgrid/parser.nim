@@ -82,6 +82,8 @@ template parseGridTemplateColumns*(gridTmpl, args: untyped) =
 template parseGridTemplateRows*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, rows)
 
-proc gridTemplate*(args: varargs[(HashSet[LineName], ConstraintSize), initGridLine]): seq[GridLine] =
-  for arg in args:
-    result.add arg.toGridLine()
+proc gridTemplate*(gt: GridTemplate, dir: GridDir, args: varargs[(HashSet[LineName], ConstraintSize), initGridLine]) =
+  if dir == dcol:
+    gt.columns.setLen(args.len())
+    for i, arg in args:
+      gt.columns[i] = arg.toGridLine()

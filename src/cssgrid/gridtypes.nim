@@ -140,6 +140,7 @@ proc `row=`*(item: GridItem, rat: Rational[int]) =
 
 proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
+
 proc repr*(a: GridLine): string =
   result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 proc repr*(a: GridTemplate): string =
@@ -177,3 +178,6 @@ proc newGridTemplate*(
 
 proc newGridItem*(): GridItem =
   new(result)
+
+proc `$`*(a: GridTemplate): string =
+  result = a.repr

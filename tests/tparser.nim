@@ -32,6 +32,7 @@ suite "grids":
       check c1 == c2
     for (c1, c3) in zip(gt1.columns, gt3.columns):
       check c1 == c3
+
   # test "initial macros":
   #   var gridTemplate: GridTemplate
 

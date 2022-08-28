@@ -20,7 +20,6 @@ proc flatten(arg: NimNode): NimNode {.compileTime.} =
       result.add node[0]
       node = node[1]
       if node.kind == nnkInfix:
-        echo "flattens: ", node.treeRepr
         result.add node[1]
         node = node[2]
     result.add node
@@ -53,7 +52,7 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result[1].add quote do:
     `tgt`[`idxLit`].track = csEnd()
   result[0] = result[0] + 1
-  echo "parseTmpl: ", result[1].repr
+  # echo "parseTmpl: ", result[1].repr
 
 macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
   result = newStmtList()

@@ -19,6 +19,10 @@ proc flatten(arg: NimNode): NimNode {.compileTime.} =
     while node.kind == nnkCommand:
       result.add node[0]
       node = node[1]
+      if node.kind == nnkInfix:
+        echo "flattens: ", node.treeRepr
+        result.add node[1]
+        node = node[2]
     result.add node
 
 proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
@@ -55,8 +59,9 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
   result = newStmtList()
   let tgt = quote do:
     `gridTmpl`.`field`
+  # echo "\ngridTemplateImpl: ", args.treeRepr
   let fargs = args.flatten()
-  echo "\ngridTemplateImpl: ", fargs.treeRepr
+  # echo "\ngridTemplatePost: ", fargs.treeRepr
   let (colCount, cols) = parseTmplCmd(tgt, fargs)
   result.add quote do:
     if `gridTmpl`.isNil:

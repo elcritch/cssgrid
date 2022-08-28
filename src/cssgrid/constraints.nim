@@ -40,6 +40,16 @@ proc csAuto*(): ConstraintSize =
 proc csEnd*(): ConstraintSize =
   ConstraintSize(kind: UiEnd)
 
+proc `==`*(a, b: ConstraintSize): bool =
+  if a.kind == b.kind:
+    match a:
+      UiFrac(frac): return frac == b.frac
+      UiAuto(): return true
+      UiPerc(perc): return perc == b.perc
+      UiFixed(coord): return coord == b.coord
+      UiEnd(): return true
+
+
 proc `'ui`*(n: string): ConstraintSize =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)

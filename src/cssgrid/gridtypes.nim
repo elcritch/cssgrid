@@ -5,7 +5,7 @@ import typetraits
 import patty
 
 import basic, constraints
-export sets, tables, constraints
+export basic, sets, tables, constraints
 
 type
   GridNodes* = concept node

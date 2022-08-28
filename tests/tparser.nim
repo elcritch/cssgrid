@@ -9,24 +9,27 @@ import print
 suite "grids":
 
   test "initial macros":
-    var gridTemplate: GridTemplate
+    var gt1: GridTemplate
+    var gt2: GridTemplate
+    var gt3: GridTemplate
 
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
+    parseGridTemplateColumns gt1, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
-    parseGridTemplateColumns gridTemplate:
+    parseGridTemplateColumns gt2:
       ["first"] 40'ui
-      ["second", "line2"] 50'ui
+      ["second", "line2"] 50'pp
       ["line3"] auto
       ["col4-start"] 50'ui
       ["five"] 40'ui
       ["end"]
   
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ui \
-      ["second", "line2"] 50'pp ["line3"] \
+    parseGridTemplateColumns gt3, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] \
       auto ["col4-start"] 50'ui ["five"] 40'ui \
       ["end"]
     
+    for (c1, c2) in zip(gt1.columns, gt2.columns):
+      check c1 == c2
   # test "initial macros":
   #   var gridTemplate: GridTemplate
 

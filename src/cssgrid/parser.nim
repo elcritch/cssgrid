@@ -23,6 +23,7 @@ macro declLineName*(name: typed): LineName =
     LineName(`id`)
   if nm in lnTable:
     result = lnTable[nm]
+    assert id == result[1].intVal
   else:
     lnTable[nm] = res
     result = res

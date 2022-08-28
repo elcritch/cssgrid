@@ -43,10 +43,8 @@ type
 
   GridTemplate* = ref object
     lines*: array[GridDir, seq[GridLine]]
-    autoColumns*: ConstraintSize
-    autoRows*: ConstraintSize
-    rowGap*: UiScalar
-    columnGap*: UiScalar
+    autos*: array[GridDir, ConstraintSize]
+    gaps*: array[GridDir, UiScalar]
     justifyItems*: Constraint
     alignItems*: Constraint
     justifyContent*: Constraint
@@ -122,8 +120,8 @@ proc toLineName*(name: string): LineName =
   else:
     lineName[result.int] = name
 
-proc toLineNames*(names: varargs[string, toLineName]): HashSet[LineName] =
-  toHashSet names.toSeq().mapIt(it.toLineName())
+proc toLineNames*(names: varargs[LineName, toLineName]): HashSet[LineName] =
+  toHashSet names
 
 proc mkIndex*(line: Positive, isSpan = false, isName = false): GridIndex =
   GridIndex(line: line.toLineName(), isSpan: isSpan, isName: isName)
@@ -176,8 +174,8 @@ proc newGridTemplate*(
   new(result)
   result.lines[dcol] = columns
   result.lines[drow] = rows
-  result.autoColumns = csFixed(0)
-  result.autoRows = csFixed(0)
+  result.autos[dcol] = csFixed(0)
+  result.autos[drow] = csFixed(0)
 
 proc newGridItem*(): GridItem =
   new(result)

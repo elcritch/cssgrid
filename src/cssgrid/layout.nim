@@ -55,24 +55,24 @@ proc computeLineLayout*(
 
 proc computeLayout*(grid: GridTemplate, UiBox: UiBox) =
   ## computing grid layout
-  if grid.columns[^1].track.kind != UiEnd:
-    grid.columns.add initGridLine(csEnd())
-  if grid.rows[^1].track.kind != UiEnd:
-    grid.rows.add initGridLine(csEnd())
+  if grid.lines[dcol][^1].track.kind != UiEnd:
+    grid.lines[dcol].add initGridLine(csEnd())
+  if grid.lines[drow][^1].track.kind != UiEnd:
+    grid.lines[drow].add initGridLine(csEnd())
   # The free space is calculated after any non-flexible items. In 
   let
     colLen = UiBox.w
     rowLen = UiBox.h
-  grid.columns.computeLineLayout(length=colLen, spacing=grid.columnGap)
-  grid.rows.computeLineLayout(length=rowLen, spacing=grid.rowGap)
+  grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
+  grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
 
 proc reComputeLayout(grid: GridTemplate) =
   var w, h: float32
-  for col in grid.columns:
+  for col in grid.lines[dcol]:
     if col.track.kind == UiEnd:
       w = col.start.float32
       break
-  for row in grid.rows:
+  for row in grid.lines[drow]:
     if row.track.kind == UiEnd:
       h = row.start.float32
       break
@@ -95,37 +95,37 @@ proc setGridSpans(
     contentSize: UiSize
 ) =
   ## computing grid layout
-  template gridAutoInsert(target, index, lines, idx, cz: untyped) =
+  template gridAutoInsert(target, index, dir, idx, cz: untyped) =
     assert idx <= 1000, "max grids exceeded"
-    if idx >= grid.`lines`.len():
-      while idx >= grid.`lines`.len():
-        let offset = grid.`lines`.len() - 1
-        var ln = initGridLine(track = grid.`auto lines`)
+    if idx >= grid.lines[`dir`].len():
+      while idx >= grid.lines[`dir`].len():
+        let offset = grid.lines[`dir`].len() - 1
+        var ln = initGridLine(track = grid.autos[`dir`])
         if offset+1 == idx and ln.track.kind == UiFixed:
           # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
           ln.track.coord = max(ln.track.coord, cz)
-        grid.`lines`.insert(ln, offset)
+        grid.lines[`dir`].insert(ln, offset)
       grid.reComputeLayout()
   
-  template setSpan(index, lines, cz: untyped): int16 =
+  template setSpan(index, dir, cz: untyped): int16 =
     ## todo: clean this up? maybe use static bools for col vs row
     if not item.`index`.isName:
       let idx = item.`index`.line.int - 1
-      gridAutoInsert(target, index, lines, idx, cz)
+      gridAutoInsert(target, index, dir, idx, cz)
       item.`index`.line.int16
     else:
-      findLine(item.`index`, grid.`lines`)
+      findLine(item.`index`, grid.lines[`dir`])
   assert not item.isNil
 
   if item.span[dcol].a == 0:
-    item.span[dcol].a = setSpan(columnStart, columns, 0)
+    item.span[dcol].a = setSpan(columnStart, dcol, 0)
   if item.span[dcol].b == 0:
-    item.span[dcol].b = setSpan(columnEnd, columns, contentSize.x)
+    item.span[dcol].b = setSpan(columnEnd, dcol, contentSize.x)
 
   if item.span[drow].a == 0:
-    item.span[drow].a = setSpan(rowStart, rows, 0)
+    item.span[drow].a = setSpan(rowStart, drow, 0)
   if item.span[drow].b == 0:
-    item.span[drow].b = setSpan(rowEnd, rows, contentSize.x)
+    item.span[drow].b = setSpan(rowEnd, drow, contentSize.x)
 
 proc computePosition*(
     item: GridItem,
@@ -137,9 +137,9 @@ proc computePosition*(
   item.setGridSpans(grid, contentSize)
 
   # set columns
-  result.x = grid.columns.getGrid(item.span[dcol].a)
-  let rxw = grid.columns.getGrid(item.span[dcol].b)
-  let rww = (rxw - result.x) - grid.columnGap
+  result.x = grid.lines[dcol].getGrid(item.span[dcol].a)
+  let rxw = grid.lines[dcol].getGrid(item.span[dcol].b)
+  let rww = (rxw - result.x) - grid.gaps[dcol]
   case grid.justifyItems:
   of CxStretch:
     result.w = rww
@@ -153,9 +153,9 @@ proc computePosition*(
     result.w = contentSize.x
 
   # set rows
-  result.y = grid.rows.getGrid(item.span[drow].a)
-  let ryh = grid.rows.getGrid(item.span[drow].b)
-  let rhh = (ryh - result.y) - grid.rowGap
+  result.y = grid.lines[drow].getGrid(item.span[drow].a)
+  let ryh = grid.lines[drow].getGrid(item.span[drow].b)
+  let rhh = (ryh - result.y) - grid.gaps[drow]
   case grid.alignItems:
   of CxStretch:
     result.h = rhh
@@ -189,8 +189,8 @@ proc computeAutoFlow(
 ) =
   let mx = dcol
   let my = drow
-  template mjLines(x: untyped): untyped = x.columns
-  template mnLines(x: untyped): untyped = x.rows
+  template mjLines(x: untyped): untyped = x.lines[dcol]
+  template mnLines(x: untyped): untyped = x.lines[drow]
 
   # setup caches
   var autos = newSeqOfCap[GridNodes](allNodes.len())

@@ -91,7 +91,7 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
 macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
   result = newStmtList()
   let tgt = quote do:
-    `gridTmpl`.`field`
+    `gridTmpl`.lines[`field`]
   # echo "\ngridTemplateImpl: ", args.treeRepr
   let fargs = args.flatten()
   # echo "\ngridTemplatePost: ", fargs.treeRepr
@@ -100,22 +100,28 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
     if `gridTmpl`.isNil:
       `gridTmpl` = newGridTemplate()
     block:
-      if `gridTmpl`.`field`.len() < `colCount`:
-        `gridTmpl`.`field`.setLen(`colCount`)
+      if `gridTmpl`.lines[`field`].len() < `colCount`:
+        `gridTmpl`.lines[`field`].setLen(`colCount`)
         `cols`
   echo "result: ", result.repr
 
-template `!`*(arg: untyped{nkBracket}): auto =
-  toLineNames(arg)
+macro `!`*(arg: untyped{nkBracket}): auto =
+  result = nnkBracket.newTree()
+  for a in arg:
+    result.add quote do:
+      toLineName(`a`)
+  result = quote do:
+    toLineNames(`result`)
+  echo "r: ", result.repr
 
 template parseGridTemplateColumns*(gridTmpl, args: untyped) =
-  gridTemplateImpl(gridTmpl, args, columns)
+  gridTemplateImpl(gridTmpl, args, dcol)
 
 template parseGridTemplateRows*(gridTmpl, args: untyped) =
-  gridTemplateImpl(gridTmpl, args, rows)
+  gridTemplateImpl(gridTmpl, args, drow)
 
 proc gridTemplate*(gt: GridTemplate, dir: GridDir, args: varargs[(HashSet[LineName], ConstraintSize), initGridLine]) =
   if dir == dcol:
-    gt.columns.setLen(args.len())
+    gt.lines[dcol].setLen(args.len())
     for i, arg in args:
-      gt.columns[i] = arg.toGridLine()
+      gt.lines[dcol][i] = arg.toGridLine()

@@ -30,9 +30,9 @@ suite "grids":
       auto ["col4-start"] 50'ui ["five"] 40'ui \
       ["end"]
     
-    for (c1, c2) in zip(gt1.columns, gt2.columns):
+    for (c1, c2) in zip(gt1.lines[dcol], gt2.lines[dcol]):
       check c1 == c2
-    for (c1, c3) in zip(gt1.columns, gt3.columns):
+    for (c1, c3) in zip(gt1.lines[dcol], gt3.lines[dcol]):
       check c1 == c3
     
     expandMacros:

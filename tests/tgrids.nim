@@ -5,6 +5,7 @@ import unittest
 import cssgrid/basic
 import cssgrid/gridtypes
 import cssgrid/layout
+import cssgrid/parser
 
 import print
 
@@ -25,8 +26,8 @@ suite "grids":
       columns = @[initGridLine(csFrac(1))],
       rows = @[initGridLine(csFrac(1))],
     )
-    check gt.columns.len() == 1
-    check gt.rows.len() == 1
+    check gt.lines[dcol].len() == 1
+    check gt.lines[drow].len() == 1
 
   test "basic grid compute":
     var gt = newGridTemplate(
@@ -36,10 +37,10 @@ suite "grids":
     gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
-    check gt.columns[0].start == 0.UiScalar
-    check gt.columns[1].start == 50.UiScalar
-    check gt.rows[0].start == 0.UiScalar
-    check gt.rows[1].start == 50.UiScalar
+    check gt.lines[dcol][0].start == 0.UiScalar
+    check gt.lines[dcol][1].start == 50.UiScalar
+    check gt.lines[drow][0].start == 0.UiScalar
+    check gt.lines[drow][1].start == 50.UiScalar
 
   test "3x3 grid compute with frac's":
     var gt = newGridTemplate(
@@ -49,12 +50,12 @@ suite "grids":
     gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
-    check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.columns[1].start.float - 33.3333) < 1.0e-3
-    check abs(gt.columns[2].start.float - 66.6666) < 1.0e-3
-    check abs(gt.rows[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.rows[1].start.float - 33.3333) < 1.0e-3
-    check abs(gt.rows[2].start.float - 66.6666) < 1.0e-3
+    check abs(gt.lines[dcol][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[dcol][1].start.float - 33.3333) < 1.0e-3
+    check abs(gt.lines[dcol][2].start.float - 66.6666) < 1.0e-3
+    check abs(gt.lines[drow][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[drow][1].start.float - 33.3333) < 1.0e-3
+    check abs(gt.lines[drow][2].start.float - 66.6666) < 1.0e-3
 
   test "4x1 grid test":
     var gt = newGridTemplate(
@@ -63,11 +64,11 @@ suite "grids":
     gt.computeLayout(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
-    check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.columns[1].start.float - 31.6666) < 1.0e-3
-    check abs(gt.columns[2].start.float - 36.6666) < 1.0e-3
-    check abs(gt.columns[3].start.float - 68.3333) < 1.0e-3
-    check abs(gt.rows[0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[dcol][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[dcol][1].start.float - 31.6666) < 1.0e-3
+    check abs(gt.lines[dcol][2].start.float - 36.6666) < 1.0e-3
+    check abs(gt.lines[dcol][3].start.float - 68.3333) < 1.0e-3
+    check abs(gt.lines[drow][0].start.float - 0.0) < 1.0e-3
 
   test "initial macros":
     var gridTemplate: GridTemplate
@@ -78,23 +79,23 @@ suite "grids":
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
-    check gt.columns[0].track.kind == UiFixed
-    check gt.columns[0].track.coord == 40.0.UiScalar
-    echo repr gt.columns[0].aliases.toSeq.mapIt(it.int), repr toLineNames("first").toSeq.mapIt(it.int)
-    check gt.columns[0].aliases == toLineNames("first")
-    check gt.columns[1].track.kind == UiPerc
-    check gt.columns[1].track.perc == 50.0.UiScalar
-    check gt.columns[1].aliases == toLineNames("second", "line2")
-    check gt.columns[2].track.kind == UiAuto
-    check gt.columns[2].aliases == toLineNames("line3")
-    check gt.columns[3].track.kind == UiFixed
-    check gt.columns[3].track.coord == 50.0.UiScalar
-    check gt.columns[3].aliases == toLineNames("col4-start")
-    check gt.columns[4].track.kind == UiFixed
-    check gt.columns[4].track.coord == 40.0.UiScalar
-    check gt.columns[4].aliases == toLineNames("five")
-    check gt.columns[5].track.kind == UiEnd
-    check toLineNames("end") == gt.columns[5].aliases
+    check gt.lines[dcol][0].track.kind == UiFixed
+    check gt.lines[dcol][0].track.coord == 40.0.UiScalar
+    # echo repr gt.lines[dcol][0].aliases.toSeq.mapIt(it.int), toLineNames("first").toSeq.mapIt(it.int)
+    check gt.lines[dcol][0].aliases == toLineNames("first")
+    check gt.lines[dcol][1].track.kind == UiPerc
+    check gt.lines[dcol][1].track.perc == 50.0.UiScalar
+    check gt.lines[dcol][1].aliases == toLineNames("second", "line2")
+    check gt.lines[dcol][2].track.kind == UiAuto
+    check gt.lines[dcol][2].aliases == toLineNames("line3")
+    check gt.lines[dcol][3].track.kind == UiFixed
+    check gt.lines[dcol][3].track.coord == 50.0.UiScalar
+    check gt.lines[dcol][3].aliases == toLineNames("col4-start")
+    check gt.lines[dcol][4].track.kind == UiFixed
+    check gt.lines[dcol][4].track.coord == 40.0.UiScalar
+    check gt.lines[dcol][4].aliases == toLineNames("five")
+    check gt.lines[dcol][5].track.kind == UiEnd
+    check toLineNames("end") == gt.lines[dcol][5].aliases
 
     # print "grid template: ", gridTemplate
     # echo "grid template: ", repr gridTemplate
@@ -113,17 +114,17 @@ suite "grids":
     tmpl.computeLayout(uiBox(0, 0, 1000, 1000))
     let gt = tmpl
     # print "grid template: ", gridTemplate
-    check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.columns[1].start.float - 40.0) < 1.0e-3
-    check abs(gt.columns[2].start.float - 90.0) < 1.0e-3
-    check abs(gt.columns[3].start.float - 910.0) < 1.0e-3
-    check abs(gt.columns[4].start.float - 960.0) < 1.0e-3
-    check abs(gt.columns[5].start.float - 1000.0) < 1.0e-3
+    check abs(gt.lines[dcol][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[dcol][1].start.float - 40.0) < 1.0e-3
+    check abs(gt.lines[dcol][2].start.float - 90.0) < 1.0e-3
+    check abs(gt.lines[dcol][3].start.float - 910.0) < 1.0e-3
+    check abs(gt.lines[dcol][4].start.float - 960.0) < 1.0e-3
+    check abs(gt.lines[dcol][5].start.float - 1000.0) < 1.0e-3
 
-    check abs(gt.rows[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.rows[1].start.float - 250.0) < 1.0e-3
-    check abs(gt.rows[2].start.float - 350.0) < 1.0e-3
-    check abs(gt.rows[3].start.float - 1000.0) < 1.0e-3
+    check abs(gt.lines[drow][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[drow][1].start.float - 250.0) < 1.0e-3
+    check abs(gt.lines[drow][2].start.float - 350.0) < 1.0e-3
+    check abs(gt.lines[drow][3].start.float - 1000.0) < 1.0e-3
     # echo "grid template: ", repr tmpl
     
   test "compute others":
@@ -136,21 +137,21 @@ suite "grids":
       ["five"] 40'ui ["end"]
     parseGridTemplateRows gt, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
-    gt.columnGap = 10.UiScalar
-    gt.rowGap = 10.UiScalar
+    gt.gaps[dcol] = 10.UiScalar
+    gt.gaps[drow] = 10.UiScalar
     gt.computeLayout(uiBox(0, 0, 1000, 1000))
     # print "grid template: ", gt
-    check abs(gt.columns[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.columns[1].start.float - 40.0 - 10.0) < 1.0e-3
-    check abs(gt.columns[2].start.float - 90.0 - 20.0) < 1.0e-3
-    check abs(gt.columns[3].start.float - 910.0 + 20.0) < 1.0e-3
-    check abs(gt.columns[4].start.float - 960.0 + 10.0) < 1.0e-3
-    check abs(gt.columns[5].start.float - 1000.0) < 1.0e-3
+    check abs(gt.lines[dcol][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[dcol][1].start.float - 40.0 - 10.0) < 1.0e-3
+    check abs(gt.lines[dcol][2].start.float - 90.0 - 20.0) < 1.0e-3
+    check abs(gt.lines[dcol][3].start.float - 910.0 + 20.0) < 1.0e-3
+    check abs(gt.lines[dcol][4].start.float - 960.0 + 10.0) < 1.0e-3
+    check abs(gt.lines[dcol][5].start.float - 1000.0) < 1.0e-3
 
-    check abs(gt.rows[0].start.float - 0.0) < 1.0e-3
-    check abs(gt.rows[1].start.float - 250.0 - 10.0) < 1.0e-3
-    check abs(gt.rows[2].start.float - 350.0 - 20.0) < 1.0e-3
-    check abs(gt.rows[3].start.float - 1000.0) < 1.0e-3
+    check abs(gt.lines[drow][0].start.float - 0.0) < 1.0e-3
+    check abs(gt.lines[drow][1].start.float - 250.0 - 10.0) < 1.0e-3
+    check abs(gt.lines[drow][2].start.float - 350.0 - 20.0) < 1.0e-3
+    check abs(gt.lines[drow][3].start.float - 1000.0) < 1.0e-3
     
   test "compute macro and item layout":
     var gridTemplate: GridTemplate
@@ -244,8 +245,8 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, ["a"] 60'ui ["b"] 60'ui
     parseGridTemplateRows gridTemplate, 90'ui 90'ui
     # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.columns.len() == 3
-    check gridTemplate.rows.len() == 3
+    check gridTemplate.lines[dcol].len() == 3
+    check gridTemplate.lines[drow].len() == 3
     gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
@@ -285,11 +286,11 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["a"] 60'ui ["b"] 60'ui
     parseGridTemplateRows gridTemplate, 90'ui 90'ui
-    gridTemplate.autoColumns = 60.csFixed()
-    gridTemplate.autoRows = 20.csFixed()
+    gridTemplate.autos[dcol] = 60.csFixed()
+    gridTemplate.autos[drow] = 20.csFixed()
     # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.columns.len() == 3
-    check gridTemplate.rows.len() == 3
+    check gridTemplate.lines[dcol].len() == 3
+    check gridTemplate.lines[drow].len() == 3
     gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
@@ -331,8 +332,8 @@ suite "grids":
     parseGridTemplateRows gridTemplate, 33'ui 33'ui
     gridTemplate.justifyItems = CxStretch
     # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.columns.len() == 6
-    check gridTemplate.rows.len() == 3
+    check gridTemplate.lines[dcol].len() == 6
+    check gridTemplate.lines[drow].len() == 3
     gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
     var parent = GridNode()

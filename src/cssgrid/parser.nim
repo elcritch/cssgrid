@@ -27,28 +27,21 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   template idxIncr(idx: untyped) =
     idx.inc
     idxLit = newIntLitNode(idx)
-  proc prepareNames(item: NimNode): NimNode =
-    result = newStmtList()
-    for x in item:
-      let n = newLit x.strVal
-      result.add quote do:
-        `tgt`[`idxLit`].aliases.incl toLineName(`n`)
-  # process
+  # process templates
   for node in arg:
     case node.kind:
     of nnkBracket:
-      # result[1].add prepareNames(node)
       for name in node:
         let n = newLit name.strVal
         result[1].add quote do:
           `tgt`[`idxLit`].aliases.incl toLineName(`n`)
     of nnkDotExpr:
-      # result[1].handleDotExpr(item, tgt)
       result[1].add quote do:
         `tgt`[`idxLit`].track = `node`
       idx.idxIncr()
     else:
       discard
+  
   ## add final implicit line
   # if node.kind == nnkBracket:
   #   result[1].add prepareNames(node)

@@ -14,7 +14,6 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
-
     parseGridTemplateColumns gridTemplate:
       ["first"] 40'ui
       ["second", "line2"] 50'ui

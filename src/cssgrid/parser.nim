@@ -22,11 +22,7 @@ proc flatten(arg: NimNode): NimNode {.compileTime.} =
 
 proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result = (0, newStmtList())
-  var idx = 0
-  var idxLit: NimNode = newIntLitNode(idx)
-  template idxIncr(idx: untyped) =
-    idx.inc
-    idxLit = newIntLitNode(idx)
+  var idxLit: NimNode = newIntLitNode(result[0])
   # process templates
   for node in arg:
     case node.kind:
@@ -38,21 +34,14 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
     of nnkDotExpr:
       result[1].add quote do:
         `tgt`[`idxLit`].track = `node`
-      idx.idxIncr()
+      result[0].inc()
+      idxLit = newIntLitNode(result[0])
     else:
       discard
-  
-  ## add final implicit line
-  # if node.kind == nnkBracket:
-  #   result[1].add prepareNames(node)
-  # elif node.kind == nnkDotExpr:
-  #   var item = node
-  #   result[1].handleDotExpr(item, tgt)
-  #   idx.idxIncr()
 
   result[1].add quote do:
     `tgt`[`idxLit`].track = csEnd()
-  result[0] = idx + 1
+  result[0] = result[0] + 1
   echo "parseTmpl: ", result[1].repr
 
 macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =

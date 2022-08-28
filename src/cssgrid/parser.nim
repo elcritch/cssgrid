@@ -2,6 +2,25 @@ import basic, gridtypes
 import typetraits
 import macros except `$`
 
+export gridtypes
+
+proc flatten*(arg: NimNode): NimNode {.compileTime.} =
+  result = newStmtList()
+
+  if arg.kind == nnkStmtList:
+    for node in arg:
+      if node.kind == nnkCommand:
+        result.add node[0]
+        result.add node[1]
+      else:
+        result.add node
+  else:
+    var node: NimNode = arg
+    while node.kind == nnkCommand:
+      result.add node[0]
+      node = node[1]
+
+
 proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result = (0, newStmtList())
   var idx = 0
@@ -42,27 +61,6 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
         idxIncr()
       else:
         discard
-  else:
-    while node.kind == nnkCommand:
-      var item = node[0]
-      node = node[1]
-      ## handle `\` for line wrap
-      if node.kind == nnkInfix:
-        node = nnkCommand.newTree(node[1], node[2])
-      case item.kind:
-      of nnkBracket:
-        result[1].add prepareNames(item)
-      of nnkIdent:
-        if item.strVal != "auto":
-          error("argument must be 'auto'", item)
-        result[1].add quote do:
-          `tgt`[`idxLit`].track = csAuto()
-        idxIncr()
-      of nnkDotExpr:
-        result[1].handleDotExpr(item, tgt)
-        idxIncr()
-      else:
-        discard
   ## add final implicit line
   if node.kind == nnkBracket:
     result[1].add prepareNames(node)
@@ -79,17 +77,18 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
 macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
   echo "gridTemplateImpl: ", args.treeRepr
   result = newStmtList()
-  let tgt = quote do:
-    `gridTmpl`.`field`
-  let (colCount, cols) = parseTmplCmd(tgt, args)
-  result.add quote do:
-    if `gridTmpl`.isNil:
-      `gridTmpl` = newGridTemplate()
-    block:
-      if `gridTmpl`.`field`.len() < `colCount`:
-        `gridTmpl`.`field`.setLen(`colCount`)
-        `cols`
-  # echo "result: ", result.repr
+  echo "gridTemplatePost: ", args.flatten().treeRepr
+  # let tgt = quote do:
+  #   `gridTmpl`.`field`
+  # let (colCount, cols) = parseTmplCmd(tgt, args)
+  # result.add quote do:
+  #   if `gridTmpl`.isNil:
+  #     `gridTmpl` = newGridTemplate()
+  #   block:
+  #     if `gridTmpl`.`field`.len() < `colCount`:
+  #       `gridTmpl`.`field`.setLen(`colCount`)
+  #       `cols`
+  # # echo "result: ", result.repr
 
 template parseGridTemplateColumns*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, columns)

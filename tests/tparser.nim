@@ -3,7 +3,6 @@ import sequtils
 
 import unittest
 import cssgrid/parser
-import cssgrid/gridtypes
 
 import print
 
@@ -17,6 +16,13 @@ suite "grids":
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
+    parseGridTemplateColumns gt:
+      ["first"] 40'ui
+      ["second", "line2"] 50'ui
+      ["line3"] auto
+      ["col4-start"] 50'ui
+      ["five"] 40'ui
+      ["end"]
   # test "initial macros":
   #   var gridTemplate: GridTemplate
 

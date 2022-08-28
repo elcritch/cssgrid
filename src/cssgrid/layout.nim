@@ -7,19 +7,6 @@ export rationals, constraints, gridtypes
 
 let defaultLine = GridLine(track: csFrac(1))
 
-proc newGridTemplate*(
-  columns = @[defaultLine],
-  rows = @[defaultLine],
-): GridTemplate =
-  new(result)
-  result.columns = columns
-  result.rows = rows
-  result.autoColumns = csFixed(0)
-  result.autoRows = csFixed(0)
-
-proc newGridItem*(): GridItem =
-  new(result)
-
 proc computeLineLayout*(
     lines: var seq[GridLine],
     length: UiScalar,
@@ -91,12 +78,6 @@ proc reComputeLayout(grid: GridTemplate) =
       break
   # echo "reCompute"
   grid.computeLayout(uiBox(0, 0, w, h))
-
-template parseGridTemplateColumns*(gridTmpl, args: untyped) =
-  gridTemplateImpl(gridTmpl, args, columns)
-
-template parseGridTemplateRows*(gridTmpl, args: untyped) =
-  gridTemplateImpl(gridTmpl, args, rows)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   for i, line in lines:

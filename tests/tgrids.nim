@@ -184,7 +184,7 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
+    parseGridTemplateColumns gridTemplate, [first] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
     gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate

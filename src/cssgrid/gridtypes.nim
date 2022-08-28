@@ -154,3 +154,16 @@ proc initGridLine*(
 
 proc gl*(track: ConstraintSize): GridLine =
   GridLine(track: track)
+
+proc newGridTemplate*(
+  columns: seq[GridLine] = @[],
+  rows: seq[GridLine] = @[],
+): GridTemplate =
+  new(result)
+  result.columns = columns
+  result.rows = rows
+  result.autoColumns = csFixed(0)
+  result.autoRows = csFixed(0)
+
+proc newGridItem*(): GridItem =
+  new(result)

@@ -90,3 +90,9 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
         `gridTmpl`.`field`.setLen(`colCount`)
         `cols`
   # echo "result: ", result.repr
+
+template parseGridTemplateColumns*(gridTmpl, args: untyped) =
+  gridTemplateImpl(gridTmpl, args, columns)
+
+template parseGridTemplateRows*(gridTmpl, args: untyped) =
+  gridTemplateImpl(gridTmpl, args, rows)

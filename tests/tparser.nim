@@ -38,12 +38,13 @@ suite "grids":
     static:
       doPrints = true
 
-    var gt1: GridTemplate
     let ns = !["a", "b"]
     echo "ns: ", $ns
-    gridTemplateColumns {!["first"]: 40'ui, !["second", "line2"]: 50'pp, !["line3"]:
+    let gt1 = gridTemplate {!["first"]: 40'ui, !["second", "line2"]: 50'pp, !["line3"]:
       csAuto(), !["col4-start"]: 50'ui, !["five"]: 40'ui,
       !["end"]: csEnd()}
+    
+    echo "gt1: ", $gt1
     
   # test "initial macros":
   #   var gridTemplate: GridTemplate

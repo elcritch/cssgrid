@@ -139,9 +139,9 @@ proc `row=`*(item: GridItem, rat: Rational[int]) =
   item.rowEnd = rat.den.mkIndex
 
 proc `$`*(a: GridLine): string =
-  result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {a.aliases.repr})"
+  result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 proc repr*(a: GridLine): string =
-  result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {a.aliases.repr})"
+  result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 proc repr*(a: GridTemplate): string =
   result = "GridTemplate:"
   result &= "\n\tcols: "
@@ -156,6 +156,11 @@ proc initGridLine*(
     aliases: varargs[LineName, toLineName],
 ): GridLine =
   GridLine(track: track, aliases: toHashSet(aliases))
+
+proc toGridLine*(
+    arg: (HashSet[LineName], ConstraintSize)
+): GridLine =
+  GridLine(track: arg[1], aliases: arg[0])
 
 proc gl*(track: ConstraintSize): GridLine =
   GridLine(track: track)

@@ -71,7 +71,7 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
       if `gridTmpl`.`field`.len() < `colCount`:
         `gridTmpl`.`field`.setLen(`colCount`)
         `cols`
-  # echo "result: ", result.repr
+  echo "result: ", result.repr
 
 template `!`*(arg: untyped{nkBracket}): auto =
   toLineNames(arg)
@@ -82,7 +82,6 @@ template parseGridTemplateColumns*(gridTmpl, args: untyped) =
 template parseGridTemplateRows*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, rows)
 
-proc gridTemplateColumns*(args: openArray[(HashSet[LineName], ConstraintSize)]) =
-  echo "\ngridTemplateColumns: "
+proc gridTemplate*(args: varargs[(HashSet[LineName], ConstraintSize), initGridLine]): seq[GridLine] =
   for arg in args:
-    echo arg
+    result.add arg.toGridLine()

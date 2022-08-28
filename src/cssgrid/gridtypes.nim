@@ -76,10 +76,15 @@ proc hash*(a: GridItem): Hash =
   if a != nil:
     result = hash(a.span[drow]) !& hash(a.span[dcol])
 
-proc `repr`*(a: LineName): string = lineName[a]
-proc `repr`*(a: HashSet[LineName]): string =
-  result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
-proc `repr`*(a: GridIndex): string =
+proc `$`*(a: LineName): string = lineName[a]
+
+proc `$`*(a: HashSet[LineName]): string =
+  result = "{" & a.toSeq().mapIt($it).join(", ") & "}"
+
+# proc `repr`*(a: HashSet[LineName]): string =
+#   result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
+
+proc `$`*(a: GridIndex): string =
   result = "GridIdx{"
   if a.isName:
     result &= "" & $lineName.getOrDefault(a.line, $a.line.int)
@@ -89,7 +94,7 @@ proc `repr`*(a: GridIndex): string =
   result &= ",n:" & $a.isName
   result &= "}"
 
-proc `repr`*(a: GridItem): string =
+proc `$`*(a: GridItem): string =
   if a != nil:
     result = "GridItem{" 
     result &= " span[dcol]: " & $a.span[dcol]
@@ -114,7 +119,7 @@ proc toLineName*(name: string): LineName =
   else:
     lineName[result] = name
 
-proc toLineNames*(names: varargs[string]): HashSet[LineName] =
+proc toLineNames*(names: varargs[string, toLineName]): HashSet[LineName] =
   toHashSet names.toSeq().mapIt(it.toLineName())
 
 proc mkIndex*(line: Positive, isSpan = false, isName = false): GridIndex =
@@ -133,6 +138,8 @@ proc `row=`*(item: GridItem, rat: Rational[int]) =
   item.rowStart = rat.num.mkIndex
   item.rowEnd = rat.den.mkIndex
 
+proc `$`*(a: GridLine): string =
+  result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {a.aliases.repr})"
 proc repr*(a: GridLine): string =
   result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {a.aliases.repr})"
 proc repr*(a: GridTemplate): string =

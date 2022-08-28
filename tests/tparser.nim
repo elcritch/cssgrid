@@ -3,6 +3,7 @@ import sequtils
 
 import unittest
 import cssgrid/parser
+import cssgrid/gridtypes
 
 import print
 
@@ -33,6 +34,17 @@ suite "grids":
     for (c1, c3) in zip(gt1.columns, gt3.columns):
       check c1 == c3
 
+  test "simple macros":
+    static:
+      doPrints = true
+
+    var gt1: GridTemplate
+    let ns = !["a", "b"]
+    echo "ns: ", $ns
+    gridTemplateColumns {!["first"]: 40'ui, !["second", "line2"]: 50'pp, !["line3"]:
+      csAuto(), !["col4-start"]: 50'ui, !["five"]: 40'ui,
+      !["end"]: csEnd()}
+    
   # test "initial macros":
   #   var gridTemplate: GridTemplate
 

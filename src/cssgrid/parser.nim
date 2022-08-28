@@ -54,13 +54,15 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result[0] = result[0] + 1
   # echo "parseTmpl: ", result[1].repr
 
+var doPrints* {.compileTime.} = false
+
 macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
   result = newStmtList()
   let tgt = quote do:
     `gridTmpl`.`field`
-  # echo "\ngridTemplateImpl: ", args.treeRepr
+  if doPrints: echo "\ngridTemplateImpl: ", args.treeRepr
   let fargs = args.flatten()
-  # echo "\ngridTemplatePost: ", fargs.treeRepr
+  if doPrints: echo "\ngridTemplatePost: ", fargs.treeRepr
   let (colCount, cols) = parseTmplCmd(tgt, fargs)
   result.add quote do:
     if `gridTmpl`.isNil:
@@ -71,8 +73,16 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
         `cols`
   # echo "result: ", result.repr
 
+template `!`*(arg: untyped{nkBracket}): auto =
+  toLineNames(arg)
+
 template parseGridTemplateColumns*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, columns)
 
 template parseGridTemplateRows*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, rows)
+
+proc gridTemplateColumns*(args: openArray[(HashSet[LineName], ConstraintSize)]) =
+  echo "\ngridTemplateColumns: "
+  for arg in args:
+    echo arg

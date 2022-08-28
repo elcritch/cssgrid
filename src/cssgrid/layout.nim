@@ -55,9 +55,9 @@ proc computeLineLayout*(
 
 proc computeLayout*(grid: GridTemplate, UiBox: UiBox) =
   ## computing grid layout
-  if grid.lines[dcol][^1].track.kind != UiEnd:
+  if grid.lines[dcol].len() == 0 or grid.lines[dcol][^1].track.kind != UiEnd:
     grid.lines[dcol].add initGridLine(csEnd())
-  if grid.lines[drow][^1].track.kind != UiEnd:
+  if grid.lines[drow].len() == 0 or grid.lines[drow][^1].track.kind != UiEnd:
     grid.lines[drow].add initGridLine(csEnd())
   # The free space is calculated after any non-flexible items. In 
   let

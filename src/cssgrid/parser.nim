@@ -32,7 +32,7 @@ macro findLineNameImpl(name: typed): LineName =
   if nm in lnTable:
     result = lnTable[nm]
   else:
-    error("LineName not declared: " & nm)
+    error("[cssgrid] LineName not declared: " & nm)
 
 template findLineName*(name: static string): LineName =
   findLineNameImpl(name)

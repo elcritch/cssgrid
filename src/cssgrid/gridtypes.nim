@@ -109,8 +109,6 @@ proc toLineName*(name: int): LineName =
   lineName[result] = "idx:" & $name
 proc toLineName*(name: string): LineName =
   result = LineName(name.hash())
-  if result.int == 0:
-    result = LineName(result.int + 11)
   if result in lineName:
     assert lineName[result] == name
   else:

@@ -78,6 +78,8 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
       if node.strVal == "auto":
         result[1].add quote do:
           `tgt`[`idxLit`].track = csAuto()
+        result[0].inc()
+        idxLit = newIntLitNode(result[0])
       else:
         error("unknown argument: " & node.repr)
     else:

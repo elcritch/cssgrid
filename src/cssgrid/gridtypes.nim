@@ -42,8 +42,7 @@ type
     width*: UiScalar
 
   GridTemplate* = ref object
-    columns*: seq[GridLine]
-    rows*: seq[GridLine]
+    lines*: array[GridDir, seq[GridLine]]
     autoColumns*: ConstraintSize
     autoRows*: ConstraintSize
     rowGap*: UiScalar
@@ -150,10 +149,10 @@ proc repr*(a: GridLine): string =
 proc repr*(a: GridTemplate): string =
   result = "GridTemplate:"
   result &= "\n\tcols: "
-  for c in a.columns:
+  for c in a.lines[dcol]:
     result &= &"\n\t\t{c.repr}"
   result &= "\n\trows: "
-  for r in a.rows:
+  for r in a.lines[drow]:
     result &= &"\n\t\t{r.repr}"
 
 proc initGridLine*(
@@ -175,8 +174,8 @@ proc newGridTemplate*(
   rows: seq[GridLine] = @[],
 ): GridTemplate =
   new(result)
-  result.columns = columns
-  result.rows = rows
+  result.lines[dcol] = columns
+  result.lines[drow] = rows
   result.autoColumns = csFixed(0)
   result.autoRows = csFixed(0)
 

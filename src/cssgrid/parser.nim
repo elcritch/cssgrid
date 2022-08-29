@@ -129,3 +129,16 @@ proc gridTemplate*(gt: GridTemplate, dir: GridDir, args: varargs[(HashSet[LineNa
     gt.lines[dcol].setLen(args.len())
     for i, arg in args:
       gt.lines[dcol][i] = arg.toGridLine()
+
+proc span*(name: static string): GridIndex =
+  GridIndex(line: findLineName(name), isSpan: true, isName: true)
+
+proc mkIndex*(name: static string, isSpan = false): GridIndex =
+  GridIndex(line: findLineName(name), isSpan: isSpan, isName: true)
+
+proc `//`*(a, b: static[string]|int|GridIndex): Slice[GridIndex] =
+  result.a = mkIndex(a)
+  result.b = mkIndex(b)
+  when not b.typeof is GridIndex:
+    result.b.isSpan = false
+

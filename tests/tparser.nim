@@ -37,7 +37,7 @@ suite "grids":
     
     expandMacros:
       let nm = findLineName("first")
-      echo "nm: ", $nm
+      echo "NM: ", $nm
 
   test "simple macros":
     let ns = !["a", "b"]
@@ -95,9 +95,17 @@ suite "grids":
     check iteme.columns.b.line.int == 6
     check iteme.columns.b.isSpan == false
 
-    iteme.columns = 5 // span 6
+    iteme.columns = 1 // span 4
     iteme.rows = 1 // span 3
-    check iteme.columns.a.line.int == 5
-    check iteme.columns.b.line.int == 6
+    check iteme.columns.a.line.int == 1
+    check iteme.columns.b.line.int == 4
     check iteme.columns.b.isSpan == true
-    
+
+    iteme.columns = 2 // span "first"
+    iteme.rows = 1 // "second"
+    check iteme.columns.a.line.int == 2
+    check iteme.columns.b.line.int == 2851137560
+    check iteme.columns.b.isSpan == true
+    check iteme.rows.a.line.int == 1
+    check iteme.rows.b.line.int == 436751995
+    check iteme.rows.b.isSpan == false

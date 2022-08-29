@@ -72,7 +72,6 @@ suite "grids":
     var gt1: GridTemplate
     parseGridTemplateColumns gt1, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     gt1.checkColumns(dcol)
-
     # checks
     var gt2 = newGridTemplate()
     parseGridTemplateRows gt2, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]

@@ -163,10 +163,10 @@ suite "grids":
     echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
-    gridItem.columnStart = 2.mkIndex
-    gridItem.columnEnd = "five".mkIndex
-    gridItem.rowStart = "row1-start".mkIndex
-    gridItem.rowEnd = 3.mkIndex
+    gridItem.columns.a = 2.mkIndex
+    gridItem.columns.b = "five".mkIndex
+    gridItem.rows.a = "row1-start".mkIndex
+    gridItem.rows.b = 3.mkIndex
     print gridItem
 
     let contentSize = uiSize(0, 0)
@@ -191,10 +191,10 @@ suite "grids":
     # echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
-    gridItem.columnStart = 2.mkIndex
-    gridItem.columnEnd = "five".mkIndex
-    gridItem.rowStart = "row1-start".mkIndex
-    gridItem.rowEnd = 3.mkIndex
+    gridItem.columns.a = 2.mkIndex
+    gridItem.columns.b = "five".mkIndex
+    gridItem.rows.a = "row1-start".mkIndex
+    gridItem.rows.b = 3.mkIndex
     # print gridItem
 
     let contentSize = uiSize(500, 200)

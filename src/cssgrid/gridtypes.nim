@@ -60,10 +60,8 @@ type
   
   GridItem* = ref object
     span*: GridSpan
-    columnStart*: GridIndex
-    columnEnd*: GridIndex
-    rowStart*: GridIndex
-    rowEnd*: GridIndex
+    columns*: Slice[GridIndex]
+    rows*: Slice[GridIndex]
 
 var lineName: Table[int, string]
 
@@ -106,13 +104,13 @@ proc `$`*(a: GridItem): string =
     result &= " span[dcol]: " & $a.span[dcol]
     result &= ", span[drow]: " & $a.span
     result &= "\n\t\t"
-    result &= ", cS: " & repr a.columnStart
+    result &= ", cS: " & repr a.columns.a
     result &= "\n\t\t"
-    result &= ", cE: " & repr a.columnEnd
+    result &= ", cE: " & repr a.columns.b
     result &= "\n\t\t"
-    result &= ", rS: " & repr a.rowStart
+    result &= ", rS: " & repr a.rows.a
     result &= "\n\t\t"
-    result &= ", rE: " & repr a.rowEnd
+    result &= ", rE: " & repr a.rows.b
     result &= "}"
 
 proc toLineName*(name: int): LineName =
@@ -138,11 +136,9 @@ proc mkIndex*(index: GridIndex): GridIndex =
   result = index
 
 proc `column=`*(item: GridItem, rat: Rational[int]) =
-  item.columnStart = rat.num.mkIndex
-  item.columnEnd = rat.den.mkIndex
+  item.columns = rat.num.mkIndex .. rat.den.mkIndex
 proc `row=`*(item: GridItem, rat: Rational[int]) =
-  item.rowStart = rat.num.mkIndex
-  item.rowEnd = rat.den.mkIndex
+  item.rows = rat.num.mkIndex .. rat.den.mkIndex
 
 proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"

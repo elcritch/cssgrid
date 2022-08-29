@@ -62,6 +62,9 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result = (0, newStmtList())
   var idxLit: NimNode = newIntLitNode(result[0])
   # process templates
+  template incIdx() =
+      result[0].inc()
+      idxLit = newIntLitNode(result[0])
   for node in arg:
     case node.kind:
     of nnkBracket:
@@ -72,14 +75,16 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
     of nnkDotExpr:
       result[1].add quote do:
         `tgt`[`idxLit`].track = `node`
-      result[0].inc()
-      idxLit = newIntLitNode(result[0])
+      # result[0].inc()
+      # idxLit = newIntLitNode(result[0])
+      incIdx()
     of nnkIdent:
       if node.strVal == "auto":
         result[1].add quote do:
           `tgt`[`idxLit`].track = csAuto()
-        result[0].inc()
-        idxLit = newIntLitNode(result[0])
+        # result[0].inc()
+        # idxLit = newIntLitNode(result[0])
+        incIdx()
       else:
         error("unknown argument: " & node.repr)
     else:

@@ -91,10 +91,10 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
 
 proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
   assert idx <= 1000, "max grids exceeded"
-  if idx >= grid.lines[`dir`].len():
-    while idx >= grid.lines[`dir`].len():
-      let offset = grid.lines[`dir`].len() - 1
-      var ln = initGridLine(track = grid.autos[`dir`])
+  if idx >= grid.lines[dir].len():
+    while idx >= grid.lines[dir].len():
+      let offset = grid.lines[dir].len() - 1
+      var ln = initGridLine(track = grid.autos[dir])
       if offset+1 == idx and ln.track.kind == UiFixed:
         # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
         ln.track.coord = max(ln.track.coord, cz)

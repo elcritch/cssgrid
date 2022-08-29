@@ -67,6 +67,11 @@ type
 
 var lineName: Table[int, string]
 
+proc columns*(grid: GridTemplate): seq[GridLine] =
+  grid.lines[dcol]
+proc rows*(grid: GridTemplate): seq[GridLine] =
+  grid.lines[drow]
+
 proc `==`*(a, b: LineName): bool {.borrow.}
 proc hash*(a: LineName): Hash {.borrow.}
 proc hash*(a: GridItem): Hash =

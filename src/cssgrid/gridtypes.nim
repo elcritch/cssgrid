@@ -3,9 +3,10 @@ import std/[sequtils, strutils, hashes, sets, tables]
 import rationals
 import typetraits
 import patty
+export rationals, sets, tables
 
 import basic, constraints
-export basic, sets, tables, constraints
+export basic, constraints
 
 type
   GridNodes* = concept node
@@ -135,10 +136,19 @@ proc mkIndex*(name: string, isSpan = false): GridIndex =
 proc mkIndex*(index: GridIndex): GridIndex =
   result = index
 
-proc `column=`*(item: GridItem, rat: Rational[int]) =
-  item.columns = rat.num.mkIndex .. rat.den.mkIndex
-proc `row=`*(item: GridItem, rat: Rational[int]) =
-  item.rows = rat.num.mkIndex .. rat.den.mkIndex
+proc span*(a: int): GridIndex =
+  result.line = a.LineName
+  result.isSpan = true
+proc span*(a: GridIndex): GridIndex =
+  result.line = a.line
+  result.isName = a.isName
+  result.isSpan = true
+
+proc `//`*(a, b: int|GridIndex): Slice[GridIndex] =
+  result.a = mkIndex(a)
+  result.b = mkIndex(b)
+  when not b.typeof is GridIndex:
+    result.b.isSpan = false
 
 proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"

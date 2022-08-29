@@ -254,8 +254,8 @@ suite "grids":
 
     # item a
     var itema = newGridItem()
-    itema.column= 1 // 2
-    itema.row= 2 // 3
+    itema.columns= 1 // 2
+    itema.rows= 2 // 3
 
     let boxa = itema.computePosition(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
@@ -268,8 +268,8 @@ suite "grids":
 
     # item b
     var itemb = newGridItem()
-    itemb.column= 5 // 6
-    itemb.row= 2 // 3
+    itemb.columns = 5 // 6
+    itemb.rows = 2 // 3
 
     let boxb = itemb.computePosition(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
@@ -298,8 +298,8 @@ suite "grids":
 
     # item a
     var itema = newGridItem()
-    itema.column= 1 // 2
-    itema.row= 2 // 3
+    itema.columns = 1 // 2
+    itema.rows = 2 // 3
 
     let boxa = itema.computePosition(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
@@ -312,8 +312,8 @@ suite "grids":
 
     # item b
     var itemb = newGridItem()
-    itemb.column= 5 // 6
-    itemb.row= 3 // 4
+    itemb.columns = 5 // 6
+    itemb.rows = 3 // 4
 
     let boxb = itemb.computePosition(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
@@ -343,15 +343,15 @@ suite "grids":
 
     # item a
     var itema = newGridItem()
-    itema.column= 1 // 2
-    itema.row= 1 // 3
+    itema.columns = 1 // 2
+    itema.rows = 1 // 3
     # let boxa = itema.computePosition(gridTemplate, contentSize)
     nodes[0] = GridNode(id: "a", gridItem: itema)
 
     # ==== item e ====
     var iteme = newGridItem()
-    iteme.column= 5 // 6
-    iteme.row= 1 // 3
+    iteme.columns = 5 // 6
+    iteme.rows = 1 // 3
     nodes[1] = GridNode(id: "e", gridItem: iteme)
 
     # ==== item b's ====

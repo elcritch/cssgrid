@@ -77,3 +77,27 @@ suite "grids":
     parseGridTemplateRows gt2, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     gt2.checkColumns(drow)
 
+  test "columns ":
+    let ns = !["a", "b"]
+    echo "ns: ", $ns
+    var gt1 = newGridTemplate()
+    gridTemplate gt1, dcol, {!["first"]: 40'ui, !["second", "line2"]: 50'pp, !["line3"]:
+      csAuto(), !["col4-start"]: 50'ui, !["five"]: 40'ui,
+      !["end"]: csEnd()}
+    
+    echo "gt1: ", $gt1
+
+    # ==== item e ====
+    var iteme = newGridItem()
+    iteme.columns = 5 // 6
+    iteme.rows = 1 // 3
+    check iteme.columns.a.line.int == 5
+    check iteme.columns.b.line.int == 6
+    check iteme.columns.b.isSpan == false
+
+    iteme.columns = 5 // span 6
+    iteme.rows = 1 // span 3
+    check iteme.columns.a.line.int == 5
+    check iteme.columns.b.line.int == 6
+    check iteme.columns.b.isSpan == true
+    

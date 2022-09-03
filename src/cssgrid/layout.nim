@@ -188,8 +188,13 @@ proc computeAutoFlow(
     node: GridNodes,
     allNodes: seq[GridNodes],
 ) =
-  let mx = dcol
-  let my = drow
+  let (mx, my) =
+    if gridTemplate.autoFlow in [grRow, grRowDense]:
+      (dcol, drow)
+    elif gridTemplate.autoFlow in [grColumn, grColumnDense]:
+      (drow, dcol)
+    else:
+      raise newException(ValueError, "unhandled case")
 
   # setup caches
   var autos = newSeqOfCap[GridNodes](allNodes.len())

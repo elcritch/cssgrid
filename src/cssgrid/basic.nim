@@ -150,11 +150,11 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.x -= xy.x
   result.y -= xy.y
 
-template scaled*(a: UiBox): Rect = Rect(a * common.uiScale.UiScalar)
-template descaled*(a: Rect): UiBox = UiBox(a / common.uiScale)
+template scaled*(a: UiBox): Rect = Rect(a * uiScale.UiScalar)
+template descaled*(a: Rect): UiBox = UiBox(a / uiScale)
 
-template scaled*(a: UiSize): Vec2 = Vec2(a * common.uiScale.UiScalar)
-template descaled*(a: Vec2): UiSize = UiSize(a / common.uiScale)
+template scaled*(a: UiSize): Vec2 = Vec2(a * uiScale.UiScalar)
+template descaled*(a: Vec2): UiSize = UiSize(a / uiScale)
 
 proc sum*(rect: Rect): float32 =
   result = rect.x + rect.y + rect.w + rect.h
@@ -172,3 +172,5 @@ proc `$`*(b: UiBox): string =
   &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
 
 
+const
+  uiScale* = 1.0

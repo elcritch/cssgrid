@@ -178,10 +178,7 @@ proc fixedCount*(gridItem: GridItem): range[0..4] =
 proc isAutoUiSizeed*(gridItem: GridItem): bool =
   gridItem.fixedCount() == 0
 
-proc `in`(cur: (LinePos, LinePos), col: HashSet[GridSpan]): bool =
-  for span in col:
-    if cur[0] in span[dcol] and cur[1] in span[drow]:
-      return true
+import print
 
 proc computeAutoFlow(
     gridTemplate: GridTemplate,
@@ -196,10 +193,17 @@ proc computeAutoFlow(
     else:
       raise newException(ValueError, "unhandled case")
 
+  proc `in`(cur: array[GridDir, LinePos], cache: HashSet[GridSpan]): bool =
+    for span in cache:
+      echo "in: cur: ", cur[mx]
+      if cur[mx] in span[mx] and cur[my] in span[my]:
+        return true
+
+  print gridTemplate.lines[mx].len()
   # setup caches
   var autos = newSeqOfCap[GridNodes](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
-  for i in 1..gridTemplate.lines[mx].len():
+  for i in 1..gridTemplate.lines[my].len()+1:
     fixedCache[i.LinePos] = initHashSet[GridSpan]()
 
   # populate caches
@@ -210,33 +214,48 @@ proc computeAutoFlow(
     if fixedCount(child.gridItem) == 4:
       var span = child.gridItem.span
       span[mx].b.dec
-      for j in child.gridItem.span[mx]:
+      let rng = child.gridItem.span[my]
+      print rng
+      for j in rng.a ..< rng.b:
         fixedCache[j].incl span
     else:
       autos.add child
 
   # setup cursor for current grid UiSize
-  var cursor = (1.LinePos, 1.LinePos)
+  for i in 1..fixedCache.len():
+    for gspan in fixedCache[i.LinePos]:
+      echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
+  
+  # var cursor = (1.LinePos, 1.LinePos)
+  var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
   var i = 0
 
   template incrCursor(amt, blk, outer: untyped) =
     ## increment major index
-    cursor[0].inc
+    cursor[mx].inc
     ## increment minor when at end of major
-    if cursor[0] >= gridTemplate.lines[mx].len():
-      cursor = (1.LinePos, cursor[1] + 1)
-      if cursor[1] >= gridTemplate.lines[my].len():
+    if cursor[mx] >= gridTemplate.lines[mx].len():
+      cursor[mx] = 1.LinePos
+      cursor[my] = cursor[my] + 1
+      if cursor[my] >= gridTemplate.lines[my].len():
         break outer
       break blk
+  
+  ## computing auto flows
   block autoflow:
     while i < len(autos):
       block childBlock:
         ## increment cursor and index until one breaks the mold
-        while cursor in fixedCache[cursor[0]]:
+        while cursor in fixedCache[cursor[my]]:
+          print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
-        while not (cursor in fixedCache[cursor[0]]):
-          autos[i].gridItem.span[mx] = cursor[0] .. cursor[0] + 1
-          autos[i].gridItem.span[my] = cursor[1] .. cursor[1] + 1
+        while not (cursor in fixedCache[cursor[my]]):
+          echo "\nset span:"
+          print cursor
+          autos[i].gridItem.span[mx] = cursor[mx] .. cursor[mx] + 1
+          autos[i].gridItem.span[my] = cursor[my] .. cursor[my] + 1
+          print autos[i].gridItem.span[dcol]
+          print autos[i].gridItem.span[drow]
           i.inc
           if i >= autos.len():
             break autoflow

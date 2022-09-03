@@ -5,7 +5,6 @@ import unittest
 import cssgrid/parser
 import cssgrid/gridtypes
 
-import print
 import macros
 
 suite "grids":

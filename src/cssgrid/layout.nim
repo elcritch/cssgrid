@@ -190,13 +190,11 @@ proc computeAutoFlow(
 ) =
   let mx = dcol
   let my = drow
-  template mjLines(x: untyped): untyped = x.lines[dcol]
-  template mnLines(x: untyped): untyped = x.lines[drow]
 
   # setup caches
   var autos = newSeqOfCap[GridNodes](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
-  for i in 1..gridTemplate.mjLines.len():
+  for i in 1..gridTemplate.lines[mx].len():
     fixedCache[i.LinePos] = initHashSet[GridSpan]()
 
   # populate caches
@@ -220,9 +218,9 @@ proc computeAutoFlow(
     ## increment major index
     cursor[0].inc
     ## increment minor when at end of major
-    if cursor[0] >= gridTemplate.mjLines.len():
+    if cursor[0] >= gridTemplate.lines[mx].len():
       cursor = (1.LinePos, cursor[1] + 1)
-      if cursor[1] >= gridTemplate.mnLines.len():
+      if cursor[1] >= gridTemplate.lines[my].len():
         break outer
       break blk
   block autoflow:

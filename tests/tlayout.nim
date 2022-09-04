@@ -31,8 +31,8 @@ suite "grids":
     parseGridTemplateRows gridTemplate, 33'ui 33'ui 33'ui
     gridTemplate.justifyItems = CxStretch
 
-    gridTemplate.autoFlow = grColumn
-    # gridTemplate.autoFlow = grRow
+    # gridTemplate.autoFlow = grColumn
+    gridTemplate.autoFlow = grRow
 
     let box = uiBox(0, 0,
                     60*(gridTemplate.columns().len().float-1),

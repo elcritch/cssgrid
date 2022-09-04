@@ -79,7 +79,7 @@ suite "grids":
       # check abs(nodes[i].box.w.float - 60.0) < 1.0e-3
       # check abs(nodes[i].box.h.float - 33.0) < 1.0e-3
 
-    image.writeFile("tests/basic_grid_layout.png")
+    image.writeFile(fmt"tests/tlayout-{gridTemplate.autoFlow}.png")
 
 
 

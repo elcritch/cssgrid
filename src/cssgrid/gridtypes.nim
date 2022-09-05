@@ -24,14 +24,6 @@ type
     grColumnDense
 
 
-proc repr*(a: ConstraintSize): string =
-  match a:
-    UiFrac(frac): result = $frac & "'fr"
-    UiFixed(coord): result = $coord & "'ui"
-    UiPerc(perc): result = $perc & "'perc"
-    UiAuto(): result = "auto"
-    UiEnd(): result = "ends"
-
 type
   GridTemplate* = ref object
     lines*: array[GridDir, seq[GridLine]]

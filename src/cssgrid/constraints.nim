@@ -15,6 +15,13 @@ type
     UiFixed
     UiEnd
 
+  ConstraintOps* = enum
+    UiMin
+    UiMax
+    UiMinMax
+    UiMinContent
+    UiMaxContent
+
 type
   ConstraintSize* = object
     case kind*: ConstraintKind
@@ -28,6 +35,10 @@ type
       coord*: UiScalar
     of UiEnd:
       discard
+
+  Constraints* = object
+    lhs*: ConstraintSize
+    rhs*: ConstraintSize
 
 proc csFrac*(size: int|float|UiScalar): ConstraintSize =
   ConstraintSize(kind: UiFrac, frac: size.UiScalar)
@@ -49,6 +60,13 @@ proc `==`*(a, b: ConstraintSize): bool =
       UiFixed(coord): return coord == b.coord
       UiEnd(): return true
 
+proc repr*(a: ConstraintSize): string =
+  match a:
+    UiFrac(frac): result = $frac & "'fr"
+    UiFixed(coord): result = $coord & "'ui"
+    UiPerc(perc): result = $perc & "'perc"
+    UiAuto(): result = "auto"
+    UiEnd(): result = "ends"
 
 proc `'ui`*(n: string): ConstraintSize =
   ## numeric literal UI Coordinate unit

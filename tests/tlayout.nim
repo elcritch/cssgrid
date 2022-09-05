@@ -79,8 +79,6 @@ suite "grids":
 
   test "compute layout with auto flow":
     var gt1 = newGridTemplate()
-
-    # gridTemplate.autoFlow = grColumn
     gt1.autoFlow = grRow
     let (n1, b1) = makeGrid1(gt1)
     saveImage(gt1, b1, n1)

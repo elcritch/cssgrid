@@ -119,14 +119,14 @@ proc setGridSpans(
   assert not item.isNil
 
   if item.span[dcol].a == 0:
-    item.span[dcol].a = grid.setSpan(item.column.a, dcol, 0)
+    item.span[dcol].a = grid.setSpan(item.index[dcol].a, dcol, 0)
   if item.span[dcol].b == 0:
-    item.span[dcol].b = grid.setSpan(item.column.b, dcol, contentSize.x)
+    item.span[dcol].b = grid.setSpan(item.index[dcol].b, dcol, contentSize.x)
 
   if item.span[drow].a == 0:
-    item.span[drow].a = grid.setSpan(item.row.a, drow, 0)
+    item.span[drow].a = grid.setSpan(item.index[drow].a, drow, 0)
   if item.span[drow].b == 0:
-    item.span[drow].b = grid.setSpan(item.row.b, drow, contentSize.x)
+    item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
 
 proc computePosition*(
     item: GridItem,
@@ -170,10 +170,10 @@ proc computePosition*(
     result.h = contentSize.y
 
 proc fixedCount*(gridItem: GridItem): range[0..4] =
-  if gridItem.column.a.line.int != 0: result.inc
-  if gridItem.column.b.line.int != 0: result.inc
-  if gridItem.row.a.line.int != 0: result.inc
-  if gridItem.row.b.line.int != 0: result.inc
+  if gridItem.index[dcol].a.line.int != 0: result.inc
+  if gridItem.index[dcol].b.line.int != 0: result.inc
+  if gridItem.index[drow].a.line.int != 0: result.inc
+  if gridItem.index[drow].b.line.int != 0: result.inc
 
 proc isAutoUiSizeed*(gridItem: GridItem): bool =
   gridItem.fixedCount() == 0

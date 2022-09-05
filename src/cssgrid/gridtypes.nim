@@ -33,15 +33,6 @@ proc repr*(a: ConstraintSize): string =
     UiEnd(): result = "ends"
 
 type
-  LineName* = distinct int
-  LinePos* = int16
-
-  GridLine* = object
-    aliases*: HashSet[LineName]
-    track*: ConstraintSize
-    start*: UiScalar
-    width*: UiScalar
-
   GridTemplate* = ref object
     lines*: array[GridDir, seq[GridLine]]
     autos*: array[GridDir, ConstraintSize]
@@ -52,6 +43,15 @@ type
     alignContent*: Constraint
     autoFlow*: GridFlow
 
+  LineName* = distinct int
+  LinePos* = int16
+
+  GridLine* = object
+    aliases*: HashSet[LineName]
+    track*: ConstraintSize
+    start*: UiScalar
+    width*: UiScalar
+
   GridIndex* = object
     line*: LineName
     isSpan*: bool
@@ -61,8 +61,7 @@ type
   
   GridItem* = ref object
     span*: GridSpan
-    columns*: Slice[GridIndex]
-    rows*: Slice[GridIndex]
+    index*: array[GridDir, Slice[GridIndex]]
 
 var lineName: Table[int, string]
 
@@ -105,13 +104,13 @@ proc `$`*(a: GridItem): string =
     result &= " span[dcol]: " & $a.span[dcol]
     result &= ", span[drow]: " & $a.span
     result &= "\n\t\t"
-    result &= ", cS: " & repr a.columns.a
+    result &= ", cS: " & repr a.index[dcol].a
     result &= "\n\t\t"
-    result &= ", cE: " & repr a.columns.b
+    result &= ", cE: " & repr a.index[dcol].b
     result &= "\n\t\t"
-    result &= ", rS: " & repr a.rows.a
+    result &= ", rS: " & repr a.index[drow].a
     result &= "\n\t\t"
-    result &= ", rE: " & repr a.rows.b
+    result &= ", rE: " & repr a.index[drow].b
     result &= "}"
 
 proc toLineName*(name: int): LineName =
@@ -127,7 +126,7 @@ proc toLineName*(name: string): LineName =
 proc toLineNames*(names: varargs[LineName, toLineName]): HashSet[LineName] =
   toHashSet names
 
-proc mkIndex*(line: Positive, isSpan = false, isName = false): GridIndex =
+proc mkIndex*(line: int, isSpan = false, isName = false): GridIndex =
   GridIndex(line: line.toLineName(), isSpan: isSpan, isName: isName)
 
 proc mkIndex*(name: string, isSpan = false): GridIndex =
@@ -149,6 +148,19 @@ proc `//`*(a, b: int|GridIndex): Slice[GridIndex] =
   result.b = mkIndex(b)
   when not b.typeof is GridIndex:
     result.b.isSpan = false
+
+proc `column=`*(grid: GridItem, index: Slice[GridIndex]) =
+  grid.index[dcol] = index
+proc `row=`*(grid: GridItem, index: Slice[GridIndex]) =
+  grid.index[drow] = index
+proc `column=`*(grid: GridItem, index: int) =
+  grid.index[dcol] = index // (index + 1)
+proc `row=`*(grid: GridItem, index: int) =
+  grid.index[drow] = index // (index + 1)
+proc `column`*(grid: GridItem): var Slice[GridIndex] =
+  grid.index[dcol]
+proc `row`*(grid: GridItem): var Slice[GridIndex] =
+  grid.index[drow]
 
 proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"

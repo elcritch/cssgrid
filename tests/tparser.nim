@@ -88,23 +88,23 @@ suite "grids":
 
     # ==== item e ====
     var iteme = newGridItem()
-    iteme.columns = 5 // 6
-    iteme.rows = 1 // 3
-    check iteme.columns.a.line.int == 5
-    check iteme.columns.b.line.int == 6
-    check iteme.columns.b.isSpan == false
+    iteme.column = 5 // 6
+    iteme.row = 1 // 3
+    check iteme.column.a.line.int == 5
+    check iteme.column.b.line.int == 6
+    check iteme.column.b.isSpan == false
 
-    iteme.columns = 1 // span 4
-    iteme.rows = 1 // span 3
-    check iteme.columns.a.line.int == 1
-    check iteme.columns.b.line.int == 4
-    check iteme.columns.b.isSpan == true
+    iteme.column = 1 // span 4
+    iteme.row = 1 // span 3
+    check iteme.column.a.line.int == 1
+    check iteme.column.b.line.int == 4
+    check iteme.column.b.isSpan == true
 
-    iteme.columns = 2 // span "first"
-    iteme.rows = 1 // "second"
-    check iteme.columns.a.line.int == 2
-    check iteme.columns.b.line.int == 2851137560
-    check iteme.columns.b.isSpan == true
-    check iteme.rows.a.line.int == 1
-    check iteme.rows.b.line.int == 436751995
-    check iteme.rows.b.isSpan == false
+    iteme.column = 2 // span "first"
+    iteme.row = 1 // "second"
+    check iteme.column.a.line.int == 2
+    check iteme.column.b.line.int == 2851137560
+    check iteme.column.b.isSpan == true
+    check iteme.row.a.line.int == 1
+    check iteme.row.b.line.int == 436751995
+    check iteme.row.b.isSpan == false

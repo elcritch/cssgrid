@@ -20,11 +20,15 @@ proc computeLineLayout*(
   # compute total fixed sizes and fracs
   for grdLn in lines:
     match grdLn.track:
-      UiFixed(coord): fixed += coord
-      UiFrac(frac): totalFracs += frac
+      UiValue(value):
+        match value:
+          UiFixed(coord): fixed += coord
+          UiFrac(frac): totalFracs += frac
+          UiPerc(): discard
+          UiEnd(): discard
       UiAuto(): totalAutos += 1
-      UiPerc(): discard
-      UiEnd(): discard
+      UiMin(): totalAutos += 1
+      UiMax(): totalAutos += 1
   fixed += spacing * UiScalar(lines.len() - 1)
 
   var
@@ -33,15 +37,17 @@ proc computeLineLayout*(
   
   # frac's
   for grdLn in lines.mitems():
-    if grdLn.track.kind == UiFrac:
-      grdLn.width =
-        freeSpace * grdLn.track.frac/totalFracs
-      remSpace -= max(grdLn.width, 0.UiScalar)
-    elif grdLn.track.kind == UiFixed:
-      grdLn.width = grdLn.track.coord
-    elif grdLn.track.kind == UiPerc:
-      grdLn.width = length * grdLn.track.perc / 100
-      remSpace -= max(grdLn.width, 0.UiScalar)
+    if grdLn.track.kind == UiValue:
+      let grdVal = grdLn.track.value
+      if grdVal.kind == UiFrac:
+        grdLn.width =
+          freeSpace * grdVal.frac/totalFracs
+        remSpace -= max(grdLn.width, 0.UiScalar)
+      elif grdVal.kind == UiFixed:
+        grdLn.width = grdVal.coord
+      elif grdVal.kind == UiPerc:
+        grdLn.width = length * grdVal.perc / 100
+        remSpace -= max(grdLn.width, 0.UiScalar)
   
   # auto's
   for grdLn in lines.mitems():

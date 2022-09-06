@@ -27,12 +27,12 @@ type
 type
   GridTemplate* = ref object
     lines*: array[GridDir, seq[GridLine]]
-    autos*: array[GridDir, ConstraintSize]
+    autos*: array[GridDir, Constraints]
     gaps*: array[GridDir, UiScalar]
-    justifyItems*: Constraint
-    alignItems*: Constraint
-    justifyContent*: Constraint
-    alignContent*: Constraint
+    justifyItems*: ConstraintBehavior
+    alignItems*: ConstraintBehavior
+    justifyContent*: ConstraintBehavior
+    alignContent*: ConstraintBehavior
     autoFlow*: GridFlow
 
   LineName* = distinct int
@@ -40,7 +40,7 @@ type
 
   GridLine* = object
     aliases*: HashSet[LineName]
-    track*: ConstraintSize
+    track*: Constraints
     start*: UiScalar
     width*: UiScalar
 
@@ -175,11 +175,11 @@ proc initGridLine*(
   GridLine(track: track, aliases: toHashSet(aliases))
 
 proc toGridLine*(
-    arg: (HashSet[LineName], ConstraintSize)
+    arg: (HashSet[LineName], Constraints)
 ): GridLine =
   GridLine(track: arg[1], aliases: arg[0])
 
-proc gl*(track: ConstraintSize): GridLine =
+proc gl*(track: Constraints): GridLine =
   GridLine(track: track)
 
 proc newGridTemplate*(

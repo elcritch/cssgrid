@@ -133,7 +133,7 @@ proc setGridSpans(
   if item.span[drow].b == 0:
     item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
 
-proc computePosition*(
+proc computeTracks*(
     item: GridItem,
     grid: GridTemplate,
     contentSize: UiSize
@@ -290,7 +290,7 @@ proc computeNodeLayout*(
       hasAutos = true
     elif fixedCount(child.gridItem) == 4:
       # compute UiSizes for fixed children
-      child.box = child.gridItem.computePosition(gridTemplate, child.box.wh)
+      child.box = child.gridItem.computeTracks(gridTemplate, child.box.wh)
     else:
       hasAutos = true
     
@@ -308,4 +308,4 @@ proc computeNodeLayout*(
     if fixedCount(child.gridItem) == 0:
       if 0 notin child.gridItem.span[dcol] and
           0 notin child.gridItem.span[drow]:
-        child.box = child.gridItem.computePosition(gridTemplate, child.box.wh)
+        child.box = child.gridItem.computeTracks(gridTemplate, child.box.wh)

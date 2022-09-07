@@ -41,7 +41,7 @@ proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
   var itema = newGridItem()
   itema.column = 1
   itema.row = 1 // 3
-  # let boxa = itema.computePosition(gridTemplate, contentSize)
+  # let boxa = itema.computeTracks(gridTemplate, contentSize)
   nodes[0] = GridNode(id: "a", gridItem: itema)
 
   # ==== item e ====

@@ -79,20 +79,20 @@ suite "grids":
     # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
-    check gt.lines[dcol][0].track.kind == UiFixed
-    check gt.lines[dcol][0].track.coord == 40.0.UiScalar
+    check gt.lines[dcol][0].track.value.kind == UiFixed
+    check gt.lines[dcol][0].track.value.coord == 40.0.UiScalar
     # echo repr gt.lines[dcol][0].aliases.toSeq.mapIt(it.int), toLineNames("first").toSeq.mapIt(it.int)
     check gt.lines[dcol][0].aliases == toLineNames("first")
-    check gt.lines[dcol][1].track.kind == UiPerc
-    check gt.lines[dcol][1].track.perc == 50.0.UiScalar
+    check gt.lines[dcol][1].track.value.kind == UiPerc
+    check gt.lines[dcol][1].track.value.perc == 50.0.UiScalar
     check gt.lines[dcol][1].aliases == toLineNames("second", "line2")
     check gt.lines[dcol][2].track.kind == UiAuto
     check gt.lines[dcol][2].aliases == toLineNames("line3")
-    check gt.lines[dcol][3].track.kind == UiFixed
-    check gt.lines[dcol][3].track.coord == 50.0.UiScalar
+    check gt.lines[dcol][3].track.value.kind == UiFixed
+    check gt.lines[dcol][3].track.value.coord == 50.0.UiScalar
     check gt.lines[dcol][3].aliases == toLineNames("col4-start")
-    check gt.lines[dcol][4].track.kind == UiFixed
-    check gt.lines[dcol][4].track.coord == 40.0.UiScalar
+    check gt.lines[dcol][4].track.value.kind == UiFixed
+    check gt.lines[dcol][4].track.value.coord == 40.0.UiScalar
     check gt.lines[dcol][4].aliases == toLineNames("five")
     check gt.lines[dcol][5].track.kind == UiEnd
     check toLineNames("end") == gt.lines[dcol][5].aliases

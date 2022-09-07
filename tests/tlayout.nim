@@ -11,7 +11,6 @@ import cssgrid/parser
 import print
 import pixie
 
-
 type
   GridNode* = ref object
     id: string

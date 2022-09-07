@@ -104,9 +104,11 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
     while idx >= grid.lines[dir].len():
       let offset = grid.lines[dir].len() - 1
       var ln = initGridLine(track = grid.autos[dir])
-      # if offset+1 == idx and ln.track.kind == UiFixed:
-      #   # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
-      #   ln.track.coord = max(ln.track.coord, cz)
+      if offset+1 == idx and
+          ln.track.kind == UiValue and
+          ln.track.value.kind == UiFixed:
+        # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
+        ln.track.value.coord = max(ln.track.value.coord, cz)
       grid.lines[dir].insert(ln, offset)
     grid.reComputeLayout()
   

@@ -8,21 +8,13 @@ type
     CxEnd
     CxCenter
 
-  ConstraintKind* = enum
+  ConstraintSizes* = enum
     UiFrac
     UiPerc
     UiFixed
 
-  ConstraintOps* = enum
-    UiValue
-    UiAuto
-    UiMin
-    UiMax
-    UiMinMax
-    UiEnd
-
   ConstraintSize* = object
-    case kind*: ConstraintKind
+    case kind*: ConstraintSizes
     of UiFrac:
       frac*: UiScalar
     of UiPerc:
@@ -30,8 +22,16 @@ type
     of UiFixed:
       coord*: UiScalar
 
-  Constraints* = object
-    case kind*: ConstraintOps
+  Constraints* = enum
+    UiValue
+    UiAuto
+    UiMin
+    UiMax
+    UiMinMax
+    UiEnd
+
+  Constraint* = object
+    case kind*: Constraints
     of UiValue:
       value*: ConstraintSize
     of UiAuto:
@@ -46,19 +46,19 @@ type
     of UiEnd:
       discard
 
-proc csValue*(size: ConstraintSize): Constraints =
-  Constraints(kind: UiValue, value: size)
-proc csAuto*(): Constraints =
-  Constraints(kind: UiAuto)
+proc csValue*(size: ConstraintSize): Constraint =
+  Constraint(kind: UiValue, value: size)
+proc csAuto*(): Constraint =
+  Constraint(kind: UiAuto)
 
-proc csFrac*(size: int|float|UiScalar): Constraints =
+proc csFrac*(size: int|float|UiScalar): Constraint =
   csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
-proc csFixed*(coord: int|float|UiScalar): Constraints =
+proc csFixed*(coord: int|float|UiScalar): Constraint =
   csValue(ConstraintSize(kind: UiFixed, coord: coord.UiScalar))
-proc csPerc*(perc: int|float|UiScalar): Constraints =
+proc csPerc*(perc: int|float|UiScalar): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
-proc csEnd*(): Constraints =
-  Constraints(kind: UiEnd)
+proc csEnd*(): Constraint =
+  Constraint(kind: UiEnd)
 
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:
@@ -67,7 +67,7 @@ proc `==`*(a, b: ConstraintSize): bool =
       UiPerc(perc): return perc == b.perc
       UiFixed(coord): return coord == b.coord
 
-proc `==`*(a, b: Constraints): bool =
+proc `==`*(a, b: Constraint): bool =
   if a.kind == b.kind:
     match a:
       UiAuto(): return true
@@ -83,17 +83,17 @@ proc repr*(a: ConstraintSize): string =
     UiFixed(coord): result = $coord & "'ui"
     UiPerc(perc): result = $perc & "'perc"
 
-proc `'ui`*(n: string): ConstraintSize =
+proc `'ui`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
-  result = ConstraintSize(kind: UiFixed, coord: f.UiScalar)
+  result = csFixed(f)
 
-proc `'fr`*(n: string): ConstraintSize =
+proc `'fr`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
-  result = ConstraintSize(kind: UiFrac, frac: f.UiScalar)
+  result = csFrac(f)
 
-proc `'pp`*(n: string): ConstraintSize =
+proc `'pp`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
-  result = ConstraintSize(kind: UiPerc, perc: f.UiScalar)
+  result = csPerc(f)

@@ -183,7 +183,7 @@ suite "grids":
     print gridItem
 
     let contentSize = uiSize(0, 0)
-    let itemBox = gridItem.computeTracks(gridTemplate, contentSize)
+    let itemBox = gridItem.computeBox(gridTemplate, contentSize)
     print itemBox
     print "post: ", gridItem
 
@@ -214,7 +214,7 @@ suite "grids":
     var itemBox: UiBox
 
     ## test stretch
-    itemBox = gridItem.computeTracks(gridTemplate, contentSize)
+    itemBox = gridItem.computeBox(gridTemplate, contentSize)
     # print itemBox
     checks itemBox.x.float == 40.0
     checks itemBox.w.float == 920.0
@@ -224,7 +224,7 @@ suite "grids":
     ## test start
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStart
-    itemBox = gridItem.computeTracks(gridTemplate, contentSize)
+    itemBox = gridItem.computeBox(gridTemplate, contentSize)
     # print itemBox
     checks itemBox.x.float == 40.0
     checks itemBox.w.float == 500.0
@@ -234,7 +234,7 @@ suite "grids":
     ## test end
     gridTemplate.justifyItems = CxEnd
     gridTemplate.alignItems = CxEnd
-    itemBox = gridItem.computeTracks(gridTemplate, contentSize)
+    itemBox = gridItem.computeBox(gridTemplate, contentSize)
     print itemBox
     checks itemBox.x.float == 460.0
     checks itemBox.w.float == 500.0
@@ -244,7 +244,7 @@ suite "grids":
     ## test start / stretch
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStretch
-    itemBox = gridItem.computeTracks(gridTemplate, contentSize)
+    itemBox = gridItem.computeBox(gridTemplate, contentSize)
     # print itemBox
     checks itemBox.x.float == 40.0
     checks itemBox.w.float == 500.0
@@ -270,7 +270,7 @@ suite "grids":
     itema.column = 1 // 2
     itema.row = 2 // 3
 
-    let boxa = itema.computeTracks(gridTemplate, contentSize)
+    let boxa = itema.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
     # print boxa
 
@@ -284,7 +284,7 @@ suite "grids":
     itemb.column = 5 // 6
     itemb.row = 2 // 3
 
-    let boxb = itemb.computeTracks(gridTemplate, contentSize)
+    let boxb = itemb.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
     # print boxb
     checks boxb.x.float == 120.0
@@ -313,7 +313,7 @@ suite "grids":
     itema.column = 1 // 2
     itema.row = 2 // 3
 
-    let boxa = itema.computeTracks(gridTemplate, contentSize)
+    let boxa = itema.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
     # print boxa
 
@@ -327,7 +327,7 @@ suite "grids":
     itemb.column = 5 // 6
     itemb.row = 3 // 4
 
-    let boxb = itemb.computeTracks(gridTemplate, contentSize)
+    let boxb = itemb.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
     # print boxb
 

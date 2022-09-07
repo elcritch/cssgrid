@@ -133,7 +133,7 @@ proc setGridSpans(
   if item.span[drow].b == 0:
     item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
 
-proc computeTracks*(
+proc computeBox*(
     item: GridItem,
     grid: GridTemplate,
     contentSize: UiSize
@@ -278,10 +278,6 @@ proc computeNodeLayout*(
   ## this algorithm tries to follow the specification at:
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
-  
-  gridTemplate.computeTracks(node.box)
-  # echo "gridTemplate: ", gridTemplate.repr
-
   var hasAutos = false
   for child in children:
     if child.gridItem == nil:
@@ -290,7 +286,7 @@ proc computeNodeLayout*(
       hasAutos = true
     elif fixedCount(child.gridItem) == 4:
       # compute UiSizes for fixed children
-      child.box = child.gridItem.computeTracks(gridTemplate, child.box.wh)
+      child.box = child.gridItem.computeBox(gridTemplate, child.box.wh)
     else:
       hasAutos = true
     
@@ -304,8 +300,11 @@ proc computeNodeLayout*(
   if hasAutos:
     computeAutoFlow(gridTemplate, node, children)
 
+  gridTemplate.computeTracks(node.box)
+  # echo "gridTemplate: ", gridTemplate.repr
+
   for child in children:
     if fixedCount(child.gridItem) == 0:
       if 0 notin child.gridItem.span[dcol] and
           0 notin child.gridItem.span[drow]:
-        child.box = child.gridItem.computeTracks(gridTemplate, child.box.wh)
+        child.box = child.gridItem.computeBox(gridTemplate, child.box.wh)

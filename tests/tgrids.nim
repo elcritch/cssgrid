@@ -155,15 +155,15 @@ suite "grids":
     gt.computeLayout(uiBox(0, 0, 1000, 1000))
     # print "grid template: ", gt
     checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 40.0 + 10.0
-    checks gt.lines[dcol][2].start.float == 90.0 - 20.0
-    checks gt.lines[dcol][3].start.float == 910.0 + 20.0
-    checks gt.lines[dcol][4].start.float == 960.0 + 10.0
+    checks gt.lines[dcol][1].start.float == 50.0
+    checks gt.lines[dcol][2].start.float == 110.0
+    checks gt.lines[dcol][3].start.float == 890.0
+    checks gt.lines[dcol][4].start.float == 950.0
     checks gt.lines[dcol][5].start.float == 1000.0
 
     checks gt.lines[drow][0].start.float == 0.0
-    checks gt.lines[drow][1].start.float == 250.0 - 10.0
-    checks gt.lines[drow][2].start.float == 350.0 - 20.0
+    checks gt.lines[drow][1].start.float == 260.0
+    checks gt.lines[drow][2].start.float == 370.0
     checks gt.lines[drow][3].start.float == 1000.0
     
   test "compute macro and item layout":

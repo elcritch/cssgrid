@@ -60,7 +60,7 @@ proc computeLineLayout*(
     grdLn.start = cursor
     cursor += grdLn.width + spacing
 
-proc computeLayout*(grid: GridTemplate, UiBox: UiBox) =
+proc computeTracks*(grid: GridTemplate, UiBox: UiBox) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or
       grid.lines[dcol][^1].track.kind != UiEnd:
@@ -86,7 +86,7 @@ proc reComputeLayout(grid: GridTemplate) =
       h = row.start.float32
       break
   # echo "reCompute"
-  grid.computeLayout(uiBox(0, 0, w, h))
+  grid.computeTracks(uiBox(0, 0, w, h))
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   for i, line in lines:
@@ -279,7 +279,7 @@ proc computeNodeLayout*(
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
   
-  gridTemplate.computeLayout(node.box)
+  gridTemplate.computeTracks(node.box)
   # echo "gridTemplate: ", gridTemplate.repr
 
   var hasAutos = false

@@ -45,7 +45,7 @@ suite "grids":
       columns = @[initGridLine 1'fr, initGridLine 1'fr],
       rows = @[gl 1'fr, gl 1'fr],
     )
-    gt.computeLayout(uiBox(0, 0, 100, 100))
+    gt.computeTracks(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
     check gt.lines[dcol][0].start == 0.UiScalar
@@ -58,7 +58,7 @@ suite "grids":
       columns = @[gl 1'fr, gl 1'fr, gl 1'fr],
       rows = @[gl 1'fr, gl 1'fr, gl 1'fr],
     )
-    gt.computeLayout(uiBox(0, 0, 100, 100))
+    gt.computeTracks(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
@@ -72,7 +72,7 @@ suite "grids":
     var gt = newGridTemplate(
       columns = @[1'fr.gl, initGridLine(5.csFixed), 1'fr.gl, 1'fr.gl],
     )
-    gt.computeLayout(uiBox(0, 0, 100, 100))
+    gt.computeTracks(uiBox(0, 0, 100, 100))
     # print "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
@@ -87,7 +87,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 
-    # gridTemplate.computeLayout(uiBox(0, 0, 100, 100))
+    # gridTemplate.computeTracks(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
     check gt.lines[dcol][0].track.value.kind == UiFixed
@@ -122,7 +122,7 @@ suite "grids":
       ["five"] 40'ui ["end"]
     parseGridTemplateRows tmpl, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
-    tmpl.computeLayout(uiBox(0, 0, 1000, 1000))
+    tmpl.computeTracks(uiBox(0, 0, 1000, 1000))
     let gt = tmpl
     # print "grid template: ", gridTemplate
     checks gt.lines[dcol][0].start.float == 0.0
@@ -152,7 +152,7 @@ suite "grids":
 
     gt.gaps[dcol] = 10.UiScalar
     gt.gaps[drow] = 10.UiScalar
-    gt.computeLayout(uiBox(0, 0, 1000, 1000))
+    gt.computeTracks(uiBox(0, 0, 1000, 1000))
     # print "grid template: ", gt
     checks gt.lines[dcol][0].start.float == 0.0
     checks gt.lines[dcol][1].start.float == 50.0
@@ -172,7 +172,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
-    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
@@ -200,7 +200,7 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, [first] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
-    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
@@ -260,7 +260,7 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 3
     check gridTemplate.lines[drow].len() == 3
-    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
     let contentSize = uiSize(30, 30)
@@ -303,7 +303,7 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 3
     check gridTemplate.lines[drow].len() == 3
-    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
     let contentSize = uiSize(30, 30)
@@ -346,7 +346,7 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 6
     check gridTemplate.lines[drow].len() == 3
-    gridTemplate.computeLayout(uiBox(0, 0, 1000, 1000))
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
 

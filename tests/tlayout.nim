@@ -33,7 +33,7 @@ proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
 
   var nodes = newSeq[GridNode](6)
 
-  gridTemplate.computeLayout(box)
+  gridTemplate.computeTracks(box)
   # echo "grid template: ", repr gridTemplate
   var parent = GridNode()
 

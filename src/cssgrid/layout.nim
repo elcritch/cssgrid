@@ -115,7 +115,7 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   else:
     findLine(index, grid.lines[`dir`])
 
-proc setGridSpans(
+proc setGridSpans*(
     item: GridItem,
     grid: GridTemplate,
     contentSize: UiSize

@@ -270,26 +270,32 @@ suite "grids":
     itema.column = 1 // 2
     itema.row = 2 // 3
 
-    let boxa = itema.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
-    # print boxa
-
-    checks boxa.x.float == 0.0
-    checks boxa.w.float == 60.0
-    checks boxa.y.float == 90.0
-    checks boxa.h.float == 90.0
+    itema.setGridSpans(gridTemplate, contentSize)
 
     # item b
     var itemb = newGridItem()
     itemb.column = 5 // 6
     itemb.row = 2 // 3
 
+    itemb.setGridSpans(gridTemplate, contentSize)
+
+    ## computes
+    ## 
+    let boxa = itema.computeBox(gridTemplate, contentSize)
+    # echo "grid template post: ", repr gridTemplate
+    # print boxa
+
+    checks boxa.x.float == 0.0
+    checks boxa.y.float == 90.0
+    checks boxa.w.float == 60.0
+    checks boxa.h.float == 90.0
+
     let boxb = itemb.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
     # print boxb
     checks boxb.x.float == 120.0
-    checks boxb.w.float == 30.0
     checks boxb.y.float == 90.0
+    checks boxb.w.float == 30.0
     checks boxb.h.float == 90.0
 
   test "compute layout with auto columns with fixed size":

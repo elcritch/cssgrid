@@ -104,14 +104,8 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
     while idx >= grid.lines[dir].len():
       let offset = grid.lines[dir].len() - 1
       var ln = initGridLine(track = grid.autos[dir])
-      if offset+1 == idx and
-          ln.track.kind == UiValue and
-          ln.track.value.kind == UiFixed:
-        # echo "insert: ", offset+1, "@", idx, "/", grid.`lines`.len()
-        ln.track.value.coord = max(ln.track.value.coord, cz)
       grid.lines[dir].insert(ln, offset)
-    grid.reComputeLayout()
-  
+
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
@@ -272,7 +266,7 @@ proc computeAutoFlow(
             break autoflow
           incrCursor(1, childBlock, autoFlow)
 
-proc computeGridLayout*(
+proc computeNodeLayout*(
     gridTemplate: GridTemplate,
     node: GridNodes,
     children: seq[GridNodes],

@@ -11,6 +11,7 @@ import cssgrid/parser
 import print
 import pixie
 
+
 type
   GridNode* = ref object
     id: string
@@ -54,7 +55,7 @@ proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
     nodes[i] = GridNode(id: "b" & $(i-2))
 
   # ==== process grid ====
-  gridTemplate.computeGridLayout(parent, nodes)
+  gridTemplate.computeNodeLayout(parent, nodes)
   result = (nodes, box)
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode]) =

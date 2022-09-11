@@ -37,12 +37,11 @@ type
     of UiAuto:
       discard
     of UiMin:
-      min*: ConstraintSize
+      lmin, rmin*: ConstraintSize
     of UiMax:
-      max*: ConstraintSize
+      lmax, rmax*: ConstraintSize
     of UiMinMax:
-      minof*: ConstraintSize
-      maxof*: ConstraintSize
+      lmm, rmm*: ConstraintSize
     of UiEnd:
       discard
 
@@ -72,9 +71,9 @@ proc `==`*(a, b: Constraint): bool =
     match a:
       UiAuto(): return true
       UiValue(value): return value == b.value
-      UiMin(min): return min == b.min
-      UiMax(max): return max == b.max
-      UiMinMax(minof, maxof): return minof == b.minof and maxof == b.maxof
+      UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin
+      UiMax(lmax, rmax): return lmax == b.lmax and rmax == b.rmax
+      UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
       UiEnd(): return true
 
 proc repr*(a: ConstraintSize): string =

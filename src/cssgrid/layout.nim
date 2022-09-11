@@ -16,20 +16,46 @@ proc computeLineLayout*(
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
     totalAutos = 0
+    isUndefined = false
   
+  # compute total fixed sizes and fracs
+  template calc(value) =
+    match value:
+      UiFixed(coord): fixed += coord
+      UiFrac(frac): totalFracs += frac
+      UiPerc(): discard
+  
+  # browser css grids:
+  # works: grid-template-columns: 1fr minmax(100px,1fr) minmax(200px,1fr);
+  # doesn't work: grid-template-columns: 1fr minmax(1fr,100px) minmax(1fr,200px);
+  # neither work:
+  # grid-template-columns: 1fr min(100px,1fr) min(100px,13%);
+  # grid-template-columns: 1fr max(1fr,300px) max(1fr,100px);
+
   # compute total fixed sizes and fracs
   for grdLn in lines:
     match grdLn.track:
       UiValue(value):
-        match value:
-          UiFixed(coord): fixed += coord
-          UiFrac(frac): totalFracs += frac
-          UiPerc(): discard
-      UiEnd(): discard
-      UiAuto(): totalAutos += 1
-      UiMin(): totalAutos += 1
-      UiMax(): totalAutos += 1
-      UiMinMax(): totalAutos += 1
+        calc(value)
+      UiAuto():
+        totalAutos += 1
+      UiEnd():
+        discard
+      UiMin(lmin, rmin):
+        if lmin.kind == UiFrac:
+          isUndefined = true
+        # calc(value)
+        discard
+      UiMax(lmax, rmax):
+        if lmax.kind == UiFrac:
+          isUndefined = true
+        # calc(value)
+        discard
+      UiMinMax(lmm, rmm):
+        if lmm.kind == UiFrac:
+          isUndefined = true
+        # calc(value)
+        discard
   fixed += spacing * UiScalar(lines.len() - 1)
 
   var
@@ -37,12 +63,12 @@ proc computeLineLayout*(
     remSpace = max(freeSpace, 0.UiScalar)
   
   # frac's
+  # 1'fr 1'fr min(1'fr, 10em)
   for grdLn in lines.mitems():
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
       if grdVal.kind == UiFrac:
-        grdLn.width =
-          freeSpace * grdVal.frac/totalFracs
+        grdLn.width = freeSpace * grdVal.frac/totalFracs
         remSpace -= max(grdLn.width, 0.UiScalar)
       elif grdVal.kind == UiFixed:
         grdLn.width = grdVal.coord
@@ -60,7 +86,7 @@ proc computeLineLayout*(
     grdLn.start = cursor
     cursor += grdLn.width + spacing
 
-proc computeTracks*(grid: GridTemplate, UiBox: UiBox) =
+proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or
       grid.lines[dcol][^1].track.kind != UiEnd:
@@ -70,8 +96,8 @@ proc computeTracks*(grid: GridTemplate, UiBox: UiBox) =
     grid.lines[drow].add initGridLine(csEnd())
   # The free space is calculated after any non-flexible items. In 
   let
-    colLen = UiBox.w
-    rowLen = UiBox.h
+    colLen = contentSize.w
+    rowLen = contentSize.h
   grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
 

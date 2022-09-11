@@ -136,7 +136,7 @@ proc setGridSpans*(
 proc computeBox*(
     item: GridItem,
     grid: GridTemplate,
-    contentSize: UiSize
+    maxContentSize: UiSize
 ): UiBox =
   ## computing grid layout
   assert not item.isNil
@@ -150,13 +150,13 @@ proc computeBox*(
   of CxStretch:
     result.w = rww
   of CxCenter:
-    result.x = result.x + (rww - contentSize.x)/2.0
-    result.w = contentSize.x
+    result.x = result.x + (rww - maxContentSize.x)/2.0
+    result.w = maxContentSize.x
   of CxStart:
-    result.w = contentSize.x
+    result.w = maxContentSize.x
   of CxEnd:
-    result.x = rxw - contentSize.x
-    result.w = contentSize.x
+    result.x = rxw - maxContentSize.x
+    result.w = maxContentSize.x
 
   # set rows
   result.y = grid.lines[drow].getGrid(item.span[drow].a)
@@ -166,13 +166,13 @@ proc computeBox*(
   of CxStretch:
     result.h = rhh
   of CxCenter:
-    result.y = result.y + (rhh - contentSize.y)/2.0
-    result.h = contentSize.y
+    result.y = result.y + (rhh - maxContentSize.y)/2.0
+    result.h = maxContentSize.y
   of CxStart:
-    result.h = contentSize.y
+    result.h = maxContentSize.y
   of CxEnd:
-    result.y = ryh - contentSize.y
-    result.h = contentSize.y
+    result.y = ryh - maxContentSize.y
+    result.h = maxContentSize.y
 
 proc fixedCount*(gridItem: GridItem): range[0..4] =
   if gridItem.index[dcol].a.line.int != 0: result.inc

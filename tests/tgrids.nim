@@ -173,19 +173,19 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    echo "grid template: ", repr gridTemplate
+    # echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
     gridItem.column.a = 2.mkIndex
     gridItem.column.b = "five".mkIndex
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
-    print gridItem
+    # print gridItem
 
     let contentSize = uiSize(0, 0)
     let itemBox = gridItem.computeBox(gridTemplate, contentSize)
-    print itemBox
-    print "post: ", gridItem
+    # print itemBox
+    # print "post: ", gridItem
 
     check gridItem.span[dcol].a == 2
     check gridItem.span[dcol].b == 5
@@ -235,7 +235,7 @@ suite "grids":
     gridTemplate.justifyItems = CxEnd
     gridTemplate.alignItems = CxEnd
     itemBox = gridItem.computeBox(gridTemplate, contentSize)
-    print itemBox
+    # print itemBox
     checks itemBox.x.float == 460.0
     checks itemBox.w.float == 500.0
     checks itemBox.y.float == 150.0
@@ -260,7 +260,6 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 3
     check gridTemplate.lines[drow].len() == 3
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
     let contentSize = uiSize(30, 30)
@@ -279,23 +278,29 @@ suite "grids":
 
     itemb.setGridSpans(gridTemplate, contentSize)
 
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     ## computes
     ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
-    # print boxa
 
+    let boxb = itemb.computeBox(gridTemplate, contentSize)
+    # echo "grid template post: ", repr gridTemplate
+
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+
+    # print gridTemplate
+
+    # print boxa
     checks boxa.x.float == 0.0
     checks boxa.y.float == 90.0
     checks boxa.w.float == 60.0
     checks boxa.h.float == 90.0
 
-    let boxb = itemb.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
     # print boxb
     checks boxb.x.float == 120.0
     checks boxb.y.float == 90.0
-    checks boxb.w.float == 30.0
+    checks boxb.w.float == 0.0
     checks boxb.h.float == 90.0
 
   test "compute layout with auto columns with fixed size":
@@ -318,6 +323,13 @@ suite "grids":
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 2 // 3
+    itema.setGridSpans(gridTemplate, contentSize)
+
+    # item b
+    var itemb = newGridItem()
+    itemb.column = 5 // 6
+    itemb.row = 3 // 4
+    itemb.setGridSpans(gridTemplate, contentSize)
 
     let boxa = itema.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
@@ -328,18 +340,12 @@ suite "grids":
     checks boxa.y.float == 90.0
     checks boxa.h.float == 90.0
 
-    # item b
-    var itemb = newGridItem()
-    itemb.column = 5 // 6
-    itemb.row = 3 // 4
-
     let boxb = itemb.computeBox(gridTemplate, contentSize)
     # echo "grid template post: ", repr gridTemplate
     # print boxb
-
     checks boxb.x.float == 240.0
-    checks boxb.w.float == 60.0
     checks boxb.y.float == 180.0
+    checks boxb.w.float == 60.0
     checks boxb.h.float == 30.0
 
   test "compute layout with auto flow":
@@ -394,10 +400,10 @@ suite "grids":
     checks nodes[1].box.h.float == 66.0
 
     # ==== item b's ====
-    for i in 2 ..< nodes.len():
-      echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-      echo "auto child:cols: ", nodes[i].gridItem.repr
-      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    # for i in 2 ..< nodes.len():
+    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+    #   echo "auto child:cols: ", nodes[i].gridItem.repr
+    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
     checks nodes[2].box.x.float == 60.0
     checks nodes[3].box.x.float == 120.0

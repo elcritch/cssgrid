@@ -33,8 +33,11 @@ Here's an example of the CSS style syntax:
 
 See [tlayout.nim](tests/tlayout.nim) for a complete example using Pixie to layout a series of rectangles: 
 
-![Layout Row](tests/tlayout-grColumn-expected.png)
+Using `auto-flow: row`:
+![Layout Row](tests/tlayout-grRow-expected.png)
 
+Using `auto-flow: column`:
+![Layout Row](tests/tlayout-grColumn-expected.png)
 Here's an edited form of it:
 
 ```nim

@@ -263,7 +263,7 @@ suite "grids":
     check gridTemplate.lines[drow].len() == 3
     # echo "grid template: ", repr gridTemplate
 
-    let contentSize = uiSize(30, 30)
+    let contentSize = uiSize(120, 90)
 
     # item a
     var itema = newGridItem()

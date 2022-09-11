@@ -140,7 +140,7 @@ proc computeBox*(
 ): UiBox =
   ## computing grid layout
   assert not item.isNil
-  item.setGridSpans(grid, contentSize)
+  # item.setGridSpans(grid, contentSize)
 
   # set columns
   result.x = grid.lines[dcol].getGrid(item.span[dcol].a)
@@ -284,13 +284,9 @@ proc computeNodeLayout*(
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
       hasAutos = true
-    elif fixedCount(child.gridItem) == 4:
-      # compute UiSizes for fixed children
-      child.gridItem.setGridSpans(gridTemplate, child.box.wh)
-      child.box = child.gridItem.computeBox(gridTemplate, child.box.wh)
     else:
       hasAutos = true
-      child.gridItem.setGridSpans(gridTemplate, child.box.wh)
+    child.gridItem.setGridSpans(gridTemplate, child.box.wh)
     
   # compute UiSizes for partially fixed children
   for child in children:
@@ -306,7 +302,6 @@ proc computeNodeLayout*(
   # echo "gridTemplate: ", gridTemplate.repr
 
   for child in children:
-    if fixedCount(child.gridItem) == 0:
-      if 0 notin child.gridItem.span[dcol] and
-          0 notin child.gridItem.span[drow]:
-        child.box = child.gridItem.computeBox(gridTemplate, child.box.wh)
+    if fixedCount(child.gridItem) in 1..3:
+      continue
+    child.box = child.gridItem.computeBox(gridTemplate, child.box.wh)

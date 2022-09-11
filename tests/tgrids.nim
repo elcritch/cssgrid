@@ -333,7 +333,7 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
     # echo "grid template post: ", repr gridTemplate
-    print gridTemplate
+    # print gridTemplate
 
     let boxa = itema.computeBox(gridTemplate, contentSize)
     # print boxa

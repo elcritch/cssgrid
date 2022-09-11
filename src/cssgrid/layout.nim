@@ -140,7 +140,7 @@ proc computeBox*(
 ): UiBox =
   ## computing grid layout
   assert not item.isNil
-  # item.setGridSpans(grid, contentSize)
+  item.setGridSpans(grid, contentSize)
 
   # set columns
   result.x = grid.lines[dcol].getGrid(item.span[dcol].a)

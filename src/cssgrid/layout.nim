@@ -200,11 +200,11 @@ proc computeAutoFlow(
 
   proc `in`(cur: array[GridDir, LinePos], cache: HashSet[GridSpan]): bool =
     for span in cache:
-      echo "in: cur: ", cur[mx]
+      # echo "in: cur: ", cur[mx]
       if cur[mx] in span[mx] and cur[my] in span[my]:
         return true
 
-  print gridTemplate.lines[mx].len()
+  # print gridTemplate.lines[mx].len()
   # setup caches
   var autos = newSeqOfCap[GridNodes](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
@@ -220,16 +220,16 @@ proc computeAutoFlow(
       var span = child.gridItem.span
       span[mx].b.dec
       let rng = child.gridItem.span[my]
-      print rng
+      # print rng
       for j in rng.a ..< rng.b:
         fixedCache[j].incl span
     else:
       autos.add child
 
   # setup cursor for current grid UiSize
-  for i in 1..fixedCache.len():
-    for gspan in fixedCache[i.LinePos]:
-      echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
+  # for i in 1..fixedCache.len():
+  #   for gspan in fixedCache[i.LinePos]:
+  #     echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
   
   # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
@@ -252,15 +252,15 @@ proc computeAutoFlow(
       block childBlock:
         ## increment cursor and index until one breaks the mold
         while cursor in fixedCache[cursor[my]]:
-          print "skipping fixedCache:", cursor
+          # print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
         while not (cursor in fixedCache[cursor[my]]):
-          echo "\nset span:"
-          print cursor
+          # echo "\nset span:"
+          # print cursor
           autos[i].gridItem.span[mx] = cursor[mx] .. cursor[mx] + 1
           autos[i].gridItem.span[my] = cursor[my] .. cursor[my] + 1
-          print autos[i].gridItem.span[dcol]
-          print autos[i].gridItem.span[drow]
+          # print autos[i].gridItem.span[dcol]
+          # print autos[i].gridItem.span[drow]
           i.inc
           if i >= autos.len():
             break autoflow

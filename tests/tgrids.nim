@@ -314,8 +314,6 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 3
     check gridTemplate.lines[drow].len() == 3
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
 
     let contentSize = uiSize(30, 30)
 
@@ -331,8 +329,12 @@ suite "grids":
     itemb.row = 3 // 4
     itemb.setGridSpans(gridTemplate, contentSize)
 
-    let boxa = itema.computeBox(gridTemplate, contentSize)
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    # echo "grid template: ", repr gridTemplate
     # echo "grid template post: ", repr gridTemplate
+    print gridTemplate
+
+    let boxa = itema.computeBox(gridTemplate, contentSize)
     # print boxa
 
     checks boxa.x.float == 0.0
@@ -346,7 +348,7 @@ suite "grids":
     checks boxb.x.float == 240.0
     checks boxb.y.float == 180.0
     checks boxb.w.float == 60.0
-    checks boxb.h.float == 30.0
+    checks boxb.h.float == 20.0
 
   test "compute layout with auto flow":
     var gridTemplate: GridTemplate
@@ -385,7 +387,7 @@ suite "grids":
     # ==== process grid ====
     gridTemplate.computeNodeLayout(parent, nodes)
 
-    echo "grid template post: ", repr gridTemplate
+    # echo "grid template post: ", repr gridTemplate
     # ==== item a ====
     checks nodes[0].box.x.float == 0.0
     checks nodes[0].box.w.float == 60.0
@@ -393,7 +395,7 @@ suite "grids":
     checks nodes[0].box.h.float == 66.0
 
     # ==== item e ====
-    print nodes[1].box
+    # print nodes[1].box
     checks nodes[1].box.x.float == 240.0
     checks nodes[1].box.w.float == 60.0
     checks nodes[1].box.y.float == 0.0

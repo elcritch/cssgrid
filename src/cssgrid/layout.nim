@@ -187,8 +187,8 @@ import print
 
 proc computeAutoFlow(
     gridTemplate: GridTemplate,
-    node: GridNodes,
-    allNodes: seq[GridNodes],
+    node: GridNode,
+    allNodes: seq[GridNode],
 ) =
   let (mx, my) =
     if gridTemplate.autoFlow in [grRow, grRowDense]:
@@ -206,7 +206,7 @@ proc computeAutoFlow(
 
   # print gridTemplate.lines[mx].len()
   # setup caches
-  var autos = newSeqOfCap[GridNodes](allNodes.len())
+  var autos = newSeqOfCap[GridNode](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
   for i in 1..gridTemplate.lines[my].len()+1:
     fixedCache[i.LinePos] = initHashSet[GridSpan]()
@@ -268,8 +268,8 @@ proc computeAutoFlow(
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
-    node: GridNodes,
-    children: seq[GridNodes],
+    node: GridNode,
+    children: seq[GridNode],
 ) =
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has

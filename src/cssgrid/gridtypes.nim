@@ -9,7 +9,7 @@ import basic, constraints
 export basic, constraints
 
 type
-  GridNodes* = concept node
+  GridNode* = concept node
     node.box = uiBox(0, 0, 0, 0)
 
 type
@@ -22,7 +22,6 @@ type
     grRowDense
     grColumn
     grColumnDense
-
 
 type
   GridTemplate* = ref object

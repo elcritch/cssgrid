@@ -34,9 +34,11 @@ Here's an example of using the macro to parse CSS style grid syntax:
 See [tlayout.nim](tests/tlayout.nim) for a complete example using Pixie to layout a series of rectangles: 
 
 Using `auto-flow: row`:
+
 ![Layout Row](tests/tlayout-grRow-expected.png)
 
 Using `auto-flow: column`:
+
 ![Layout Row](tests/tlayout-grColumn-expected.png)
 
 ## Basic Usage

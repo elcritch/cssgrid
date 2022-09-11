@@ -181,8 +181,9 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     # print gridItem
-
     let contentSize = uiSize(0, 0)
+    gridItem.setGridSpans(gridTemplate, contentSize)
+
     let itemBox = gridItem.computeBox(gridTemplate, contentSize)
     # print itemBox
     # print "post: ", gridItem
@@ -203,17 +204,17 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
+    let contentSize = uiSize(500, 200)
     var gridItem = newGridItem()
     gridItem.column.a = 2.mkIndex
     gridItem.column.b = "five".mkIndex
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
+    gridItem.setGridSpans(gridTemplate, contentSize)
     # print gridItem
 
-    let contentSize = uiSize(500, 200)
-    var itemBox: UiBox
-
     ## test stretch
+    var itemBox: UiBox
     itemBox = gridItem.computeBox(gridTemplate, contentSize)
     # print itemBox
     checks itemBox.x.float == 40.0

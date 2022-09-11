@@ -88,4 +88,15 @@ suite "grids":
     let (n2, b2) = makeGrid1(gt2)
     saveImage(gt2, b2, n2)
 
+  test "compute autos":
+    var gt1 = newGridTemplate()
+    gt1.autoFlow = grRow
+    let (n1, b1) = makeGrid1(gt1)
+    saveImage(gt1, b1, n1)
+
+    var gt2 = newGridTemplate()
+    gt2.autoFlow = grColumn
+    let (n2, b2) = makeGrid1(gt2)
+    saveImage(gt2, b2, n2)
+
 

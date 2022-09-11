@@ -10,7 +10,7 @@ Contributions, issues, and PR's are welcome.
 
 The API can be used directly to setup a CSS Grid. A mini-DSL macro is provided which mimics the CSS syntax. Though it's intented to be used to implement user facing API that matches the UI framework.  
 
-Here's an example of the CSS style syntax:
+Here's an example of using the macro to parse CSS style grid syntax:
 
 ```nim
   test "compute others":
@@ -38,53 +38,48 @@ Using `auto-flow: row`:
 
 Using `auto-flow: column`:
 ![Layout Row](tests/tlayout-grColumn-expected.png)
-Here's an edited form of it:
+
+## Basic Usage
 
 ```nim
-proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
-  # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
+type
+  GridNode* = ref object
+    ## a container that fullfills the concept
+    id: string
+    box: UiBox
+    gridItem: GridItem
+
+proc `box=`*[T](v: T, box: UiBox) = 
+  v.box = box
+
+proc setupGrid(): (seq[GridNode], UiBox) =
+  var gridTemplate: GridTemplate # holds the grid info
+  # setup the grid constraints
   parseGridTemplateColumns gridTemplate, 60'ui 60'ui 60'ui 60'ui 60'ui 60'ui
   parseGridTemplateRows gridTemplate, 33'ui 33'ui 33'ui
+  # set item behavior
   gridTemplate.justifyItems = CxStretch
 
-  let box = uiBox(0, 0,
+  # nodes are a concept for containers that hold a
+  # box and a gridItem.  
+  var nodes = newSeq[GridNode](1)
+
+  var parent = GridNode()
+  # create bounding box -- a box are UI coordinates in [X, Y, W, H] format
+  parent.box = uiBox(0, 0,
                   60*(gridTemplate.columns().len().float-1),
                   33*(gridTemplate.rows().len().float-1))
-
-  var nodes = newSeq[GridNode](6)
-
-  gridTemplate.computeTracks(box)
-  # echo "grid template: ", repr gridTemplate
-  var parent = GridNode()
 
   # item a
   var itema = newGridItem()
   itema.column = 1
   itema.row = 1 // 3
-  # let boxa = itema.computeTracks(gridTemplate, contentSize)
   nodes[0] = GridNode(id: "a", gridItem: itema)
 
-  # ==== item e ====
-  var iteme = newGridItem()
-  iteme.column = 5 // 6
-  iteme.row = 1 // 3
-  nodes[1] = GridNode(id: "e", gridItem: iteme)
-
-  # ==== item b's ====
-  for i in 2 ..< nodes.len():
-    nodes[i] = GridNode(id: "b" & $(i-2))
-
-  # ==== process grid ====
+  # computes the grid layout, flows any non-fixed nodes and sets node box sizes
   gridTemplate.computeNodeLayout(parent, nodes)
   result = (nodes, box)
 
-suite "grids":
-
-  test "compute layout with auto flow":
-    var gt1 = newGridTemplate()
-    gt1.autoFlow = grRow
-    let (n1, b1) = makeGrid1(gt1)
-    saveImage(gt1, b1, n1)
-
 ```
+
 

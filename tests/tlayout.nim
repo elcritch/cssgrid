@@ -27,21 +27,18 @@ proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
   parseGridTemplateRows gridTemplate, 33'ui 33'ui 33'ui
   gridTemplate.justifyItems = CxStretch
 
-  let box = uiBox(0, 0,
-                  60*(gridTemplate.columns().len().float-1),
-                  33*(gridTemplate.rows().len().float-1))
 
   var nodes = newSeq[GridNode](6)
 
-  gridTemplate.computeTracks(box)
-  # echo "grid template: ", repr gridTemplate
   var parent = GridNode()
+  parent.box = uiBox(0, 0,
+                  60*(gridTemplate.columns().len().float-1),
+                  33*(gridTemplate.rows().len().float-1))
 
   # item a
   var itema = newGridItem()
   itema.column = 1
   itema.row = 1 // 3
-  # let boxa = itema.computeTracks(gridTemplate, contentSize)
   nodes[0] = GridNode(id: "a", gridItem: itema)
 
   # ==== item e ====
@@ -56,7 +53,7 @@ proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
 
   # ==== process grid ====
   gridTemplate.computeNodeLayout(parent, nodes)
-  result = (nodes, box)
+  result = (nodes, parent.box)
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode]) =
   echo "grid template post: ", repr gridTemplate

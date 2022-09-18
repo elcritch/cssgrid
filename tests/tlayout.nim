@@ -23,8 +23,8 @@ proc `box=`*[T](v: T, box: UiBox) =
 
 proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
   # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-  parseGridTemplateColumns gridTemplate, 60'ui 60'ui 60'ui 60'ui 60'ui 60'ui
-  parseGridTemplateRows gridTemplate, 33'ui 33'ui 33'ui
+  parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux 60'ux
+  parseGridTemplateRows gridTemplate, 33'ux 33'ux 33'ux
   gridTemplate.justifyItems = CxStretch
 
 

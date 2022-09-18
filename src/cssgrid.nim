@@ -2,9 +2,9 @@
 # exports the main API in this file. Note that you cannot rename this file
 # but you can remove it if you wish.
 
-import cssgrid/basic
+import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/layout
 import cssgrid/parser
 
-export basic, gridtypes, layout, parser
+export numberTypes, gridtypes, layout, parser

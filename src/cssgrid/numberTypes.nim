@@ -150,12 +150,6 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.x -= xy.x
   result.y -= xy.y
 
-template scaled*(a: UiBox): Rect = Rect(a * uiScale.UiScalar)
-template descaled*(a: Rect): UiBox = UiBox(a / uiScale)
-
-template scaled*(a: UiSize): Vec2 = Vec2(a * uiScale.UiScalar)
-template descaled*(a: Vec2): UiSize = UiSize(a / uiScale)
-
 proc sum*(rect: Rect): float32 =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (float32, float32, float32, float32)): float32 =

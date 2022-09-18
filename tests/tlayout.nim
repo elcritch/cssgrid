@@ -3,7 +3,7 @@ import typetraits
 import sequtils
 
 import unittest
-import cssgrid/basic
+import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/layout
 import cssgrid/parser

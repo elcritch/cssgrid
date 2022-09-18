@@ -1,7 +1,7 @@
 import std/rationals
 import patty
 
-import basic, constraints, gridtypes, parser
+import numberTypes, constraints, gridtypes, parser
 
 export rationals, constraints, gridtypes
 

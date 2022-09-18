@@ -1,5 +1,5 @@
-import basic
-export sets, tables
+import numberTypes
+export sets, tables, numberTypes
 
 type
   ConstraintBehavior* = enum

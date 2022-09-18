@@ -1,4 +1,4 @@
-import basic, gridtypes
+import numberTypes, gridtypes
 import typetraits
 import macros except `$`
 import std/macrocache

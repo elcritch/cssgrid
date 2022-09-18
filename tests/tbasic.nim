@@ -1,6 +1,6 @@
 
 import unittest
-import cssgrid/basic
+import cssgrid/numberTypes
 
 suite "grids":
 

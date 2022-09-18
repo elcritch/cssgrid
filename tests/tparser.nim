@@ -50,20 +50,29 @@ suite "grids":
     
   test "initial macros":
     proc checkColumns(gt: GridTemplate, dir: GridDir) =
-      check gt.lines[dir][0].track.kind == UiFixed
-      check gt.lines[dir][0].track.coord == 40.0.UiScalar
+      check gt.lines[dir][0].track.kind == UiValue
+      check gt.lines[dir][0].track.value.kind == UiFixed
+      check gt.lines[dir][0].track.value.coord == 40.0.UiScalar
       check gt.lines[dir][0].aliases == toLineNames("first")
-      check gt.lines[dir][1].track.kind == UiPerc
-      check gt.lines[dir][1].track.perc == 50.0.UiScalar
+
+      check gt.lines[dir][1].track.kind == UiValue
+      check gt.lines[dir][1].track.value.kind == UiPerc
+      check gt.lines[dir][1].track.value.perc == 50.0.UiScalar
       check gt.lines[dir][1].aliases == toLineNames("second", "line2")
+
       check gt.lines[dir][2].track.kind == UiAuto
       check gt.lines[dir][2].aliases == toLineNames("line3")
-      check gt.lines[dir][3].track.kind == UiFixed
-      check gt.lines[dir][3].track.coord == 50.0.UiScalar
+
+      check gt.lines[dir][3].track.kind == UiValue
+      check gt.lines[dir][3].track.value.kind == UiFixed
+      check gt.lines[dir][3].track.value.coord == 50.0.UiScalar
       check gt.lines[dir][3].aliases == toLineNames("col4-start")
-      check gt.lines[dir][4].track.kind == UiFixed
-      check gt.lines[dir][4].track.coord == 40.0.UiScalar
+
+      check gt.lines[dir][4].track.kind == UiValue
+      check gt.lines[dir][4].track.value.kind == UiFixed
+      check gt.lines[dir][4].track.value.coord == 40.0.UiScalar
       check gt.lines[dir][4].aliases == toLineNames("five")
+
       check gt.lines[dir][5].track.kind == UiEnd
       check gt.lines[dir][5].aliases == toLineNames("end")
     

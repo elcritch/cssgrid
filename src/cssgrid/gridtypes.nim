@@ -10,7 +10,7 @@ export numberTypes, constraints
 
 type
   GridNode* = concept node
-    node.box = uiBox(0, 0, 0, 0)
+    distinctBase(node.box) = Rect
 
 type
   GridDir* = enum

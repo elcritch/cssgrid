@@ -109,10 +109,10 @@ suite "grids":
     check iteme.column.b.line.int == 4
     check iteme.column.b.isSpan == true
 
-    iteme.column = 2 // span "first"
+    iteme.column = "first" // span "second"
     iteme.row = 1 // "second"
-    check iteme.column.a.line.int == 2
-    check iteme.column.b.line.int == 2851137560
+    check iteme.column.a.line.int == 2851137560
+    check iteme.column.b.line.int == 436751995
     check iteme.column.b.isSpan == true
     check iteme.row.a.line.int == 1
     check iteme.row.b.line.int == 436751995

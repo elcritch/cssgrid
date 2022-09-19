@@ -312,7 +312,7 @@ proc computeNodeLayout*(
       hasAutos = true
     else:
       hasAutos = true
-    child.gridItem.setGridSpans(gridTemplate, child.box.wh)
+    child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children
   for child in children:
@@ -324,10 +324,10 @@ proc computeNodeLayout*(
   if hasAutos:
     computeAutoFlow(gridTemplate, node, children)
 
-  gridTemplate.computeTracks(node.box)
+  gridTemplate.computeTracks(node.box.UiBox)
   # echo "gridTemplate: ", gridTemplate.repr
 
   for child in children:
     if fixedCount(child.gridItem) in 1..3:
       continue
-    child.box = child.gridItem.computeBox(gridTemplate, child.box.wh)
+    child.box = typeof(child.box)(child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize))

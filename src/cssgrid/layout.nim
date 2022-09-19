@@ -34,13 +34,13 @@ proc computeLineLayout*(
   # compute total fixed sizes and fracs
   for grdLn in lines:
     match grdLn.track:
+      UiNone():
+        discard
       UiValue(value):
         calc(value)
       UiAuto():
         totalAutos += 1
       UiEnd():
-        discard
-      UiNone():
         discard
       UiMin(lmin, rmin):
         if lmin.kind == UiFrac:

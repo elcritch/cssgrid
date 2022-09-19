@@ -181,7 +181,7 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     # print gridItem
-    let contentSize = uiSize(0, 0)
+    let contentSize: UiSize = uiSize(0, 0)
     gridItem.setGridSpans(gridTemplate, contentSize)
 
     let itemBox = gridItem.computeBox(gridTemplate, contentSize)
@@ -195,6 +195,7 @@ suite "grids":
     checks itemBox.y.float == 0.0
     checks itemBox.h.float == 350.0
 
+when false:
   test "compute macro and item layout":
     var gridTemplate: GridTemplate
 

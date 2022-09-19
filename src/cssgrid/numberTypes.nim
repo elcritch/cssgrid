@@ -99,6 +99,14 @@ converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 type
   UiSize* = distinct Vec2
 
+type
+  UiSizeZ* = concept sz
+    distinctBase(sz) is Vec2
+  UiScalarZ* = concept v
+    distinctBase(v) is float32
+  UiBoxZ* = concept v
+    distinctBase(v) is Rect
+
 proc uiSize*(x, y: float32): UiSize = UiSize(vec2(x, y))
 genBoolOp[UiSize, Vec2](`==`)
 genBoolOp[UiSize, Vec2](`!=`)

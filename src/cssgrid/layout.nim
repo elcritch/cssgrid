@@ -86,7 +86,7 @@ proc computeLineLayout*(
     grdLn.start = cursor
     cursor += grdLn.width + spacing
 
-proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
+proc computeTracks*[UBox: UiBoxZ](grid: GridTemplate, contentSize: UBox) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or
       grid.lines[dcol][^1].track.kind != UiEnd:
@@ -124,7 +124,7 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
   # if idx == -2: lines[idx-1].start else: lines[^1].start
   lines[idx-1].start
 
-proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
+proc gridAutoInsert[UScalar: UiScalarZ](grid: GridTemplate, dir: GridDir, idx: int, cz: UScalar) =
   assert idx <= 1000, "max grids exceeded"
   if idx >= grid.lines[dir].len():
     while idx >= grid.lines[dir].len():
@@ -132,7 +132,7 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
       var ln = initGridLine(track = grid.autos[dir])
       grid.lines[dir].insert(ln, offset)
 
-proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
+proc setSpan[UScalar: UiScalarZ](grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
     let idx = index.line.int - 1
@@ -141,10 +141,10 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   else:
     findLine(index, grid.lines[`dir`])
 
-proc setGridSpans*(
+proc setGridSpans*[USize: UiSizeZ](
     item: GridItem,
     grid: GridTemplate,
-    contentSize: UiSize
+    contentSize: USize,
 ) =
   ## computing grid layout
   assert not item.isNil

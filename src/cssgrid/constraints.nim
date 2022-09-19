@@ -79,10 +79,10 @@ proc `==`*(a, b: Constraint): bool =
 proc repr*(a: ConstraintSize): string =
   match a:
     UiFrac(frac): result = $frac & "'fr"
-    UiFixed(coord): result = $coord & "'ui"
+    UiFixed(coord): result = $coord & "'ux"
     UiPerc(perc): result = $perc & "'perc"
 
-proc `'ui`*(n: string): Constraint =
+proc `'ux`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
   result = csFixed(f)

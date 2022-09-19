@@ -89,7 +89,7 @@ borrowMaths(UiScalar, float32)
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
-# proc `'ui`*(n: string): UiScalar =
+# proc `'ux`*(n: string): UiScalar =
 #   ## numeric literal UI Coordinate unit
 #   result = UiScalar(parseFloat(n))
 

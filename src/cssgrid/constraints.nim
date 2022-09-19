@@ -23,6 +23,7 @@ type
       coord*: UiScalar
 
   Constraints* = enum
+    UiNone
     UiValue
     UiAuto
     UiMin
@@ -32,6 +33,8 @@ type
 
   Constraint* = object
     case kind*: Constraints
+    of UiNone:
+      discard
     of UiValue:
       value*: ConstraintSize
     of UiAuto:
@@ -58,6 +61,8 @@ proc csPerc*(perc: int|float|UiScalar): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
 proc csEnd*(): Constraint =
   Constraint(kind: UiEnd)
+proc csNone*(): Constraint =
+  Constraint(kind: UiNone)
 
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:
@@ -69,6 +74,7 @@ proc `==`*(a, b: ConstraintSize): bool =
 proc `==`*(a, b: Constraint): bool =
   if a.kind == b.kind:
     match a:
+      UiNone(): return true
       UiAuto(): return true
       UiValue(value): return value == b.value
       UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin

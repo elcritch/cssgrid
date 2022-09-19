@@ -40,6 +40,8 @@ proc computeLineLayout*(
         totalAutos += 1
       UiEnd():
         discard
+      UiNone():
+        discard
       UiMin(lmin, rmin):
         if lmin.kind == UiFrac:
           isUndefined = true
@@ -99,19 +101,6 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
     rowLen = contentSize.h
   grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
-
-proc reComputeLayout(grid: GridTemplate) =
-  var w, h: float32
-  for col in grid.lines[dcol]:
-    if col.track.kind == UiEnd:
-      w = col.start.float32
-      break
-  for row in grid.lines[drow]:
-    if row.track.kind == UiEnd:
-      h = row.start.float32
-      break
-  # echo "reCompute"
-  grid.computeTracks(uiBox(0, 0, w, h))
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   for i, line in lines:

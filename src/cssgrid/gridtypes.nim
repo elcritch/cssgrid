@@ -1,9 +1,8 @@
 import std/[strformat, sugar]
 import std/[sequtils, strutils, hashes, sets, tables]
-import rationals
 import typetraits
 import patty
-export rationals, sets, tables
+export sets, tables
 
 import numberTypes, constraints
 export numberTypes, constraints

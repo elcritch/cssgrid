@@ -136,7 +136,7 @@ proc span*(name: static string): GridIndex =
 proc mkIndex*(name: static string, isSpan = false): GridIndex =
   GridIndex(line: findLineName(name), isSpan: isSpan, isName: true)
 
-proc `//`*(a, b: static[string]|int|GridIndex): Slice[GridIndex] =
+proc `//`*(a, b: static[string]|string|int|GridIndex): Slice[GridIndex] =
   result.a = mkIndex(a)
   result.b = mkIndex(b)
   when not b.typeof is GridIndex:

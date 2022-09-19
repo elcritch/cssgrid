@@ -1,9 +1,8 @@
-import std/rationals
 import patty
 
 import numberTypes, constraints, gridtypes, parser
 
-export rationals, constraints, gridtypes
+export constraints, gridtypes
 
 let defaultLine = GridLine(track: csFrac(1))
 

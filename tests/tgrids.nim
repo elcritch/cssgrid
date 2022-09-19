@@ -85,7 +85,7 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
 
     # gridTemplate.computeTracks(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
@@ -115,12 +115,12 @@ suite "grids":
     var tmpl: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns tmpl, ["first"] 40'ux \
-      ["second", "line2"] 50'ux \
+    parseGridTemplateColumns tmpl, ["first"] 40'ui \
+      ["second", "line2"] 50'ui \
       ["line3"] auto \
-      ["col4-start"] 50'ux \
-      ["five"] 40'ux ["end"]
-    parseGridTemplateRows tmpl, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+      ["col4-start"] 50'ui \
+      ["five"] 40'ui ["end"]
+    parseGridTemplateRows tmpl, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
 
     tmpl.computeTracks(uiBox(0, 0, 1000, 1000))
     let gt = tmpl
@@ -141,13 +141,13 @@ suite "grids":
   test "compute others":
     var gt: GridTemplate
 
-    parseGridTemplateColumns gt, ["first"] 40'ux \
-      ["second", "line2"] 50'ux \
+    parseGridTemplateColumns gt, ["first"] 40'ui \
+      ["second", "line2"] 50'ui \
       ["line3"] auto \
-      ["col4-start"] 50'ux \
-      ["five"] 40'ux ["end"]
+      ["col4-start"] 50'ui \
+      ["five"] 40'ui ["end"]
     parseGridTemplateRows gt, ["row1-start"] 25'pp \
-      ["row1-end"] 100'ux \
+      ["row1-end"] 100'ui \
       ["third-line"] auto ["last-line"]
 
     gt.gaps[dcol] = 10.UiScalar
@@ -170,8 +170,8 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+    parseGridTemplateColumns gridTemplate, ["first"] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
+    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
@@ -199,8 +199,8 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, [first] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+    parseGridTemplateColumns gridTemplate, [first] 40'ui ["second", "line2"] 50'ui ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
+    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ui ["third-line"] auto ["last-line"]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
@@ -256,8 +256,8 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["a"] 60'ux ["b"] 60'ux
-    parseGridTemplateRows gridTemplate, 90'ux 90'ux
+    parseGridTemplateColumns gridTemplate, ["a"] 60'ui ["b"] 60'ui
+    parseGridTemplateRows gridTemplate, 90'ui 90'ui
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 3
     check gridTemplate.lines[drow].len() == 3
@@ -308,8 +308,8 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["a"] 60'ux ["b"] 60'ux
-    parseGridTemplateRows gridTemplate, 90'ux 90'ux
+    parseGridTemplateColumns gridTemplate, ["a"] 60'ui ["b"] 60'ui
+    parseGridTemplateRows gridTemplate, 90'ui 90'ui
     gridTemplate.autos[dcol] = 60.csFixed()
     gridTemplate.autos[drow] = 20.csFixed()
     # echo "grid template pre: ", repr gridTemplate
@@ -355,8 +355,8 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
-    parseGridTemplateRows gridTemplate, 33'ux 33'ux
+    parseGridTemplateColumns gridTemplate, 60'ui 60'ui 60'ui 60'ui 60'ui
+    parseGridTemplateRows gridTemplate, 33'ui 33'ui
     gridTemplate.justifyItems = CxStretch
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 6

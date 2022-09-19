@@ -16,13 +16,13 @@ Here's an example of using the macro to parse CSS style grid syntax:
   test "compute others":
     var gt: GridTemplate
 
-    parseGridTemplateColumns gt, ["first"] 40'ux \
-      ["second", "line2"] 50'ux \
+    parseGridTemplateColumns gt, ["first"] 40'ui \
+      ["second", "line2"] 50'ui \
       ["line3"] auto \
-      ["col4-start"] 50'ux \
-      ["five"] 40'ux ["end"]
+      ["col4-start"] 50'ui \
+      ["five"] 40'ui ["end"]
     parseGridTemplateRows gt, ["row1-start"] 25'pp \
-      ["row1-end"] 100'ux \
+      ["row1-end"] 100'ui \
       ["third-line"] auto ["last-line"]
 
     gt.gaps[dcol] = 10.UiScalar
@@ -57,8 +57,8 @@ proc `box=`*[T](v: T, box: UiBox) =
 proc setupGrid(): (seq[GridNode], UiBox) =
   var gridTemplate: GridTemplate # holds the grid info
   # setup the grid constraints
-  parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux 60'ux
-  parseGridTemplateRows gridTemplate, 33'ux 33'ux 33'ux
+  parseGridTemplateColumns gridTemplate, 60'ui 60'ui 60'ui 60'ui 60'ui 60'ui
+  parseGridTemplateRows gridTemplate, 33'ui 33'ui 33'ui
   # set item behavior
   gridTemplate.justifyItems = CxStretch
 

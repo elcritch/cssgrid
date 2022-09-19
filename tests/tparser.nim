@@ -15,18 +15,18 @@ suite "grids":
     var gt3: GridTemplate
 
     expandMacros:
-      parseGridTemplateColumns gt1, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+      parseGridTemplateColumns gt1, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     # gridTemplate.computeTracks(uiBox(0, 0, 100, 100))
     parseGridTemplateColumns gt2:
-      ["first"] 40'ux
+      ["first"] 40'ui
       ["second", "line2"] 50'pp
       ["line3"] auto
-      ["col4-start"] 50'ux
-      ["five"] 40'ux
+      ["col4-start"] 50'ui
+      ["five"] 40'ui
       ["end"]
   
-    parseGridTemplateColumns gt3, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] \
-      auto ["col4-start"] 50'ux ["five"] 40'ux \
+    parseGridTemplateColumns gt3, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] \
+      auto ["col4-start"] 50'ui ["five"] 40'ui \
       ["end"]
     
     for (c1, c2) in zip(gt1.lines[dcol], gt2.lines[dcol]):
@@ -42,8 +42,8 @@ suite "grids":
     let ns = !["a", "b"]
     echo "ns: ", $ns
     var gt1 = newGridTemplate()
-    gridTemplate gt1, dcol, {!["first"]: 40'ux, !["second", "line2"]: 50'pp, !["line3"]:
-      csAuto(), !["col4-start"]: 50'ux, !["five"]: 40'ux,
+    gridTemplate gt1, dcol, {!["first"]: 40'ui, !["second", "line2"]: 50'pp, !["line3"]:
+      csAuto(), !["col4-start"]: 50'ui, !["five"]: 40'ui,
       !["end"]: csEnd()}
     
     echo "gt1: ", $gt1
@@ -78,19 +78,19 @@ suite "grids":
     
     # checks
     var gt1: GridTemplate
-    parseGridTemplateColumns gt1, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateColumns gt1, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     gt1.checkColumns(dcol)
     # checks
     var gt2 = newGridTemplate()
-    parseGridTemplateRows gt2, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateRows gt2, ["first"] 40'ui ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ui ["five"] 40'ui ["end"]
     gt2.checkColumns(drow)
 
   test "columns ":
     let ns = !["a", "b"]
     echo "ns: ", $ns
     var gt1 = newGridTemplate()
-    gridTemplate gt1, dcol, {!["first"]: 40'ux, !["second", "line2"]: 50'pp, !["line3"]:
-      csAuto(), !["col4-start"]: 50'ux, !["five"]: 40'ux,
+    gridTemplate gt1, dcol, {!["first"]: 40'ui, !["second", "line2"]: 50'pp, !["line3"]:
+      csAuto(), !["col4-start"]: 50'ui, !["five"]: 40'ui,
       !["end"]: csEnd()}
     
     echo "gt1: ", $gt1

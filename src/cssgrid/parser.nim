@@ -86,7 +86,10 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
       else:
         error("unknown argument: " & node.repr)
     else:
-      error("unknown argument: " & node.repr)
+      # error("unknown argument: " & node.repr)
+      result[1].add quote do:
+        `tgt`[`idxLit`].track = `node`
+      incrIdx(result, idxLit)
 
   result[1].add quote do:
     `tgt`[`idxLit`].track = csEnd()

@@ -28,6 +28,7 @@ type
     UiAuto
     UiMin
     UiMax
+    UiSum
     UiMinMax
     UiEnd
 
@@ -43,6 +44,8 @@ type
       lmin, rmin*: ConstraintSize
     of UiMax:
       lmax, rmax*: ConstraintSize
+    of UiSum:
+      lsum, rsum*: ConstraintSize
     of UiMinMax:
       lmm, rmm*: ConstraintSize
     of UiEnd:
@@ -64,6 +67,11 @@ proc csEnd*(): Constraint =
 proc csNone*(): Constraint =
   Constraint(kind: UiNone)
 
+proc csSum*(a, b: int|float|UiScalar|ConstraintSize): Constraint =
+  let a = when a is ConstraintSize: a else: csFixed(a)
+  let b = when b is ConstraintSize: b else: csFixed(b)
+  csSum(a: a, b: b)
+
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:
     match a:
@@ -79,6 +87,7 @@ proc `==`*(a, b: Constraint): bool =
       UiValue(value): return value == b.value
       UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin
       UiMax(lmax, rmax): return lmax == b.lmax and rmax == b.rmax
+      UiSum(lsum, rsum): return lsum == b.lsum and rsum == b.rsum
       UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
       UiEnd(): return true
 

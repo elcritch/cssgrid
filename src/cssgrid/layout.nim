@@ -52,6 +52,11 @@ proc computeLineLayout*(
           isUndefined = true
         # calc(value)
         discard
+      UiSum(lsum, rsum):
+        if lsum.kind == UiFrac:
+          isUndefined = true
+        # calc(value)
+        discard
       UiMinMax(lmm, rmm):
         if lmm.kind == UiFrac:
           isUndefined = true

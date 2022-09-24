@@ -51,6 +51,8 @@ type
     of UiEnd:
       discard
 
+  SomeCsValue* = int|float|UiScalar|ConstraintSize|Constraint
+
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)
 proc csAuto*(): Constraint =
@@ -67,7 +69,8 @@ proc csEnd*(): Constraint =
 proc csNone*(): Constraint =
   Constraint(kind: UiNone)
 
-proc csSum*(a, b: int|float|UiScalar|ConstraintSize|Constraint): Constraint =
+proc csSum*(a, b: SomeCsValue): Constraint =
+  ## create sum op
   let a = when a is ConstraintSize: a
           elif a is Constraint: a.value
           else: csFixed(a).value
@@ -75,6 +78,36 @@ proc csSum*(a, b: int|float|UiScalar|ConstraintSize|Constraint): Constraint =
           elif a is Constraint: a.value
           else: csFixed(b).value
   Constraint(kind: UiSum, lsum: a, rsum: b)
+
+proc csMax*(a, b: SomeCsValue): Constraint =
+  ## create max op
+  let a = when a is ConstraintSize: a
+          elif a is Constraint: a.value
+          else: csFixed(a).value
+  let b = when b is ConstraintSize: b
+          elif a is Constraint: a.value
+          else: csFixed(b).value
+  Constraint(kind: UiMax, lmax: a, rmax: b)
+
+proc csMin*(a, b: SomeCsValue): Constraint =
+  ## create min op
+  let a = when a is ConstraintSize: a
+          elif a is Constraint: a.value
+          else: csFixed(a).value
+  let b = when b is ConstraintSize: b
+          elif a is Constraint: a.value
+          else: csFixed(b).value
+  Constraint(kind: UiMin, lmin: a, rmin: b)
+
+proc csMinMax*(a, b: SomeCsValue): Constraint =
+  ## create minmin op
+  let a = when a is ConstraintSize: a
+          elif a is Constraint: a.value
+          else: csFixed(a).value
+  let b = when b is ConstraintSize: b
+          elif a is Constraint: a.value
+          else: csFixed(b).value
+  Constraint(kind: UiMinMax, lmm: a, rmm: b)
 
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:

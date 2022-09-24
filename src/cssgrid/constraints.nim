@@ -67,10 +67,14 @@ proc csEnd*(): Constraint =
 proc csNone*(): Constraint =
   Constraint(kind: UiNone)
 
-proc csSum*(a, b: int|float|UiScalar|ConstraintSize): Constraint =
-  let a = when a is ConstraintSize: a else: csFixed(a)
-  let b = when b is ConstraintSize: b else: csFixed(b)
-  csSum(a: a, b: b)
+proc csSum*(a, b: int|float|UiScalar|ConstraintSize|Constraint): Constraint =
+  let a = when a is ConstraintSize: a
+          elif a is Constraint: a.value
+          else: csFixed(a).value
+  let b = when b is ConstraintSize: b
+          elif a is Constraint: a.value
+          else: csFixed(b).value
+  Constraint(kind: UiSum, lsum: a, rsum: b)
 
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:

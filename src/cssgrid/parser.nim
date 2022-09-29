@@ -110,7 +110,7 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
     block:
       `gridTmpl`.lines[`field`].setLen(`colCount`)
       `cols`
-  echo "gt:result: ", result.repr
+  # echo "gt:result: ", result.repr
 
 macro `!`*(arg: untyped{nkBracket}): auto =
   result = nnkBracket.newTree()

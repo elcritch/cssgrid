@@ -206,7 +206,7 @@ suite "grids":
 
     var gridItem = newGridItem()
     gridItem.column = 2 // ln"five"
-    gridItem.row = "row1-start" // 3
+    gridItem.row = "row1-start"
 
     # print gridItem
     let contentSize = uiSize(0, 0)
@@ -218,7 +218,7 @@ suite "grids":
     check gridItem.span[dcol].a == 2
     check gridItem.span[dcol].b == 5
     check gridItem.span[drow].a == 1
-    check gridItem.span[drow].b == 3
+    check gridItem.span[drow].b == 2
 
   test "compute macro and item layout":
     var gridTemplate: GridTemplate

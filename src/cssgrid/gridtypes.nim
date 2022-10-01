@@ -186,10 +186,17 @@ proc `column=`*(grid: GridItem, index: Slice[GridIndex]) =
   grid.index[dcol] = index
 proc `row=`*(grid: GridItem, index: Slice[GridIndex]) =
   grid.index[drow] = index
+
 proc `column=`*(grid: GridItem, index: int) =
   grid.index[dcol] = index // (index + 1)
 proc `row=`*(grid: GridItem, index: int) =
   grid.index[drow] = index // (index + 1)
+
+proc `column=`*(grid: GridItem, index: static string) =
+  grid.index[dcol] = index.mkIndex // span(index.mkIndex)
+proc `row=`*(grid: GridItem, index: static string) =
+  grid.index[drow] = index.mkIndex // span(index.mkIndex)
+
 proc `column`*(grid: GridItem): var Slice[GridIndex] =
   grid.index[dcol]
 proc `row`*(grid: GridItem): var Slice[GridIndex] =

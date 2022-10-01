@@ -1,8 +1,8 @@
 import std/[strformat, sugar]
 import std/[sequtils, strutils, hashes, sets, tables]
-import typetraits
+import std/[typetraits, sets, tables]
+import std/[macrocache, macros]
 import patty
-export sets, tables
 
 import numberTypes, constraints
 export numberTypes, constraints
@@ -53,7 +53,49 @@ type
     span*: GridSpan
     index*: array[GridDir, Slice[GridIndex]]
 
+
+const lnTable = CacheTable"lnTable"
+
+proc contains(ct: CacheTable, nm: string): bool =
+  for k, v in ct:
+    if nm == k:
+      return true
+
+var lnNameCache* {.compileTime.}: Table[int, string]
+
+macro declLineName*(name: typed): LineName =
+  let nm = name.strVal
+  let id = nm.hash()
+  lnNameCache[id.int] = nm
+  let res = quote do:
+    LineName(`id`)
+  if nm in lnTable:
+    result = lnTable[nm]
+    assert id == result[1].intVal
+  else:
+    lnTable[nm] = res
+    result = res
+
+proc findLN(nm: string): NimNode {.compileTime.} =
+  if nm in lnTable:
+    result = lnTable[nm]
+  else:
+    error("[cssgrid] LineName not declared: " & nm)
+
+macro findLineNameImpl(name: typed): LineName =
+  let nm = name.strVal
+  result = findLN(nm)
+
+template findLineName*(name: static string): LineName =
+  findLineNameImpl(name)
+
 var lineName: Table[int, string]
+
+macro ln*(n: string): GridIndex =
+  ## numeric literal view width unit
+  let val = findLN(n.strVal)
+  result = quote do:
+    GridIndex(line: `val`, isName: true)
 
 proc columns*(grid: GridTemplate): seq[GridLine] =
   grid.lines[dcol]
@@ -107,6 +149,7 @@ proc toLineName*(name: int): LineName =
   result = LineName(name)
   lineName[result.int] = "idx:" & $name
 proc toLineName*(name: string): LineName =
+  echo "line name: ", name
   result = LineName(name.hash())
   if result.int in lineName:
     assert lineName[result.int] == name

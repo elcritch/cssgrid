@@ -1,42 +1,8 @@
 import numberTypes, gridtypes
 import typetraits
 import macros except `$`
-import std/macrocache
-import std/macros
 
 export gridtypes
-
-const lnTable = CacheTable"lnTable"
-
-proc contains(ct: CacheTable, nm: string): bool =
-  for k, v in ct:
-    if nm == k:
-      return true
-
-var lnNameCache* {.compileTime.}: Table[int, string]
-
-macro declLineName*(name: typed): LineName =
-  let nm = name.strVal
-  let id = nm.hash()
-  lnNameCache[id.int] = nm
-  let res = quote do:
-    LineName(`id`)
-  if nm in lnTable:
-    result = lnTable[nm]
-    assert id == result[1].intVal
-  else:
-    lnTable[nm] = res
-    result = res
-
-macro findLineNameImpl(name: typed): LineName =
-  let nm = name.strVal
-  if nm in lnTable:
-    result = lnTable[nm]
-  else:
-    error("[cssgrid] LineName not declared: " & nm)
-
-template findLineName*(name: static string): LineName =
-  findLineNameImpl(name)
 
 proc flatten(arg: NimNode): NimNode {.compileTime.} =
   ## flatten the representation

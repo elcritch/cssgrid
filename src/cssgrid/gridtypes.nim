@@ -176,6 +176,9 @@ proc span*(a: GridIndex): GridIndex =
   result.isName = a.isName
   result.isSpan = true
 
+proc spanCnt*(a: GridIndex): int =
+  if a.isSpan: 1 else: 0
+
 proc `//`*(a, b: int|GridIndex): Slice[GridIndex] =
   result.a = mkIndex(a)
   result.b = mkIndex(b)

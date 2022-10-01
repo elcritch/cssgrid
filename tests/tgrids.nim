@@ -195,31 +195,6 @@ suite "grids":
     checks itemBox.y.float == 0.0
     checks itemBox.h.float == 350.0
 
-  test "other grid type macros":
-    var gridTemplate: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
-
-    var gridItem = newGridItem()
-    gridItem.column = 2 // ln"five"
-    gridItem.row = "row1-start"
-
-    # print gridItem
-    let contentSize = uiSize(0, 0)
-    gridItem.setGridSpans(gridTemplate, contentSize)
-
-    check gridItem.index[dcol].a.line == 2.LineName
-    check gridItem.index[dcol].b == ln"five"
-
-    check gridItem.span[dcol].a == 2
-    check gridItem.span[dcol].b == 5
-    check gridItem.span[drow].a == 1
-    check gridItem.span[drow].b == 2
-
   test "compute macro and item layout":
     var gridTemplate: GridTemplate
 
@@ -455,3 +430,45 @@ suite "grids":
       checks nodes[i].box.w.float == 60.0
       checks nodes[i].box.h.float == 33.0
 
+
+suite "syntaxes":
+
+  setup:
+    echo "setup"
+
+    var gt: GridTemplate
+
+    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
+    parseGridTemplateColumns gt, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateRows gt, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+    gt.computeTracks(uiBox(0, 0, 1000, 1000))
+    # echo "grid template: ", repr gridTemplate
+
+  template checkSpans(gridTemplate: GridTemplate, gridItem: GridItem) =
+    # print gridItem
+    let contentSize = uiSize(0, 0)
+    gridItem.setGridSpans(gt, contentSize)
+
+    check gridItem.index[dcol].a.line == 2.LineName
+    check gridItem.index[dcol].b == ln"five"
+
+    check gridItem.span[dcol].a == 2
+    check gridItem.span[dcol].b == 5
+    check gridItem.span[drow].a == 1
+    check gridItem.span[drow].b == 2
+
+
+  test "auto span":
+    ## mixed
+    
+    var gridItem1 = newGridItem()
+    gridItem1.column = 2 // ln"five"
+    gridItem1.row = "row1-start"
+    checkSpans(gt, gridItem1)
+
+  test "manual span":
+    ## span
+    var gridItem2 = newGridItem()
+    gridItem2.column = 2 // ln"five"
+    gridItem2.row = "row1-start" // span "row1-start"
+    checkSpans(gt, gridItem2)

@@ -110,7 +110,7 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   for i, line in lines:
     if index.line in line.aliases:
-      return int16(i+1)
+      return int16(i+1+index.spanCnt())
   raise newException(KeyError, "couldn't find index: " & repr index)
 
 proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
@@ -128,7 +128,7 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
-    let idx = index.line.int - 1
+    let idx = index.line.int - 1 + index.spanCnt()
     grid.gridAutoInsert(dir, idx, cz)
     index.line.int16
   else:

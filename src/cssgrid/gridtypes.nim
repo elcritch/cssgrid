@@ -149,7 +149,7 @@ proc toLineName*(name: int): LineName =
   result = LineName(name)
   lineName[result.int] = "idx:" & $name
 proc toLineName*(name: string): LineName =
-  echo "line name: ", name
+  # echo "line name: ", name
   result = LineName(name.hash())
   if result.int in lineName:
     assert lineName[result.int] == name

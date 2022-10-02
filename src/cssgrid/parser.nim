@@ -85,7 +85,7 @@ macro `!`*(arg: untyped{nkBracket}): auto =
       toLineName(`a`)
   result = quote do:
     toLineNames(`result`)
-  echo "r: ", result.repr
+  # echo "r: ", result.repr
 
 template parseGridTemplateColumns*(gridTmpl, args: untyped) =
   gridTemplateImpl(gridTmpl, args, dcol)

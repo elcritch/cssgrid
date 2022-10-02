@@ -76,24 +76,24 @@ macro declLineName*(name: typed): LineName =
     lnTable[nm] = res
     result = res
 
-proc findLN(nm: string): NimNode {.compileTime.} =
+proc findLN(nm: string, node: NimNode): NimNode {.compileTime.} =
   if nm in lnTable:
     result = lnTable[nm]
   else:
-    error("[cssgrid] LineName not declared: " & nm)
+    error("[cssgrid] LineName not declared: " & `nm`, node)
 
-macro findLineNameImpl(name: typed): LineName =
+macro findLineName*(name: typed): LineName =
   let nm = name.strVal
-  result = findLN(nm)
+  result = findLN(nm, name)
 
-template findLineName*(name: static string): LineName =
-  findLineNameImpl(name)
+# template findLineName*(name: static string): LineName =
+#   findLineNameImpl(name)
 
 var lineName: Table[int, string]
 
 macro ln*(n: string): GridIndex =
   ## numeric literal view width unit
-  let val = findLN(n.strVal)
+  let val = findLN(n.strVal, n)
   result = quote do:
     GridIndex(line: `val`, isName: true)
 
@@ -198,6 +198,11 @@ proc `row=`*(grid: GridItem, index: int) =
 proc `column=`*(grid: GridItem, index: static string) =
   grid.index[dcol] = index.mkIndex // span(index.mkIndex)
 proc `row=`*(grid: GridItem, index: static string) =
+  grid.index[drow] = index.mkIndex // span(index.mkIndex)
+
+proc `column=`*(grid: GridItem, index: GridIndex) =
+  grid.index[dcol] = index.mkIndex // span(index.mkIndex)
+proc `row=`*(grid: GridItem, index: GridIndex) =
   grid.index[drow] = index.mkIndex // span(index.mkIndex)
 
 proc `column`*(grid: GridItem): var Slice[GridIndex] =

@@ -216,6 +216,8 @@ proc `$`*(a: GridLine): string =
 proc repr*(a: GridLine): string =
   result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 proc repr*(a: GridTemplate): string =
+  if a.isNil:
+    return "nil"
   result = "GridTemplate:"
   result &= "\n\tcols: "
   for c in a.lines[dcol]:

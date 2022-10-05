@@ -21,14 +21,14 @@ type
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box
 
-proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
+proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], UiBox) =
   # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-  parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux 60'ux
-  parseGridTemplateRows gridTemplate, 33'ux 33'ux 33'ux
+  parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
+  parseGridTemplateRows gridTemplate, 33'ux 33'ux
   gridTemplate.justifyItems = CxStretch
 
 
-  var nodes = newSeq[GridNode](6)
+  var nodes = newSeq[GridNode](cnt)
 
   var parent = GridNode()
   parent.box = uiBox(0, 0,
@@ -55,7 +55,7 @@ proc makeGrid1(gridTemplate: var GridTemplate): (seq[GridNode], UiBox) =
   gridTemplate.computeNodeLayout(parent, nodes)
   result = (nodes, parent.box)
 
-proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode]) =
+proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =
   echo "grid template post: ", repr gridTemplate
   echo "grid template post: ", repr box
   # ==== item a ====
@@ -70,7 +70,7 @@ proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode]) =
     ctx.fillStyle = rgba(0, 55, 244, 255).asColor().spin(-15.3*i.float)
     ctx.fillRoundedRect(nodes[i].box.Rect, 12.0)
 
-  image.writeFile(fmt"tests/tlayout-{gridTemplate.autoFlow}.png")
+  image.writeFile(fmt"tests/tlayout-{prefix}{gridTemplate.autoFlow}.png")
 
 suite "grids":
 
@@ -95,5 +95,17 @@ suite "grids":
     gt2.autoFlow = grColumn
     let (n2, b2) = makeGrid1(gt2)
     saveImage(gt2, b2, n2)
+
+  test "compute autos extra":
+    var gt1 = newGridTemplate()
+    gt1.autoFlow = grRow
+    let (n1, b1) = makeGrid1(gt1)
+    saveImage(gt1, b1, n1)
+
+    var gt2 = newGridTemplate()
+    gt2.autoFlow = grColumn
+    let (n2, b2) = makeGrid1(gt2)
+    saveImage(gt2, b2, n2, "extra-")
+
 
 

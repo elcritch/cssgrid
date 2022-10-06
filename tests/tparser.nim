@@ -16,7 +16,7 @@ suite "grids":
 
     expandMacros:
       parseGridTemplateColumns gt1, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    # gridTemplate.computeTracks(uiBox(0, 0, 100, 100))
+    
     parseGridTemplateColumns gt2:
       ["first"] 40'ux
       ["second", "line2"] 50'pp
@@ -117,3 +117,21 @@ suite "grids":
     check iteme.row.a.line.int == 1
     check iteme.row.b.line.int == 436751995
     check iteme.row.b.isSpan == false
+
+  test "compute others":
+    var gt: GridTemplate
+
+    expandMacros:
+      parseGridTemplateColumns gt, ["first"] 40'ux \
+        ["second", "line2"] 50'ux \
+        ["line3"] auto \
+        ["col4-start"] 50'ux \
+        ["five"] 40'ux ["end"]
+      parseGridTemplateRows gt, repeat(6, 1'fr) auto ["end"]
+
+    check gt.lines[dcol].len() == 6
+    check gt.lines[drow].len() == 8
+    for i in 0..5:
+      check gt.lines[drow][i].track == csFrac(1.0)
+    check gt.lines[drow][6].track == csAuto()
+    check gt.lines[drow][7].track == csEnd()

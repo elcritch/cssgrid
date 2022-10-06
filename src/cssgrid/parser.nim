@@ -31,9 +31,10 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   proc incrIdx(res: var (int, NimNode), idxLit: var NimNode) =
       res[0].inc()
       idxLit = newIntLitNode(res[0])
-      res[1].add quote do:
-        `tgt`[`idxLit`].aliases.clear()
+      # res[1].add quote do:
+      #   `tgt`[`idxLit`].aliases.clear()
   for node in arg:
+    # echo "node: ", node.kind, " repr: ", node.treeRepr
     case node.kind:
     of nnkBracket:
       for name in node:
@@ -51,6 +52,18 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
         incrIdx(result, idxLit)
       else:
         error("unknown argument: " & node.repr)
+    of nnkCall:
+      if node[0].repr == "repeat":
+        echo "node:call: ", node.treeRepr
+        let subnode = node[^1]
+        for i in 0 ..< node[1].intVal:
+          result[1].add quote do:
+            `tgt`[`idxLit`].track = `subnode`
+          incrIdx(result, idxLit)
+      else:
+        result[1].add quote do:
+          `tgt`[`idxLit`].track = `node`
+        incrIdx(result, idxLit)
     else:
       # error("unknown argument: " & node.repr)
       result[1].add quote do:

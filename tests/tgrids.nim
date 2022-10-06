@@ -457,6 +457,17 @@ suite "syntaxes":
     check gridItem.span[drow].a == 1
     check gridItem.span[drow].b == 2
 
+  test "getLine":
+    ## mixed
+    let first = gt.getLine(dcol, ln"first")
+    check first.track == csFixed(40.0)
+
+    let second = gt.getLine(dcol, ln"second")
+    check second.track == csFixed(50.0)
+
+    let line3 = gt.getLine(dcol, 3.mkIndex)
+    check line3.track == csAuto()
+
 
   test "auto span":
     ## mixed

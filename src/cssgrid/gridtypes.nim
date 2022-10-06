@@ -86,9 +86,6 @@ macro findLineName*(name: typed): LineName =
   let nm = name.strVal
   result = findLN(nm, name)
 
-# template findLineName*(name: static string): LineName =
-#   findLineNameImpl(name)
-
 var lineName: Table[int, string]
 
 macro ln*(n: string): GridIndex =

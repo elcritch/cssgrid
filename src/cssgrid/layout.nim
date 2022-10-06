@@ -108,6 +108,7 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
+  assert index.isName == true
   for i, line in lines:
     if index.line in line.aliases:
       return int16(i+1+index.spanCnt())
@@ -133,6 +134,13 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
     index.line.int16
   else:
     findLine(index, grid.lines[`dir`])
+
+proc getLine*(grid: GridTemplate, dir: GridDir, index: GridIndex): GridLine =
+  ## get line (track) for GridIndex
+  let idx = 
+    if not index.isName: index.line.int16
+    else: findLine(index, grid.lines[dir])
+  grid.lines[dir][idx-1]
 
 proc setGridSpans*(
     item: GridItem,

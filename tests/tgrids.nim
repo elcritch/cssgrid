@@ -468,6 +468,12 @@ suite "syntaxes":
     let line3 = gt.getLine(dcol, 3.mkIndex)
     check line3.track == csAuto()
 
+    let five1 = gt.getLine(dcol, ln"five")
+    check five1.track == csFixed(40.0)
+    gt.getLine(dcol, ln"five").track = csFixed(30.0)
+    let five2 = gt.getLine(dcol, ln"five")
+    check five2.track == csFixed(30.0)
+
 
   test "auto span":
     ## mixed

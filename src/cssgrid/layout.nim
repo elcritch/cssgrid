@@ -135,9 +135,9 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   else:
     findLine(index, grid.lines[`dir`])
 
-proc getLine*(grid: GridTemplate, dir: GridDir, index: GridIndex): GridLine =
+proc getLine*(grid: GridTemplate, dir: GridDir, index: GridIndex): var GridLine =
   ## get line (track) for GridIndex
-  let idx = 
+  let idx =
     if not index.isName: index.line.int16
     else: findLine(index, grid.lines[dir])
   grid.lines[dir][idx-1]

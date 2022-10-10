@@ -91,7 +91,7 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
       `cols`
   # echo "gt:result: ", result.repr
 
-macro `!`*(arg: untyped{nkBracket}): auto =
+macro `!@`*(arg: untyped{nkBracket}): auto =
   result = nnkBracket.newTree()
   for a in arg:
     result.add quote do:

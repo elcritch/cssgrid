@@ -56,8 +56,6 @@ when isMainModule:
   suite "tests":
 
     test "atom test":
-      assert true
-
       expandMacros:
         let x: Atom = atom"new long name"
         let y: Atom = @!"new Long Name"
@@ -70,3 +68,13 @@ when isMainModule:
         check x == atom"new long name"
         check x == y
         check x == z
+    
+    test "atom more tests":
+      let x: Atom = atom"newLongName"
+      let y: Atom = @!newLongName
+      let z: Atom = @!newLongName
+      echo "x: ", repr x
+      echo "y: ", repr y
+      check x == atom"newLongName"
+      check x == y
+      check x == z

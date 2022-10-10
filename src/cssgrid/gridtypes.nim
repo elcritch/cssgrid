@@ -33,7 +33,6 @@ type
     alignContent*: ConstraintBehavior
     autoFlow*: GridFlow
 
-  LineName* = distinct int
   LinePos* = int16
 
   GridLine* = object
@@ -53,41 +52,6 @@ type
     span*: GridSpan
     index*: array[GridDir, Slice[GridIndex]]
 
-
-const lnTable = CacheTable"lnTable"
-
-proc contains(ct: CacheTable, nm: string): bool =
-  for k, v in ct:
-    if nm == k:
-      return true
-
-var lnNameCache* {.compileTime.}: Table[int, string]
-
-macro declLineName*(name: typed): LineName =
-  let nm = name.strVal
-  let id = nm.hash()
-  lnNameCache[id.int] = nm
-  let res = quote do:
-    LineName(`id`)
-  if nm in lnTable:
-    result = lnTable[nm]
-    assert id == result[1].intVal
-  else:
-    lnTable[nm] = res
-    result = res
-
-proc findLN(nm: string, node: NimNode): NimNode {.compileTime.} =
-  if nm in lnTable:
-    result = lnTable[nm]
-  else:
-    error("[cssgrid] LineName not declared: " & `nm`, node)
-
-macro findLineName*(name: typed): LineName =
-  let nm = name.strVal
-  result = findLN(nm, name)
-
-var lineName: Table[int, string]
-
 macro ln*(n: string): GridIndex =
   ## numeric literal view width unit
   let val = findLN(n.strVal, n)
@@ -99,20 +63,10 @@ proc columns*(grid: GridTemplate): seq[GridLine] =
 proc rows*(grid: GridTemplate): seq[GridLine] =
   grid.lines[drow]
 
-proc `==`*(a, b: LineName): bool {.borrow.}
-proc hash*(a: LineName): Hash {.borrow.}
 proc hash*(a: GridItem): Hash =
   if a != nil:
     result = hash(a.span[drow]) !& hash(a.span[dcol])
 
-proc `$`*(a: LineName): string =
-  if a.int in lineName:
-    lineName[a.int]
-  else:
-    "int:" & $a.int
-
-proc `$`*(a: HashSet[LineName]): string =
-  result = "{" & a.toSeq().mapIt($it).join(", ") & "}"
 
 # proc `repr`*(a: HashSet[LineName]): string =
 #   result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"

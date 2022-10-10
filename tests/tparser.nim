@@ -39,12 +39,12 @@ suite "grids":
       echo "NM: ", $nm
 
   test "simple macros":
-    let ns = !["a", "b"]
+    let ns = !@["a", "b"]
     echo "ns: ", $ns
     var gt1 = newGridTemplate()
-    gridTemplate gt1, dcol, {!["first"]: 40'ux, !["second", "line2"]: 50'pp, !["line3"]:
-      csAuto(), !["col4-start"]: 50'ux, !["five"]: 40'ux,
-      !["end"]: csEnd()}
+    gridTemplate gt1, dcol, {!@["first"]: 40'ux, !@["second", "line2"]: 50'pp, !@["line3"]:
+      csAuto(), !@["col4-start"]: 50'ux, !@["five"]: 40'ux,
+      !@["end"]: csEnd()}
     
     echo "gt1: ", $gt1
     
@@ -86,12 +86,12 @@ suite "grids":
     gt2.checkColumns(drow)
 
   test "columns ":
-    let ns = !["a", "b"]
+    let ns = !@["a", "b"]
     echo "ns: ", $ns
     var gt1 = newGridTemplate()
-    gridTemplate gt1, dcol, {!["first"]: 40'ux, !["second", "line2"]: 50'pp, !["line3"]:
-      csAuto(), !["col4-start"]: 50'ux, !["five"]: 40'ux,
-      !["end"]: csEnd()}
+    gridTemplate gt1, dcol, {!@["first"]: 40'ux, !@["second", "line2"]: 50'pp, !@["line3"]:
+      csAuto(), !@["col4-start"]: 50'ux, !@["five"]: 40'ux,
+      !@["end"]: csEnd()}
     
     echo "gt1: ", $gt1
 
@@ -135,3 +135,5 @@ suite "grids":
       check gt.lines[drow][i].track == csFrac(1.0)
     check gt.lines[drow][6].track == csAuto()
     check gt.lines[drow][7].track == csEnd()
+
+    check gt.getLine(dcol, "first").track

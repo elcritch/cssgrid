@@ -35,7 +35,7 @@ suite "grids":
       check c1 == c3
     
     expandMacros:
-      let nm = findLineName("first")
+      let nm = atom"first"
       echo "NM: ", $nm
 
   test "simple macros":
@@ -111,11 +111,11 @@ suite "grids":
 
     iteme.column = "first" // span "second"
     iteme.row = 1 // "second"
-    check iteme.column.a.line.int == 2851137560
-    check iteme.column.b.line.int == 436751995
+    check iteme.column.a.line.int == 2456940119
+    check iteme.column.b.line.int == 3055489385
     check iteme.column.b.isSpan == true
     check iteme.row.a.line.int == 1
-    check iteme.row.b.line.int == 436751995
+    check iteme.row.b.line.int == 3055489385
     check iteme.row.b.isSpan == false
 
   test "compute others":
@@ -136,4 +136,4 @@ suite "grids":
     check gt.lines[drow][6].track == csAuto()
     check gt.lines[drow][7].track == csEnd()
 
-    check gt.getLine(dcol, "first").track
+    # check gt.getLine(dcol, ln"first").track

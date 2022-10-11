@@ -1,8 +1,8 @@
-import numberTypes, gridtypes
 import typetraits
 import macros except `$`
+import numberTypes, gridtypes, layout
 
-export gridtypes
+export gridtypes, layout
 
 proc flatten(arg: NimNode): NimNode {.compileTime.} =
   ## flatten the representation
@@ -38,9 +38,10 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
     case node.kind:
     of nnkBracket:
       for name in node:
-        let n = newLit name.strVal
+        # let n = newLit name.strVal
+        let n = declAtom(name.strVal)
         result[1].add quote do:
-          `tgt`[`idxLit`].aliases.incl declLineName(`n`)
+          `tgt`[`idxLit`].aliases.incl `n`
     of nnkDotExpr:
       result[1].add quote do:
         `tgt`[`idxLit`].track = `node`
@@ -113,10 +114,12 @@ proc gridTemplate*(gt: GridTemplate, dir: GridDir, args: varargs[(HashSet[LineNa
       gt.lines[dcol][i] = arg.toGridLine()
 
 proc span*(name: static string): GridIndex =
-  GridIndex(line: findLineName(name), isSpan: true, isName: true)
+  let ln = atom(name)
+  GridIndex(line: ln, isSpan: true, isName: true)
 
 proc mkIndex*(name: static string, isSpan = false): GridIndex =
-  GridIndex(line: findLineName(name), isSpan: isSpan, isName: true)
+  let ln = atom(name)
+  GridIndex(line: ln, isSpan: isSpan, isName: true)
 
 proc `//`*(a, b: static[string]|string|int|GridIndex): Slice[GridIndex] =
   result.a = mkIndex(a)

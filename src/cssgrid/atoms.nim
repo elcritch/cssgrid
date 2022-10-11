@@ -15,7 +15,7 @@ proc contains(ct: CacheTable, nm: string): bool =
       return true
 
 type
-  Atom* = distinct int32
+  Atom* = distinct uint32
 
 var atomNames: Table[Atom, string]
 

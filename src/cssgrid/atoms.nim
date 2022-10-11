@@ -33,7 +33,7 @@ proc new*(a: typedesc[Atom], name: string): Atom =
   result = Atom(crc32(name.nimIdentNormalize()))
   atomNames[result] = name
 
-proc declAtomImpl(nm: string): NimNode =
+proc declAtom*(nm: string): NimNode =
   let idVar = genSym(nskVar, "atomVar")
   let idStr = newStrLitNode(nm)
   result = quote do:
@@ -42,13 +42,13 @@ proc declAtomImpl(nm: string): NimNode =
       `idVar`
 
 macro atom*(name: typed): Atom =
-  result = declAtomImpl(name.strVal)
+  result = declAtom(name.strVal)
 
 macro `@!`*(name: untyped): Atom =
-  result = declAtomImpl(name.strVal)
+  result = declAtom(name.strVal)
 
 macro `@@`*(name: untyped): Atom =
-  result = declAtomImpl(name.strVal)
+  result = declAtom(name.strVal)
 
 when isMainModule:
   import unittest

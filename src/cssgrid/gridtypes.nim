@@ -4,8 +4,8 @@ import std/[typetraits, sets, tables]
 import std/[macrocache, macros]
 import patty
 
-import numberTypes, constraints
-export numberTypes, constraints
+import numberTypes, constraints, atoms
+export numberTypes, constraints, atoms
 
 type
   GridNode* = concept node
@@ -36,13 +36,13 @@ type
   LinePos* = int16
 
   GridLine* = object
-    aliases*: HashSet[LineName]
+    aliases*: HashSet[Atom]
     track*: Constraint
     start*: UiScalar
     width*: UiScalar
 
   GridIndex* = object
-    line*: LineName
+    line*: Atom
     isSpan*: bool
     isName*: bool
   
@@ -54,7 +54,7 @@ type
 
 macro ln*(n: string): GridIndex =
   ## numeric literal view width unit
-  let val = findLN(n.strVal, n)
+  let val = declAtom(n.strVal)
   result = quote do:
     GridIndex(line: `val`, isName: true)
 
@@ -74,7 +74,7 @@ proc hash*(a: GridItem): Hash =
 proc `$`*(a: GridIndex): string =
   result = "GridIdx{"
   if a.isName:
-    result &= "" & $lineName.getOrDefault(a.line.int, $a.line.int)
+    result &= "" & $a.line
   else:
     result &= "" & $a.line.int
   result &= ",s:" & $a.isSpan
@@ -96,16 +96,13 @@ proc `$`*(a: GridItem): string =
     result &= ", rE: " & repr a.index[drow].b
     result &= "}"
 
-proc toLineName*(name: int): LineName =
-  result = LineName(name)
-  lineName[result.int] = "idx:" & $name
-proc toLineName*(name: string): LineName =
+proc toLineName*(name: string): Atom =
   # echo "line name: ", name
-  result = LineName(name.hash())
-  if result.int in lineName:
-    assert lineName[result.int] == name
-  else:
-    lineName[result.int] = name
+  result = Atom.new(name)
+  # if result.int in lineName:
+  #   assert lineName[result.int] == name
+  # else:
+  #   lineName[result.int] = name
 
 proc toLineNames*(names: varargs[LineName, toLineName]): HashSet[LineName] =
   toHashSet names

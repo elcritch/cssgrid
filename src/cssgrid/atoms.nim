@@ -1,9 +1,7 @@
 import std/typetraits
 import std/hashes
-import std/sets
 import std/tables
 import std/macrocache
-import std/sequtils
 import std/strutils
 import std/macros
 
@@ -33,6 +31,10 @@ proc new*(a: typedesc[Atom], name: string): Atom =
   result = Atom(crc32(name.nimIdentNormalize()))
   atomNames[result] = name
 
+proc new*(a: typedesc[Atom], raw: int): Atom =
+  result = Atom(raw)
+  atomNames[result] = ":`" & $raw & "`"
+
 proc declAtom*(nm: string): NimNode =
   let idVar = genSym(nskVar, "atomVar")
   let idStr = newStrLitNode(nm)
@@ -44,7 +46,7 @@ proc declAtom*(nm: string): NimNode =
 macro atom*(name: typed): Atom =
   result = declAtom(name.strVal)
 
-macro `@!`*(name: untyped): Atom =
+macro `@:`*(name: untyped): Atom =
   result = declAtom(name.strVal)
 
 macro `@@`*(name: untyped): Atom =
@@ -58,7 +60,7 @@ when isMainModule:
     test "atom test":
       expandMacros:
         let x: Atom = atom"new long name"
-        let y: Atom = @!"new Long Name"
+        let y: Atom = @:"new Long Name"
         let z: Atom = @@"new Long Name"
 
         echo "x: ", x
@@ -71,8 +73,8 @@ when isMainModule:
     
     test "atom more tests":
       let x: Atom = atom"newLongName"
-      let y: Atom = @!newLongName
-      let z: Atom = @!newLongName
+      let y: Atom = @:newLongName
+      let z: Atom = @:newLongName
       echo "x: ", repr x
       echo "y: ", repr y
       check x == atom"newLongName"

@@ -3,11 +3,14 @@ import std/[sequtils, strutils, hashes, sets, tables]
 import std/[typetraits, sets, tables]
 import std/[macrocache, macros]
 import patty
+import atoms
 
 import numberTypes, constraints, atoms
 export numberTypes, constraints, atoms
 
 type
+  LineName* = Atom
+
   GridNode* = concept node
     distinctBase(node.box) = Rect
 
@@ -68,8 +71,8 @@ proc hash*(a: GridItem): Hash =
     result = hash(a.span[drow]) !& hash(a.span[dcol])
 
 
-# proc `repr`*(a: HashSet[LineName]): string =
-#   result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
+proc `repr`*(a: HashSet[LineName]): string =
+  result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
 
 proc `$`*(a: GridIndex): string =
   result = "GridIdx{"
@@ -96,7 +99,7 @@ proc `$`*(a: GridItem): string =
     result &= ", rE: " & repr a.index[drow].b
     result &= "}"
 
-proc toLineName*(name: string): Atom =
+proc toLineName*(name: int|string): Atom =
   # echo "line name: ", name
   result = Atom.new(name)
   # if result.int in lineName:

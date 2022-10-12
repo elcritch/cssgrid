@@ -3,9 +3,9 @@ import std/[sequtils, strutils, hashes, sets, tables]
 import std/[typetraits, sets, tables]
 import std/[macrocache, macros]
 import patty
-import atoms
+import cdecl/atoms
 
-import numberTypes, constraints, atoms
+import numberTypes, constraints
 export numberTypes, constraints, atoms
 
 type

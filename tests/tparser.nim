@@ -113,11 +113,11 @@ suite "grids":
 
     iteme.column = "first" // span "second"
     iteme.row = 1 // "second"
-    check iteme.column.a.line.ints == 2456940119
-    check iteme.column.b.line.ints == 3055489385
+    check iteme.column.a.line.ints == 500153084262
+    check iteme.column.b.line.ints == 110425477965171
     check iteme.column.b.isSpan == true
     check iteme.row.a.line.ints == 1
-    check iteme.row.b.line.ints == 3055489385
+    check iteme.row.b.line.ints == 110425477965171
     check iteme.row.b.isSpan == false
 
   test "compute others":

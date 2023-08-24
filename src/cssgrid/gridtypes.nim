@@ -105,15 +105,13 @@ proc toLineName*(name: int): Atom =
   result.unsafeSetLen(name.sizeof)
   for i in 0..<name.sizeof:
     result[i] = char((name shr (i*8)) and 0xFF)
-  echo "toLineName: ", result.repr
 
 proc ints*(a: Atom): int =
   if a.len == 0:
     return 0
-  # echo "toLineName:ints:in: ", a.repr
-  for i in 0..<result.sizeof:
-    result = (result shl 8) or int(a[result.sizeof - i - 1])
-  echo "toLineName:ints: ", result.repr
+  let n = min(result.sizeof, a.len)
+  for i in 0..<n:
+    result = (result shl 8) or int(a[n - i - 1])
 
 proc toLineName*(name: string): Atom =
   discard result.addTruncate(name)

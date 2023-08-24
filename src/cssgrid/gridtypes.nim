@@ -6,7 +6,7 @@ import patty
 import stack_strings
 
 import numberTypes, constraints
-export numberTypes, constraints
+export numberTypes, constraints, stack_strings
 
 type
   Atom* = StackString[16]
@@ -56,10 +56,13 @@ type
     span*: GridSpan
     index*: array[GridDir, Slice[GridIndex]]
 
+proc atom*(a: static string): Atom =
+  discard result.addTruncate a
+
 macro ln*(n: string): GridIndex =
   ## numeric literal view width unit
   result = quote do:
-    GridIndex(line: ss(`n`), isName: true)
+    GridIndex(line: atom(`n`), isName: true)
 
 proc columns*(grid: GridTemplate): seq[GridLine] =
   grid.lines[dcol]
@@ -69,10 +72,6 @@ proc rows*(grid: GridTemplate): seq[GridLine] =
 proc hash*(a: GridItem): Hash =
   if a != nil:
     result = hash(a.span[drow]) !& hash(a.span[dcol])
-
-proc ints*(a: Atom): int =
-  for i in 0..<result.sizeof:
-    result = (result shl 8) or int(a[i])
 
 proc `repr`*(a: HashSet[LineName]): string =
   result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
@@ -103,9 +102,18 @@ proc `$`*(a: GridItem): string =
     result &= "}"
 
 proc toLineName*(name: int): Atom =
+  result.unsafeSetLen(name.sizeof)
   for i in 0..<name.sizeof:
     result[i] = char((name shr (i*8)) and 0xFF)
-  result.unsafeSetLen(name.sizeof)
+  echo "toLineName: ", result.repr
+
+proc ints*(a: Atom): int =
+  if a.len == 0:
+    return 0
+  # echo "toLineName:ints:in: ", a.repr
+  for i in 0..<result.sizeof:
+    result = (result shl 8) or int(a[result.sizeof - i - 1])
+  echo "toLineName:ints: ", result.repr
 
 proc toLineName*(name: string): Atom =
   discard result.addTruncate(name)

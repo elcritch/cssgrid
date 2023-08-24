@@ -70,6 +70,9 @@ proc hash*(a: GridItem): Hash =
   if a != nil:
     result = hash(a.span[drow]) !& hash(a.span[dcol])
 
+proc ints*(a: Atom): int =
+  for i in 0..<result.sizeof:
+    result = (result shl 8) or int(a[i])
 
 proc `repr`*(a: HashSet[LineName]): string =
   result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
@@ -101,7 +104,7 @@ proc `$`*(a: GridItem): string =
 
 proc toLineName*(name: int): Atom =
   for i in 0..<name.sizeof:
-    result[i] = char((name shr i) and 0xFF)
+    result[i] = char((name shr (i*8)) and 0xFF)
   result.unsafeSetLen(name.sizeof)
 
 proc toLineName*(name: string): Atom =

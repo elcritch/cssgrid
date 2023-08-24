@@ -39,9 +39,9 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
     of nnkBracket:
       for name in node:
         # let n = newLit name.strVal
-        let n = declAtom(name.strVal)
+        # let n = declAtom(name.strVal)
         result[1].add quote do:
-          `tgt`[`idxLit`].aliases.incl `n`
+          `tgt`[`idxLit`].aliases.incl ss(`name`)
     of nnkDotExpr:
       result[1].add quote do:
         `tgt`[`idxLit`].track = `node`
@@ -114,11 +114,11 @@ proc gridTemplate*(gt: GridTemplate, dir: GridDir, args: varargs[(HashSet[LineNa
       gt.lines[dcol][i] = arg.toGridLine()
 
 proc span*(name: static string): GridIndex =
-  let ln = atom(name)
+  let ln = ss(name)
   GridIndex(line: ln, isSpan: true, isName: true)
 
 proc mkIndex*(name: static string, isSpan = false): GridIndex =
-  let ln = atom(name)
+  let ln = ss(name)
   GridIndex(line: ln, isSpan: isSpan, isName: true)
 
 proc `//`*(a, b: static[string]|string|int|GridIndex): Slice[GridIndex] =

@@ -129,16 +129,16 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
-    let idx = index.line.int - 1 + index.spanCnt()
+    let idx = index.line.ints - 1 + index.spanCnt()
     grid.gridAutoInsert(dir, idx, cz)
-    index.line.int16
+    index.line.ints.int16
   else:
     findLine(index, grid.lines[`dir`])
 
 proc getLine*(grid: GridTemplate, dir: GridDir, index: GridIndex): var GridLine =
   ## get line (track) for GridIndex
   let idx =
-    if not index.isName: index.line.int16
+    if not index.isName: index.line.ints.int16
     else: findLine(index, grid.lines[dir])
   grid.lines[dir][idx-1]
 
@@ -202,15 +202,15 @@ proc computeBox*(
     result.h = maxContentSize.y
 
 proc fixedCount*(gridItem: GridItem): range[0..4] =
-  if gridItem.index[dcol].a.line.int != 0: result.inc
-  if gridItem.index[dcol].b.line.int != 0: result.inc
-  if gridItem.index[drow].a.line.int != 0: result.inc
-  if gridItem.index[drow].b.line.int != 0: result.inc
+  if gridItem.index[dcol].a.line.ints != 0: result.inc
+  if gridItem.index[dcol].b.line.ints != 0: result.inc
+  if gridItem.index[drow].a.line.ints != 0: result.inc
+  if gridItem.index[drow].b.line.ints != 0: result.inc
 
 proc isAutoUiSizeed*(gridItem: GridItem): bool =
   gridItem.fixedCount() == 0
 
-import print
+import pretty
 
 proc computeAutoFlow(
     gridTemplate: GridTemplate,

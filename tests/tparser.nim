@@ -5,6 +5,8 @@ import unittest
 import cssgrid/parser
 import cssgrid/gridtypes
 
+import stack_strings
+
 import macros
 
 suite "grids":
@@ -35,7 +37,7 @@ suite "grids":
       check c1 == c3
     
     expandMacros:
-      let nm = atom"first"
+      let nm = ss"first"
       echo "NM: ", $nm
 
   test "simple macros":

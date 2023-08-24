@@ -8,9 +8,11 @@ import stack_strings
 import numberTypes, constraints
 export numberTypes, constraints, stack_strings
 
+const CssGridAtomSize {.intdefine.} = 16
+
 type
-  Atom* = StackString[16]
-  LineName* = StackString[16]
+  Atom* = StackString[CssGridAtomSize]
+  LineName* = Atom
 
   GridNode* = concept node
     distinctBase(node.box) = Rect

@@ -8,7 +8,7 @@ import cssgrid/gridtypes
 import cssgrid/layout
 import cssgrid/parser
 
-import print
+import pretty
 import pixie
 
 

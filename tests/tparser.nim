@@ -5,6 +5,8 @@ import unittest
 import cssgrid/parser
 import cssgrid/gridtypes
 
+import stack_strings
+
 import macros
 
 suite "grids":
@@ -35,7 +37,7 @@ suite "grids":
       check c1 == c3
     
     expandMacros:
-      let nm = atom"first"
+      let nm = ss"first"
       echo "NM: ", $nm
 
   test "simple macros":
@@ -99,23 +101,23 @@ suite "grids":
     var iteme = newGridItem()
     iteme.column = 5 // 6
     iteme.row = 1 // 3
-    check iteme.column.a.line.int == 5
-    check iteme.column.b.line.int == 6
+    check iteme.column.a.line.ints == 5
+    check iteme.column.b.line.ints == 6
     check iteme.column.b.isSpan == false
 
     iteme.column = 1 // span 4
     iteme.row = 1 // span 3
-    check iteme.column.a.line.int == 1
-    check iteme.column.b.line.int == 4
+    check iteme.column.a.line.ints == 1
+    check iteme.column.b.line.ints == 4
     check iteme.column.b.isSpan == true
 
     iteme.column = "first" // span "second"
     iteme.row = 1 // "second"
-    check iteme.column.a.line.int == 2456940119
-    check iteme.column.b.line.int == 3055489385
+    check iteme.column.a.line.ints == 500153084262
+    check iteme.column.b.line.ints == 110425477965171
     check iteme.column.b.isSpan == true
-    check iteme.row.a.line.int == 1
-    check iteme.row.b.line.int == 3055489385
+    check iteme.row.a.line.ints == 1
+    check iteme.row.b.line.ints == 110425477965171
     check iteme.row.b.isSpan == false
 
   test "compute others":

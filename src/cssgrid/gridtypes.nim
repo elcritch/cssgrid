@@ -3,12 +3,15 @@ import std/[sequtils, strutils, hashes, sets, tables]
 import std/[typetraits, sets, tables]
 import std/[macrocache, macros]
 import patty
-import cdecl/atoms
+import stack_strings
 
 import numberTypes, constraints
-export numberTypes, constraints, atoms
+export numberTypes, constraints, stack_strings
+
+const CssGridAtomSize {.intdefine.} = 16
 
 type
+  Atom* = StackString[CssGridAtomSize]
   LineName* = Atom
 
   GridNode* = concept node
@@ -55,11 +58,13 @@ type
     span*: GridSpan
     index*: array[GridDir, Slice[GridIndex]]
 
+proc atom*(a: static string): Atom =
+  discard result.addTruncate a
+
 macro ln*(n: string): GridIndex =
   ## numeric literal view width unit
-  let val = declAtom(n.strVal)
   result = quote do:
-    GridIndex(line: `val`, isName: true)
+    GridIndex(line: atom(`n`), isName: true)
 
 proc columns*(grid: GridTemplate): seq[GridLine] =
   grid.lines[dcol]
@@ -70,7 +75,6 @@ proc hash*(a: GridItem): Hash =
   if a != nil:
     result = hash(a.span[drow]) !& hash(a.span[dcol])
 
-
 proc `repr`*(a: HashSet[LineName]): string =
   result = "{" & a.toSeq().mapIt(repr it).join(", ") & "}"
 
@@ -79,7 +83,7 @@ proc `$`*(a: GridIndex): string =
   if a.isName:
     result &= "" & $a.line
   else:
-    result &= "" & $a.line.int
+    result &= "" & $a.line
   result &= ",s:" & $a.isSpan
   result &= ",n:" & $a.isName
   result &= "}"
@@ -99,13 +103,20 @@ proc `$`*(a: GridItem): string =
     result &= ", rE: " & repr a.index[drow].b
     result &= "}"
 
-proc toLineName*(name: int|string): Atom =
-  # echo "line name: ", name
-  result = Atom.new(name)
-  # if result.int in lineName:
-  #   assert lineName[result.int] == name
-  # else:
-  #   lineName[result.int] = name
+proc toLineName*(name: int): Atom =
+  result.unsafeSetLen(name.sizeof)
+  for i in 0..<name.sizeof:
+    result[i] = char((name shr (i*8)) and 0xFF)
+
+proc ints*(a: Atom): int =
+  if a.len == 0:
+    return 0
+  let n = min(result.sizeof, a.len)
+  for i in 0..<n:
+    result = (result shl 8) or int(a[n - i - 1])
+
+proc toLineName*(name: string): Atom =
+  discard result.addTruncate(name)
 
 proc toLineNames*(names: varargs[LineName, toLineName]): HashSet[LineName] =
   toHashSet names
@@ -120,7 +131,7 @@ proc mkIndex*(index: GridIndex): GridIndex =
   result = index
 
 proc span*(a: int): GridIndex =
-  result.line = a.LineName
+  result.line = a.toLineName
   result.isSpan = true
 proc span*(a: GridIndex): GridIndex =
   result.line = a.line

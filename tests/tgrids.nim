@@ -7,7 +7,7 @@ import cssgrid/gridtypes
 import cssgrid/layout
 import cssgrid/parser
 
-import print
+import pretty
 
 type
   GridNode* = ref object
@@ -449,7 +449,7 @@ suite "syntaxes":
     let contentSize = uiSize(0, 0)
     gridItem.setGridSpans(gt, contentSize)
 
-    check gridItem.index[dcol].a.line == 2.LineName
+    check gridItem.index[dcol].a.line == 2.toLineName
     check gridItem.index[dcol].b == ln"five"
 
     check gridItem.span[dcol].a == 2

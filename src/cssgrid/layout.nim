@@ -231,7 +231,7 @@ proc computeAutoFlow(
       if cur[mx] in span[mx] and cur[my] in span[my]:
         return true
 
-  # print gridTemplate.lines[mx].len()
+  print gridTemplate.lines[mx].len()
   # setup caches
   var autos = newSeqOfCap[GridNode](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
@@ -254,9 +254,9 @@ proc computeAutoFlow(
       autos.add child
 
   # setup cursor for current grid UiSize
-  # for i in 1..fixedCache.len():
-  #   for gspan in fixedCache[i.LinePos]:
-  #     echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
+  for i in 1..fixedCache.len():
+    for gspan in fixedCache[i.LinePos]:
+      echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
   
   # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
@@ -323,6 +323,7 @@ proc computeNodeLayout*(
 
   # compute UiSizes for auto flow items
   if hasAutos:
+    echo "hasAutos"
     computeAutoFlow(gridTemplate, node, children)
 
   gridTemplate.computeTracks(node.box.UiBox)

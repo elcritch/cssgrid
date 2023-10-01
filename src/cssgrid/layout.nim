@@ -65,12 +65,14 @@ proc computeLineLayout*(
   fixed += spacing * UiScalar(lines.len() - 1)
 
   var
-    freeSpace = length - fixed
+    freeSpace = max(length - fixed, 0.0.UiScalar)
     remSpace = max(freeSpace, 0.UiScalar)
   
+  echo "computeLineLayout:setup: ", "freespace: ", freeSpace, " len: ", length, " fixed: ", fixed
   # frac's
   # 1'fr 1'fr min(1'fr, 10em)
   for grdLn in lines.mitems():
+    echo "computeLineLayout: ", "freespace: ", freeSpace, " grdLn: ", grdLn
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
       if grdVal.kind == UiFrac:

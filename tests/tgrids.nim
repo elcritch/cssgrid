@@ -535,6 +535,8 @@ suite "grids":
       echo "auto child:cols: ", nodes[i].gridItem.span.repr
       echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
+    echo "grid template:post: ", repr gridTemplate
+
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16

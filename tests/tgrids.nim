@@ -304,6 +304,40 @@ suite "grids":
     checks boxb.w.float == 0.0
     checks boxb.h.float == 90.0
 
+  test "compute layout with auto columns":
+    var gridTemplate: GridTemplate
+
+    parseGridTemplateColumns gridTemplate, 60'ux
+    parseGridTemplateRows gridTemplate, 90'ux
+    # echo "grid template pre: ", repr gridTemplate
+    check gridTemplate.lines[dcol].len() == 2
+    check gridTemplate.lines[drow].len() == 2
+    echo "grid template: ", repr gridTemplate
+
+    let contentSize = uiSize(120, 90)
+
+    # item a
+    var itema = newGridItem()
+    itema.column = 1 // 1
+    itema.row = 1 // 1
+
+    itema.setGridSpans(gridTemplate, contentSize)
+
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    ## computes
+    ## 
+    let boxa = itema.computeBox(gridTemplate, contentSize)
+    echo "grid template post: ", repr gridTemplate
+
+    # print gridTemplate
+
+    # print boxa
+    checks boxa.x.float == 0.0
+    checks boxa.y.float == 0.0
+    checks boxa.w.float == 60.0
+    checks boxa.h.float == 90.0
+    
+
   test "compute layout with auto columns with fixed size":
     var gridTemplate: GridTemplate
 
@@ -358,11 +392,11 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
     parseGridTemplateRows gridTemplate, 33'ux 33'ux
     gridTemplate.justifyItems = CxStretch
-    # echo "grid template pre: ", repr gridTemplate
+    echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 6
     check gridTemplate.lines[drow].len() == 3
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
+    echo "grid template: ", repr gridTemplate
     var parent = GridNode()
 
     let contentSize = uiSize(30, 30)
@@ -423,13 +457,42 @@ suite "grids":
     checks nodes[6].box.y.float == 33.0
     checks nodes[7].box.y.float == 33.0
 
-    # checks nodes[8].box.x.float == 0.0
-    # checks nodes[8].box.y.float == 0.0
-
     for i in 2 ..< nodes.len() - 1:
       checks nodes[i].box.w.float == 60.0
       checks nodes[i].box.h.float == 33.0
 
+  # test "compute layout with auto flow and overflow":
+  #   var gridTemplate: GridTemplate
+
+  #   parseGridTemplateColumns gridTemplate, 1'fr
+  #   parseGridTemplateRows gridTemplate, 1'fr
+  #   gridTemplate.autos[drow] = 1'fr
+  #   gridTemplate.justifyItems = CxStretch
+  #   echo "grid template pre: ", repr gridTemplate
+  #   gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+  #   echo "grid template: ", repr gridTemplate
+  #   var parent = GridNode()
+
+  #   let contentSize = uiSize(30, 30)
+  #   var nodes = newSeq[GridNode](8)
+
+  #   # ==== item a's ====
+  #   for i in 0 ..< nodes.len():
+  #     nodes[i] = GridNode(id: "b" & $(i-2))
+
+  #   # ==== process grid ====
+  #   gridTemplate.computeNodeLayout(parent, nodes)
+
+  #   echo "grid template post: ", repr gridTemplate
+  #   # ==== item a's ====
+  #   for i in 0 ..< nodes.len():
+  #     echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+  #     echo "auto child:cols: ", nodes[i].gridItem.repr
+  #     echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+
+  #   # for i in 2 ..< nodes.len() - 1:
+  #   #   checks nodes[i].box.w.float == 60.0
+  #   #   checks nodes[i].box.h.float == 33.0
 
 suite "syntaxes":
 

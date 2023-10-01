@@ -540,6 +540,15 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
     check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
+    check nodes[0].box.x.float == 0.0
+    check nodes[0].box.y.float == 0.0
+    check nodes[0].box.w.float == 100.0
+    check nodes[0].box.h.float == 100.0
+
+    check nodes[1].box.x.float == 0.0
+    check nodes[1].box.y.float == 100.0
+    check nodes[1].box.w.float == 100.0
+    check nodes[1].box.h.float == 100.0
 
 suite "syntaxes":
 

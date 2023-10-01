@@ -464,7 +464,7 @@ suite "grids":
       checks nodes[i].box.w.float == 60.0
       checks nodes[i].box.h.float == 33.0
 
-  test "compute layout with auto flow and overflow":
+  test "compute layout with only auto flow":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr

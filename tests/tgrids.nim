@@ -312,7 +312,7 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 2
     check gridTemplate.lines[drow].len() == 2
-    echo "grid template: ", repr gridTemplate
+    # echo "grid template: ", repr gridTemplate
 
     let contentSize = uiSize(120, 90)
 
@@ -322,17 +322,17 @@ suite "grids":
     itema.row = 1 // 2
 
     itema.setGridSpans(gridTemplate, contentSize)
-    echo "setGridSpans:itema"
-    print itema
+    # echo "setGridSpans:itema"
+    # print itema
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     ## computes
     ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    echo "boxa"
-    print boxa
-    echo "grid template post: ", repr gridTemplate
-    print gridTemplate
+    # echo "boxa"
+    # print boxa
+    # echo "grid template post: ", repr gridTemplate
+    # print gridTemplate
 
     # print boxa
     checks boxa.x.float == 0.0

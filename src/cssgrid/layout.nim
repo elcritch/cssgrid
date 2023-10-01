@@ -130,6 +130,7 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
     let idx = index.line.ints - 1 + index.spanCnt()
+    echo "setSpan: ", idx, " index: ", index, " dir: ", dir, " cz: ", cz
     grid.gridAutoInsert(dir, idx, cz)
     index.line.ints.int16
   else:
@@ -231,7 +232,10 @@ proc computeAutoFlow(
       if cur[mx] in span[mx] and cur[my] in span[my]:
         return true
 
+  echo "computeAutoFlow:gridTemplate.lines"
   print gridTemplate.lines[mx].len()
+  print gridTemplate
+
   # setup caches
   var autos = newSeqOfCap[GridNode](allNodes.len())
   var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
@@ -261,6 +265,7 @@ proc computeAutoFlow(
   # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
   var i = 0
+  var foundOverflow = false
 
   template incrCursor(amt, blk, outer: untyped) =
     ## increment major index
@@ -270,7 +275,10 @@ proc computeAutoFlow(
       cursor[mx] = 1.LinePos
       cursor[my] = cursor[my] + 1
       if cursor[my] >= gridTemplate.lines[my].len():
-        break outer
+        foundOverflow = true
+      # if cursor[my] >= gridTemplate.lines[my].len():
+      #   echo "autoFlow:BREAK:outer ", " mx: ", cursor[mx], " my: ", cursor[my]
+      #   break outer
       break blk
   
   ## computing auto flows
@@ -279,19 +287,32 @@ proc computeAutoFlow(
       block childBlock:
         ## increment cursor and index until one breaks the mold
         while cursor in fixedCache[cursor[my]]:
-          # print "skipping fixedCache:", cursor
+          print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
         while not (cursor in fixedCache[cursor[my]]):
-          # echo "\nset span:"
-          # print cursor
-          autos[i].gridItem.span[mx] = cursor[mx] .. cursor[mx] + 1
-          autos[i].gridItem.span[my] = cursor[my] .. cursor[my] + 1
-          # print autos[i].gridItem.span[dcol]
-          # print autos[i].gridItem.span[drow]
+          echo "\nset span:"
+          print cursor
+          # autos[i].gridItem.span[mx] = cursor[mx] .. cursor[mx] + 1
+          # autos[i].gridItem.span[my] = cursor[my] .. cursor[my] + 1
+          autos[i].gridItem.index[mx] = cursor[mx] // (cursor[mx] + 1)
+          autos[i].gridItem.index[my] = cursor[my] // (cursor[my] + 1)
+          print autos[i].gridItem.span[dcol]
+          print autos[i].gridItem.span[drow]
           i.inc
           if i >= autos.len():
             break autoflow
           incrCursor(1, childBlock, autoFlow)
+
+  echo "autos:post:"
+  print autos.mapIt(it.box)
+  print autos.mapIt(it.gridItem.span)
+  if foundOverflow:
+    echo "FOUND OVERFLOW:"
+    for child in autos:
+      echo "child:auto: "
+      print child
+      child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
+      # print child
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
@@ -333,3 +354,6 @@ proc computeNodeLayout*(
     if fixedCount(child.gridItem) in 1..3:
       continue
     child.box = typeof(child.box)(child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize))
+  
+  # echo "computeNodeLayout:done: "
+  # print children

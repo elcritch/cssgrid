@@ -464,7 +464,8 @@ suite "grids":
       checks nodes[i].box.w.float == 60.0
       checks nodes[i].box.h.float == 33.0
 
-  test "compute layout with only auto flow":
+  test "compute layout auto flow overflow":
+    echo "START: compute layout with only auto flow"
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -477,11 +478,11 @@ suite "grids":
     var parent = GridNode()
 
     let contentSize = uiSize(30, 30)
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[GridNode](2)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(id: "b" & $(i-2))
+      nodes[i] = GridNode(id: "b" & $(i))
 
     # ==== process grid ====
     gridTemplate.computeNodeLayout(parent, nodes)

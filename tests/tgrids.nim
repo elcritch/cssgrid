@@ -304,7 +304,7 @@ suite "grids":
     checks boxb.w.float == 0.0
     checks boxb.h.float == 90.0
 
-  test "compute layout with auto columns":
+  test "compute layout with fixed 1x1":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 60'ux
@@ -464,38 +464,38 @@ suite "grids":
       checks nodes[i].box.w.float == 60.0
       checks nodes[i].box.h.float == 33.0
 
-  # test "compute layout with auto flow and overflow":
-  #   var gridTemplate: GridTemplate
+  test "compute layout with auto flow and overflow":
+    var gridTemplate: GridTemplate
 
-  #   parseGridTemplateColumns gridTemplate, 1'fr
-  #   parseGridTemplateRows gridTemplate, 1'fr
-  #   gridTemplate.autos[drow] = 1'fr
-  #   gridTemplate.justifyItems = CxStretch
-  #   echo "grid template pre: ", repr gridTemplate
-  #   gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-  #   echo "grid template: ", repr gridTemplate
-  #   var parent = GridNode()
+    parseGridTemplateColumns gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = 1'fr
+    gridTemplate.justifyItems = CxStretch
+    echo "grid template pre: ", repr gridTemplate
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    echo "grid template: ", repr gridTemplate
+    var parent = GridNode()
 
-  #   let contentSize = uiSize(30, 30)
-  #   var nodes = newSeq[GridNode](8)
+    let contentSize = uiSize(30, 30)
+    var nodes = newSeq[GridNode](8)
 
-  #   # ==== item a's ====
-  #   for i in 0 ..< nodes.len():
-  #     nodes[i] = GridNode(id: "b" & $(i-2))
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(id: "b" & $(i-2))
 
-  #   # ==== process grid ====
-  #   gridTemplate.computeNodeLayout(parent, nodes)
+    # ==== process grid ====
+    gridTemplate.computeNodeLayout(parent, nodes)
 
-  #   echo "grid template post: ", repr gridTemplate
-  #   # ==== item a's ====
-  #   for i in 0 ..< nodes.len():
-  #     echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-  #     echo "auto child:cols: ", nodes[i].gridItem.repr
-  #     echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    echo "grid template post: ", repr gridTemplate
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+      echo "auto child:cols: ", nodes[i].gridItem.repr
+      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
-  #   # for i in 2 ..< nodes.len() - 1:
-  #   #   checks nodes[i].box.w.float == 60.0
-  #   #   checks nodes[i].box.h.float == 33.0
+    # for i in 2 ..< nodes.len() - 1:
+    #   checks nodes[i].box.w.float == 60.0
+    #   checks nodes[i].box.h.float == 33.0
 
 suite "syntaxes":
 

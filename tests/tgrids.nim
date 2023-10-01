@@ -517,6 +517,8 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     echo "grid template: ", repr gridTemplate
     var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 50
 
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](2)
@@ -545,12 +547,12 @@ suite "grids":
     check nodes[0].box.x.float == 0.0
     check nodes[0].box.y.float == 0.0
     check nodes[0].box.w.float == 100.0
-    check nodes[0].box.h.float == 100.0
+    check nodes[0].box.h.float == 50.0
 
     check nodes[1].box.x.float == 0.0
     check nodes[1].box.y.float == 100.0
     check nodes[1].box.w.float == 100.0
-    check nodes[1].box.h.float == 100.0
+    check nodes[1].box.h.float == 50.0
 
 suite "syntaxes":
 

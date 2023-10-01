@@ -318,18 +318,21 @@ suite "grids":
 
     # item a
     var itema = newGridItem()
-    itema.column = 1 // 1
-    itema.row = 1 // 1
+    itema.column = 1 // 2
+    itema.row = 1 // 2
 
     itema.setGridSpans(gridTemplate, contentSize)
+    echo "setGridSpans:itema"
+    print itema
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     ## computes
     ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
+    echo "boxa"
+    print boxa
     echo "grid template post: ", repr gridTemplate
-
-    # print gridTemplate
+    print gridTemplate
 
     # print boxa
     checks boxa.x.float == 0.0
@@ -392,11 +395,11 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
     parseGridTemplateRows gridTemplate, 33'ux 33'ux
     gridTemplate.justifyItems = CxStretch
-    echo "grid template pre: ", repr gridTemplate
+    # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 6
     check gridTemplate.lines[drow].len() == 3
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    echo "grid template: ", repr gridTemplate
+    # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
 
     let contentSize = uiSize(30, 30)

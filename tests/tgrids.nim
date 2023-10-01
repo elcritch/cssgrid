@@ -467,8 +467,8 @@ suite "grids":
   test "compute layout auto flow overflow":
     var gridTemplate: GridTemplate
 
-    parseGridTemplateColumns gridTemplate, 1'fr
-    parseGridTemplateRows gridTemplate, 1'fr
+    parseGridTemplateColumns gridTemplate, 100'ux
+    parseGridTemplateRows gridTemplate, 100'ux
     gridTemplate.autos[drow] = csFixed 100.0
     gridTemplate.justifyItems = CxStretch
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
@@ -489,6 +489,11 @@ suite "grids":
       # echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
       echo "auto child:cols: ", nodes[i].gridItem.span.repr
       echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
   test "compute layout auto flow overflow (columnar)":
     var gridTemplate: GridTemplate
@@ -519,6 +524,12 @@ suite "grids":
       # echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
       echo "auto child:cols: ", nodes[i].gridItem.span.repr
       echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+    check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+
 
 suite "syntaxes":
 

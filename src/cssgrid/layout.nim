@@ -304,14 +304,12 @@ proc computeAutoFlow(
           incrCursor(1, childBlock, autoFlow)
 
   if foundOverflow:
-    echo "FOUND OVERFLOW:"
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
-      # echo "child:auto: "
-      # print child
-  echo "autos:post:"
-  print autos.mapIt(it.box)
-  print autos.mapIt(it.gridItem.span)
+
+  # echo "autos:post:"
+  # print autos.mapIt(it.box)
+  # print autos.mapIt(it.gridItem.span)
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,

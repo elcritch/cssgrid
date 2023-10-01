@@ -471,12 +471,9 @@ suite "grids":
     parseGridTemplateRows gridTemplate, 1'fr
     gridTemplate.autos[drow] = csFixed 100.0
     gridTemplate.justifyItems = CxStretch
-    echo "grid template pre: ", repr gridTemplate
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    echo "grid template: ", repr gridTemplate
     var parent = GridNode()
 
-    let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](2)
 
     # ==== item a's ====
@@ -486,12 +483,12 @@ suite "grids":
     # ==== process grid ====
     gridTemplate.computeNodeLayout(parent, nodes)
 
-    # echo "grid template post: ", repr gridTemplate
-    # # ==== item a's ====
-    # for i in 0 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    echo "grid template post: ", repr gridTemplate
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      # echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+      echo "auto child:cols: ", nodes[i].gridItem.span.repr
+      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
   test "compute layout auto flow overflow (columnar)":
     var gridTemplate: GridTemplate

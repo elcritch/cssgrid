@@ -232,9 +232,9 @@ proc computeAutoFlow(
       if cur[mx] in span[mx] and cur[my] in span[my]:
         return true
 
-  echo "computeAutoFlow:gridTemplate.lines"
-  print gridTemplate.lines[mx].len()
-  print gridTemplate
+  # echo "computeAutoFlow:gridTemplate.lines"
+  # print gridTemplate.lines[mx].len()
+  # print gridTemplate
 
   # setup caches
   var autos = newSeqOfCap[GridNode](allNodes.len())
@@ -303,16 +303,15 @@ proc computeAutoFlow(
             break autoflow
           incrCursor(1, childBlock, autoFlow)
 
-  echo "autos:post:"
-  print autos.mapIt(it.box)
-  print autos.mapIt(it.gridItem.span)
   if foundOverflow:
     echo "FOUND OVERFLOW:"
     for child in autos:
-      echo "child:auto: "
-      print child
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
+      # echo "child:auto: "
       # print child
+  echo "autos:post:"
+  print autos.mapIt(it.box)
+  print autos.mapIt(it.gridItem.span)
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,

@@ -382,7 +382,8 @@ proc computeNodeLayout*(
 
   echo "gridTemplate: ", gridTemplate.repr
   for i in 0 ..< children.len():
-    echo "child:cols: ", " :: ", children[i].gridItem.span[dcol].repr, " x ", children[i].gridItem.span[drow].repr
+    # echo "child:cols: ", " :: ", children[i].gridItem.span[dcol].repr, " x ", children[i].gridItem.span[drow].repr
+    echo "child:id: ", children[i].id
     echo "child:cols: ", children[i].gridItem.span.repr
     echo "child:box: ", " => ", children[i].box
 
@@ -392,7 +393,25 @@ proc computeNodeLayout*(
       if isContentSized(gridTemplate.lines[dir][i].track):
         echo "content size: " & $dir & ": ", i
         contentSized[dir].incl(i.int16)
-  # for i in 0 ..< children.len():
+  for child in children:
+    let cspan = child.gridItem.span
+    for dir in [dcol, drow]:
+      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
+        echo "\nchild in content size: " & $dir & ": ", cspan[dir].a
+        template track(): auto = gridTemplate.lines[dir][cspan[dir].a-1].track
+        echo "content child: ", child.id
+        echo "content size: ", track()
+        let csize = if dir == dcol: child.box.w else: child.box.h
+        if track().value.kind == UiContentMin:
+          track().value.cmin = min(csize, track().value.cmin)
+        elif track().value.kind == UiContentMax:
+          track().value.cmax = max(csize, track().value.cmax)
+        else:
+          assert false, "shouldn't reach here " & $track().value.kind
+        echo "content size: ", track()
+
+
+
   # for i in 0 ..< gridTemplate.lines[dcol].len():
   #   echo "line:dcol: ", i
 

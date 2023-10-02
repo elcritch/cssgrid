@@ -155,7 +155,8 @@ proc computeContentSizes*(grid: GridTemplate,
     for dir in [dcol, drow]:
       if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
         template track(): auto = grid.lines[dir][cspan[dir].a-1].track
-        let csize = if dir == dcol: child.box.w else: child.box.h
+        let csize = if dir == dcol: UiBox(child.box).w
+                    else: UiBox(child.box).h
         if track().value.kind == UiContentMin:
           track().value.cmin = min(csize, track().value.cmin)
         elif track().value.kind == UiContentMax:

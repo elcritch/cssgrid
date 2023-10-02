@@ -12,8 +12,8 @@ type
     UiFrac
     UiPerc
     UiFixed
-    UiMinContent
-    UiMaxContent
+    UiContentMin
+    UiContentMax
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
@@ -23,10 +23,10 @@ type
       perc*: UiScalar
     of UiFixed:
       coord*: UiScalar
-    of UiMinContent:
-      minContent*: UiScalar
-    of UiMaxContent:
-      maxContent*: UiScalar
+    of UiContentMin:
+      cmin*: UiScalar
+    of UiContentMax:
+      cmax*: UiScalar
 
   Constraints* = enum
     UiNone
@@ -124,8 +124,8 @@ proc `==`*(a, b: ConstraintSize): bool =
       UiFrac(frac): return frac == b.frac
       UiPerc(perc): return perc == b.perc
       UiFixed(coord): return coord == b.coord
-      UiMinContent(): return true
-      UiMaxContent(): return true
+      UiContentMin(): return true
+      UiContentMax(): return true
 
 proc `==`*(a, b: Constraint): bool =
   if a.kind == b.kind:
@@ -144,8 +144,8 @@ proc repr*(a: ConstraintSize): string =
     UiFrac(frac): result = $frac & "'fr"
     UiFixed(coord): result = $coord & "'ux"
     UiPerc(perc): result = $perc & "'perc"
-    UiMinContent(minContent): result = $minContent & "'min"
-    UiMaxContent(maxContent): result = $maxContent & "'max"
+    UiContentMin(cmin): result = $cmin & "'min"
+    UiContentMax(cmax): result = $cmax & "'max"
 
 proc `'ux`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit

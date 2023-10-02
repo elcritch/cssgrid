@@ -19,6 +19,10 @@ proc computeLineOverflow*(
             result += coord
           UiFrac(_): discard
           UiPerc(): discard
+          UiContentMin(coord):
+            result += coord
+          UiContentMax(coord):
+            result += coord
       _: discard
 
 proc computeLineLayout*(

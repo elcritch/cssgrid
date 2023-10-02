@@ -569,6 +569,64 @@ suite "grids":
     check nodes[1].box.w.float == 100.0
     check nodes[1].box.h.float == 50.0
 
+  test "compute layout overflow (columnar)":
+    var gridTemplate: GridTemplate
+
+    parseGridTemplateColumns gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[dcol] = csFixed 100.0
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.autoFlow = grColumn
+    # echo "grid template pre: ", repr gridTemplate
+    # gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    # echo "grid template: ", repr gridTemplate
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 50
+
+    let contentSize = uiSize(30, 30)
+    var nodes = newSeq[GridNode](8)
+
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(id: "b" & $(i),
+                          box: uiBox(0,0,50,50),
+                          gridItem: GridItem())
+      nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
+      nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
+
+    # ==== process grid ====
+    let box = gridTemplate.computeNodeLayout(parent, nodes)
+    echo "grid template:1: ", repr gridTemplate
+    print box
+
+    # echo "grid template post: ", repr gridTemplate
+    # ==== item a's ====
+    # for i in 0 ..< nodes.len():
+    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
+    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+
+    # echo "grid template:post: ", repr gridTemplate
+    # print gridTemplate.overflowSizes
+
+    check box.w == 750
+    check box.h == 50
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+    check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+
+    check nodes[0].box.x.float == 0.0
+    check nodes[0].box.y.float == 0.0
+    check nodes[0].box.w.float == 50.0
+    check nodes[0].box.h.float == 50.0
+
+    check nodes[1].box.x.float == 50.0
+    check nodes[1].box.y.float == 0.0
+    check nodes[1].box.w.float == 100.0
+    check nodes[1].box.h.float == 50.0
+
 suite "syntaxes":
 
   setup:

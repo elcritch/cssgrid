@@ -354,7 +354,7 @@ proc computeNodeLayout*(
       child.gridItem = GridItem()
       hasAutos = true
     else:
-      hasAutos = true
+      hasAutos = false
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children
@@ -365,7 +365,7 @@ proc computeNodeLayout*(
 
   # compute UiSizes for auto flow items
   if hasAutos:
-    # echo "hasAutos"
+    echo "hasAutos"
     computeAutoFlow(gridTemplate, node, children)
 
   gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)

@@ -56,8 +56,8 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   result = (nodes, parent.box)
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =
-  echo "grid template post: ", repr gridTemplate
-  echo "grid template post: ", repr box
+  # echo "grid template post: ", repr gridTemplate
+  # echo "grid template post: ", repr box
   # ==== item a ====
   let image = newImage(box.w.int, box.h.int)
   image.fill(rgba(255, 255, 255, 255))

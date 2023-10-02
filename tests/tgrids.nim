@@ -483,13 +483,13 @@ suite "grids":
     # ==== process grid ====
     gridTemplate.computeNodeLayout(parent, nodes)
 
-    echo "grid template post: ", repr gridTemplate
+    # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    for i in 0 ..< nodes.len():
-      # echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-      echo "auto child:cols: ", nodes[i].gridItem.span.repr
-      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
-    
+    # for i in 0 ..< nodes.len():
+    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
+    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
@@ -513,9 +513,9 @@ suite "grids":
     gridTemplate.autos[dcol] = csFixed 100.0
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
-    echo "grid template pre: ", repr gridTemplate
+    # echo "grid template pre: ", repr gridTemplate
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    echo "grid template: ", repr gridTemplate
+    # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
     parent.box.w = 50
     parent.box.h = 50
@@ -530,15 +530,15 @@ suite "grids":
     # ==== process grid ====
     gridTemplate.computeNodeLayout(parent, nodes)
 
-    echo "grid template post: ", repr gridTemplate
+    # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    for i in 0 ..< nodes.len():
+    # for i in 0 ..< nodes.len():
       # echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-      echo "auto child:cols: ", nodes[i].gridItem.span.repr
-      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+      # echo "auto child:cols: ", nodes[i].gridItem.span.repr
+      # echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
-    echo "grid template:post: ", repr gridTemplate
-    print gridTemplate.overflowSizes
+    # echo "grid template:post: ", repr gridTemplate
+    # print gridTemplate.overflowSizes
 
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16

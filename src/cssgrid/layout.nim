@@ -81,11 +81,9 @@ proc computeLineLayout*(
     freeSpace = max(length - fixed, 0.0.UiScalar)
     remSpace = max(freeSpace, 0.UiScalar)
   
-  echo "computeLineLayout:setup: ", "freespace: ", freeSpace, " len: ", length, " fixed: ", fixed
   # frac's
   # 1'fr 1'fr min(1'fr, 10em)
   for grdLn in lines.mitems():
-    echo "computeLineLayout: ", "freespace: ", freeSpace, " grdLn: ", grdLn
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
       if grdVal.kind == UiFrac:
@@ -152,7 +150,7 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
     let idx = index.line.ints - 1 + index.spanCnt()
-    echo "setSpan: ", idx, " index: ", index, " dir: ", dir, " cz: ", cz
+    # echo "setSpan: ", idx, " index: ", index, " dir: ", dir, " cz: ", cz
     grid.gridAutoInsert(dir, idx, cz)
     index.line.ints.int16
   else:
@@ -280,10 +278,10 @@ proc computeAutoFlow(
       autos.add child
 
   # setup cursor for current grid UiSize
-  for i in 1..fixedCache.len():
-    for gspan in fixedCache[i.LinePos]:
-      echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
-  
+  # for i in 1..fixedCache.len():
+  #   for gspan in fixedCache[i.LinePos]:
+  #     echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
+
   # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
   var i = 0
@@ -305,21 +303,20 @@ proc computeAutoFlow(
   
   ## computing auto flows
   block autoflow:
+    ## this format is complicated but is used to try and keep
+    ## the algorithm as O(N) as possible by iterating directly
+    ## through the indexes
     while i < len(autos):
       block childBlock:
         ## increment cursor and index until one breaks the mold
         while cursor in fixedCache[cursor[my]]:
-          print "skipping fixedCache:", cursor
+          # print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
         while not (cursor in fixedCache[cursor[my]]):
-          echo "\nset span:"
-          print cursor
-          # autos[i].gridItem.span[mx] = cursor[mx] .. cursor[mx] + 1
-          # autos[i].gridItem.span[my] = cursor[my] .. cursor[my] + 1
+          # set the index for each auto rather than the span directly
+          # so that auto-flow works properly
           autos[i].gridItem.index[mx] = cursor[mx] // (cursor[mx] + 1)
           autos[i].gridItem.index[my] = cursor[my] // (cursor[my] + 1)
-          print autos[i].gridItem.span[dcol]
-          print autos[i].gridItem.span[drow]
           i.inc
           if i >= autos.len():
             break autoflow
@@ -364,7 +361,6 @@ proc computeNodeLayout*(
 
   # compute UiSizes for auto flow items
   if hasAutos:
-    echo "hasAutos"
     computeAutoFlow(gridTemplate, node, children)
 
   gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)

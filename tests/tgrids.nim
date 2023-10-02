@@ -594,6 +594,7 @@ suite "grids":
                           gridItem: GridItem())
       nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
+    nodes[7].box.w = 150
 
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
@@ -610,7 +611,7 @@ suite "grids":
     # echo "grid template:post: ", repr gridTemplate
     # print gridTemplate.overflowSizes
 
-    check box.w == 750
+    check box.w == 500
     check box.h == 50
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
@@ -624,8 +625,16 @@ suite "grids":
 
     check nodes[1].box.x.float == 50.0
     check nodes[1].box.y.float == 0.0
-    check nodes[1].box.w.float == 100.0
+    check nodes[1].box.w.float == 50.0
     check nodes[1].box.h.float == 50.0
+    for i in 0..6:
+      check nodes[i].box.h.float == 50.0
+      check nodes[i].box.w.float == 50.0
+
+    check nodes[7].box.x.float == 350.0
+    check nodes[7].box.y.float == 0.0
+    check nodes[7].box.w.float == 150.0
+    check nodes[7].box.h.float == 50.0
 
 suite "syntaxes":
 

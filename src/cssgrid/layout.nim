@@ -56,10 +56,10 @@ proc computeLineLayout*(
             totalFracs += frac
           UiPerc(): discard
           UiContentMin(cmin):
-            echo "cmin: ", cmin
+            echo "cmin: ", cmin, " alias: ", grdLn
             fixed += cmin
           UiContentMax(cmax):
-            echo "cmax: ", cmax
+            echo "cmax: ", cmax, " alias: ", grdLn
             fixed += cmax
       UiAuto():
         totalAutos += 1
@@ -104,6 +104,10 @@ proc computeLineLayout*(
       elif grdVal.kind == UiPerc:
         grdLn.width = length * grdVal.perc / 100
         remSpace -= max(grdLn.width, 0.UiScalar)
+      elif grdVal.kind == UiContentMin:
+        grdLn.width = grdVal.cmin
+      elif grdVal.kind == UiContentMax:
+        grdLn.width = grdVal.cmax
   
   # auto's
   for grdLn in lines.mitems():

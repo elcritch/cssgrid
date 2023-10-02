@@ -474,7 +474,7 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     var parent = GridNode()
 
-    var nodes = newSeq[GridNode](2)
+    var nodes = newSeq[GridNode](4)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
@@ -491,7 +491,7 @@ suite "grids":
     #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
     check parent.box.w == 100
-    check parent.box.h == 200
+    check parent.box.h == 400
 
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
@@ -507,6 +507,11 @@ suite "grids":
     check nodes[1].box.y.float == 100.0
     check nodes[1].box.w.float == 100.0
     check nodes[1].box.h.float == 100.0
+
+    check nodes[3].box.x.float == 0.0
+    check nodes[3].box.y.float == 300.0
+    check nodes[3].box.w.float == 100.0
+    check nodes[3].box.h.float == 100.0
 
   test "compute layout auto flow overflow (columnar)":
     var gridTemplate: GridTemplate

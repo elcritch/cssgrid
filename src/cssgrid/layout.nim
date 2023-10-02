@@ -277,10 +277,13 @@ proc computeAutoFlow(
     else:
       autos.add child
 
+  echo "computeAutoFlow:"
+  print fixedCache
+
   # setup cursor for current grid UiSize
-  # for i in 1..fixedCache.len():
-  #   for gspan in fixedCache[i.LinePos]:
-  #     echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
+  for i in 1..fixedCache.len():
+    for gspan in fixedCache[i.LinePos]:
+      echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
 
   # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
@@ -296,8 +299,9 @@ proc computeAutoFlow(
       cursor[my] = cursor[my] + 1
       if cursor[my] >= gridTemplate.lines[my].len():
         foundOverflow = true
-      # if cursor[my] >= gridTemplate.lines[my].len():
-      #   echo "autoFlow:BREAK:outer ", " mx: ", cursor[mx], " my: ", cursor[my]
+      if cursor[my] >= gridTemplate.lines[my].len():
+        echo "autoFlow:BREAK:outer:i: ", i,  " mx: ", cursor[mx], " my: ", cursor[my]
+        # fixedCache[LinePos(cursor[my]+1)] = initHashSet[GridSpan]()
       #   break outer
       break blk
   
@@ -309,12 +313,14 @@ proc computeAutoFlow(
     while i < len(autos):
       block childBlock:
         ## increment cursor and index until one breaks the mold
-        while cursor in fixedCache[cursor[my]]:
-          # print "skipping fixedCache:", cursor
+        print "autoflow:", i
+        while cursor[my] in fixedCache and cursor in fixedCache[cursor[my]]:
+          print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
-        while not (cursor in fixedCache[cursor[my]]):
+        while cursor[my] notin fixedCache or not (cursor in fixedCache[cursor[my]]):
           # set the index for each auto rather than the span directly
           # so that auto-flow works properly
+          print "set gridItem:index: ", i, " ", cursor[mx], " ", cursor[my]
           autos[i].gridItem.index[mx] = cursor[mx] // (cursor[mx] + 1)
           autos[i].gridItem.index[my] = cursor[my] // (cursor[my] + 1)
           i.inc

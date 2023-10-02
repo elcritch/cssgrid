@@ -372,7 +372,12 @@ proc computeNodeLayout*(
     child.box = typeof(child.box)(child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize))
   
   if extendOnOverflow:
-    node.box.w += gridTemplate.overflowSizes[dcol]
-    node.box.h += gridTemplate.overflowSizes[drow]
+    let w = gridTemplate.overflowSizes[dcol]
+    let h = gridTemplate.overflowSizes[drow]
+    node.box = typeof(node.box)(uiBox(
+                  node.box.x.float,
+                  node.box.y.float,
+                  node.box.w.float + w.float,
+                  node.box.h.float + h.float))
   # echo "computeNodeLayout:done: "
   # print children

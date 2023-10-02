@@ -574,7 +574,7 @@ suite "grids":
 
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, 1'fr
-    gridTemplate.autos[dcol] = csFixed 100.0
+    gridTemplate.autos[dcol] = csContentMax()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
     # echo "grid template pre: ", repr gridTemplate

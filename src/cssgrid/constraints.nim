@@ -68,6 +68,14 @@ proc csFixed*[T](coord: T): Constraint =
   csValue(ConstraintSize(kind: UiFixed, coord: coord.UiScalar))
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
+proc csContentMin*(): Constraint =
+  csValue(ConstraintSize(kind: UiContentMin, cmin: 0.UiScalar))
+proc csContentMax*(): Constraint =
+  csValue(ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
+
+proc isContentSized*(cx: Constraint): bool =
+  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax] 
+
 proc csEnd*(): Constraint =
   Constraint(kind: UiEnd)
 proc csNone*(): Constraint =

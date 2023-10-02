@@ -380,12 +380,23 @@ proc computeNodeLayout*(
     # echo "hasAutos"
     computeAutoFlow(gridTemplate, node, children)
 
-  gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)
-  # echo "gridTemplate: ", gridTemplate.repr
+  echo "gridTemplate: ", gridTemplate.repr
+  for i in 0 ..< children.len():
+    echo "child:cols: ", " :: ", children[i].gridItem.span[dcol].repr, " x ", children[i].gridItem.span[drow].repr
+    echo "child:cols: ", children[i].gridItem.span.repr
+    echo "child:box: ", " => ", children[i].box
+
+  var contentSized: array[GridDir, seq[int]]
+  for dir in [dcol, drow]:
+    for i in 0 ..< gridTemplate.lines[dir].len():
+      if isContentSized(gridTemplate.lines[dir][i].track):
+        echo "content size: " & $dir & ": ", i
+        contentSized[dir].add(i)
   # for i in 0 ..< children.len():
-  #   echo "child:cols: ", " :: ", children[i].gridItem.span[dcol].repr, " x ", children[i].gridItem.span[drow].repr
-  #   echo "child:cols: ", children[i].gridItem.span.repr
-  #   echo "child:box: ", " => ", children[i].box
+  # for i in 0 ..< gridTemplate.lines[dcol].len():
+  #   echo "line:dcol: ", i
+
+  gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)
 
   for child in children:
     # echo "CHILD fixed 1..3: "

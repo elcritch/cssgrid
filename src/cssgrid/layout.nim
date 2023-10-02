@@ -273,7 +273,7 @@ proc computeAutoFlow(
       let rng = child.gridItem.span[my]
       # print rng
       for j in rng.a ..< rng.b:
-        fixedCache[j].incl span
+        fixedCache.mgetOrPut(j, initHashSet[GridSpan]()).incl span
     else:
       autos.add child
 

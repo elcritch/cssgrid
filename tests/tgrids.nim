@@ -529,11 +529,11 @@ suite "grids":
     parent.box.h = 50
 
     let contentSize = uiSize(30, 30)
-    var nodes = newSeq[GridNode](2)
+    var nodes = newSeq[GridNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(id: "b" & $(i))
+      nodes[i] = GridNode(id: "b" & $(i), box: uiBox(0,0,50,50))
 
     # ==== process grid ====
     gridTemplate.computeNodeLayout(parent, nodes)
@@ -548,7 +548,7 @@ suite "grids":
     # echo "grid template:post: ", repr gridTemplate
     # print gridTemplate.overflowSizes
 
-    check parent.box.w == 150
+    check parent.box.w == 750
     check parent.box.h == 50
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16

@@ -56,8 +56,10 @@ proc computeLineLayout*(
             totalFracs += frac
           UiPerc(): discard
           UiContentMin(cmin):
+            echo "cmin: ", cmin
             fixed += cmin
           UiContentMax(cmax):
+            echo "cmax: ", cmax
             fixed += cmax
       UiAuto():
         totalAutos += 1

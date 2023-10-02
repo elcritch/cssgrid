@@ -490,6 +490,9 @@ suite "grids":
     #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
     #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
+    check parent.box.w == 100
+    check parent.box.h == 200
+
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
@@ -540,6 +543,8 @@ suite "grids":
     # echo "grid template:post: ", repr gridTemplate
     # print gridTemplate.overflowSizes
 
+    check parent.box.w == 150
+    check parent.box.h == 50
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16

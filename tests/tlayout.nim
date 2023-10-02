@@ -52,7 +52,7 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
     nodes[i] = GridNode(id: "b" & $(i-2))
 
   # ==== process grid ====
-  gridTemplate.computeNodeLayout(parent, nodes)
+  discard gridTemplate.computeNodeLayout(parent, nodes)
   result = (nodes, parent.box)
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =

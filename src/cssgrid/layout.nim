@@ -171,14 +171,23 @@ proc setGridSpans*(
   ## computing grid layout
   assert not item.isNil
 
-  if item.span[dcol].a == 0:
+  let lrow = grid.lines[drow].len() - 1
+  let lcol = grid.lines[dcol].len() - 1
+  echo "grid:drow: ", grid.lines[drow].len()
+  echo "grid:dcol: ", grid.lines[dcol].len()
+  echo "item.span[dcol].a: ", item.span[dcol].a
+  echo "item.span[dcol].b: ", item.span[dcol].b
+  echo "item.span[drow].a: ", item.span[drow].a
+  echo "item.span[drow].b: ", item.span[drow].b
+
+  if item.span[dcol].a == 0 or item.span[dcol].a notin 0..lcol:
     item.span[dcol].a = grid.setSpan(item.index[dcol].a, dcol, 0)
-  if item.span[dcol].b == 0:
+  if item.span[dcol].b == 0 or item.span[dcol].b notin 0..lcol:
     item.span[dcol].b = grid.setSpan(item.index[dcol].b, dcol, contentSize.x)
 
-  if item.span[drow].a == 0:
+  if item.span[drow].a == 0 or item.span[drow].a notin 0..lrow:
     item.span[drow].a = grid.setSpan(item.index[drow].a, drow, 0)
-  if item.span[drow].b == 0:
+  if item.span[drow].b == 0 or item.span[drow].b notin 0..lrow:
     item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
 
 proc computeBox*(
@@ -369,7 +378,11 @@ proc computeNodeLayout*(
     computeAutoFlow(gridTemplate, node, children)
 
   gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)
-  # echo "gridTemplate: ", gridTemplate.repr
+  echo "gridTemplate: ", gridTemplate.repr
+  for i in 0 ..< children.len():
+    echo "child:cols: ", " :: ", children[i].gridItem.span[dcol].repr, " x ", children[i].gridItem.span[drow].repr
+    echo "child:cols: ", children[i].gridItem.span.repr
+    echo "child:box: ", " => ", children[i].box
 
   for child in children:
     # echo "CHILD fixed 1..3: "
@@ -385,5 +398,5 @@ proc computeNodeLayout*(
                 node.box.y.float,
                 node.box.w.float + w.float,
                 node.box.h.float + h.float))
-  # echo "computeNodeLayout:done: "
+  echo "computeNodeLayout:done: "
   # print children

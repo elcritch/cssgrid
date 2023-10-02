@@ -281,9 +281,9 @@ proc computeAutoFlow(
   # print fixedCache
 
   # setup cursor for current grid UiSize
-  for i in 1..fixedCache.len():
-    for gspan in fixedCache[i.LinePos]:
-      echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
+  # for i in 1..fixedCache.len():
+  #   for gspan in fixedCache[i.LinePos]:
+  #     echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
 
   # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]

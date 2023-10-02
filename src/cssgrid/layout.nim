@@ -339,7 +339,7 @@ proc computeNodeLayout*(
     node: GridNode,
     children: seq[GridNode],
     extendOnOverflow = true, # not sure what the spec says for this
-) =
+): auto =
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has
   ## both `UiBox: UiBox` and `gridItem: GridItem` fields. 
@@ -365,23 +365,25 @@ proc computeNodeLayout*(
 
   # compute UiSizes for auto flow items
   if hasAutos:
+    # echo "hasAutos"
     computeAutoFlow(gridTemplate, node, children)
 
   gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)
   # echo "gridTemplate: ", gridTemplate.repr
 
   for child in children:
+    # echo "CHILD fixed 1..3: "
     if fixedCount(child.gridItem) in 1..3:
       continue
     child.box = typeof(child.box)(child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize))
   
-  if extendOnOverflow:
-    let w = gridTemplate.overflowSizes[dcol]
-    let h = gridTemplate.overflowSizes[drow]
-    node.box = typeof(node.box)(uiBox(
-                  node.box.x.float,
-                  node.box.y.float,
-                  node.box.w.float + w.float,
-                  node.box.h.float + h.float))
+  # if extendOnOverflow:
+  let w = gridTemplate.overflowSizes[dcol]
+  let h = gridTemplate.overflowSizes[drow]
+  return typeof(node.box)(uiBox(
+                node.box.x.float,
+                node.box.y.float,
+                node.box.w.float + w.float,
+                node.box.h.float + h.float))
   # echo "computeNodeLayout:done: "
   # print children

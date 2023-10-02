@@ -38,17 +38,17 @@ suite "grids":
     
     expandMacros:
       let nm = ss"first"
-      echo "NM: ", $nm
+      # echo "NM: ", $nm
 
   test "simple macros":
     let ns = !@["a", "b"]
-    echo "ns: ", $ns
+    # echo "ns: ", $ns
     var gt1 = newGridTemplate()
     gridTemplate gt1, dcol, {!@["first"]: 40'ux, !@["second", "line2"]: 50'pp, !@["line3"]:
       csAuto(), !@["col4-start"]: 50'ux, !@["five"]: 40'ux,
       !@["end"]: csEnd()}
     
-    echo "gt1: ", $gt1
+    # echo "gt1: ", $gt1
     
   test "initial macros":
     proc checkColumns(gt: GridTemplate, dir: GridDir) =
@@ -89,13 +89,13 @@ suite "grids":
 
   test "columns ":
     let ns = !@["a", "b"]
-    echo "ns: ", $ns
+    # echo "ns: ", $ns
     var gt1 = newGridTemplate()
     gridTemplate gt1, dcol, {!@["first"]: 40'ux, !@["second", "line2"]: 50'pp, !@["line3"]:
       csAuto(), !@["col4-start"]: 50'ux, !@["five"]: 40'ux,
       !@["end"]: csEnd()}
     
-    echo "gt1: ", $gt1
+    # echo "gt1: ", $gt1
 
     # ==== item e ====
     var iteme = newGridItem()

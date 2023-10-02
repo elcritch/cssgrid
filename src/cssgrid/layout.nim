@@ -6,6 +6,21 @@ export constraints, gridtypes
 
 let defaultLine = GridLine(track: csFrac(1))
 
+proc computeLineOverflow*(
+    lines: var seq[GridLine],
+): UiScalar =
+  for grdLn in lines:
+    match grdLn.track:
+      UiNone():
+        discard
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            result += coord
+          UiFrac(_): discard
+          UiPerc(): discard
+      _: discard
+
 proc computeLineLayout*(
     lines: var seq[GridLine],
     length: UiScalar,
@@ -16,14 +31,7 @@ proc computeLineLayout*(
     totalFracs = 0.0.UiScalar
     totalAutos = 0
     isUndefined = false
-  
-  # compute total fixed sizes and fracs
-  template calc(value) =
-    match value:
-      UiFixed(coord): fixed += coord
-      UiFrac(frac): totalFracs += frac
-      UiPerc(): discard
-  
+
   # browser css grids:
   # works: grid-template-columns: 1fr minmax(100px,1fr) minmax(200px,1fr);
   # doesn't work: grid-template-columns: 1fr minmax(1fr,100px) minmax(1fr,200px);
@@ -37,7 +45,12 @@ proc computeLineLayout*(
       UiNone():
         discard
       UiValue(value):
-        calc(value)
+        match value:
+          UiFixed(coord):
+            fixed += coord
+          UiFrac(frac):
+            totalFracs += frac
+          UiPerc(): discard
       UiAuto():
         totalAutos += 1
       UiEnd():
@@ -94,7 +107,7 @@ proc computeLineLayout*(
     grdLn.start = cursor
     cursor += grdLn.width + spacing
 
-proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
+proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or
       grid.lines[dcol][^1].track.kind != UiEnd:
@@ -103,9 +116,15 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox) =
       grid.lines[drow][^1].track.kind != UiEnd:
     grid.lines[drow].add initGridLine(csEnd())
   # The free space is calculated after any non-flexible items. In 
-  let
+  grid.overflowSizes[dcol] = grid.lines[dcol].computeLineOverflow()
+  grid.overflowSizes[drow] = grid.lines[drow].computeLineOverflow()
+  var
     colLen = contentSize.w
     rowLen = contentSize.h
+  if extendOnOverflow:
+    colLen += grid.overflowSizes[dcol]
+    rowLen += grid.overflowSizes[drow]
+
   grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
 
@@ -125,7 +144,8 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
   if idx >= grid.lines[dir].len():
     while idx >= grid.lines[dir].len():
       let offset = grid.lines[dir].len() - 1
-      var ln = initGridLine(track = grid.autos[dir])
+      let track = grid.autos[dir]
+      var ln = initGridLine(track = track, isAuto = true)
       grid.lines[dir].insert(ln, offset)
 
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
@@ -317,6 +337,7 @@ proc computeNodeLayout*(
     gridTemplate: GridTemplate,
     node: GridNode,
     children: seq[GridNode],
+    extendOnOverflow = true, # not sure what the spec says for this
 ) =
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has
@@ -346,7 +367,7 @@ proc computeNodeLayout*(
     echo "hasAutos"
     computeAutoFlow(gridTemplate, node, children)
 
-  gridTemplate.computeTracks(node.box.UiBox)
+  gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)
   # echo "gridTemplate: ", gridTemplate.repr
 
   for child in children:
@@ -354,5 +375,8 @@ proc computeNodeLayout*(
       continue
     child.box = typeof(child.box)(child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize))
   
+  if extendOnOverflow:
+    node.box.w += gridTemplate.overflowSizes[dcol]
+    node.box.h += gridTemplate.overflowSizes[drow]
   # echo "computeNodeLayout:done: "
   # print children

@@ -38,6 +38,7 @@ type
     justifyContent*: ConstraintBehavior
     alignContent*: ConstraintBehavior
     autoFlow*: GridFlow
+    overflowSizes*: array[GridDir, UiScalar]
 
   LinePos* = int16
 
@@ -46,6 +47,7 @@ type
     track*: Constraint
     start*: UiScalar
     width*: UiScalar
+    isAuto*: bool
 
   GridIndex* = object
     line*: Atom
@@ -191,8 +193,9 @@ proc repr*(a: GridTemplate): string =
 proc initGridLine*(
     track = csFrac(1),
     aliases: varargs[LineName, toLineName],
+    isAuto = false,
 ): GridLine =
-  GridLine(track: track, aliases: toHashSet(aliases))
+  GridLine(track: track, aliases: toHashSet(aliases), isAuto: isAuto)
 
 proc toGridLine*(
     arg: (HashSet[LineName], Constraint)

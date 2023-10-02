@@ -277,8 +277,8 @@ proc computeAutoFlow(
     else:
       autos.add child
 
-  echo "computeAutoFlow:"
-  print fixedCache
+  # echo "computeAutoFlow:"
+  # print fixedCache
 
   # setup cursor for current grid UiSize
   for i in 1..fixedCache.len():
@@ -299,10 +299,8 @@ proc computeAutoFlow(
       cursor[my] = cursor[my] + 1
       if cursor[my] >= gridTemplate.lines[my].len():
         foundOverflow = true
-      if cursor[my] >= gridTemplate.lines[my].len():
-        echo "autoFlow:BREAK:outer:i: ", i,  " mx: ", cursor[mx], " my: ", cursor[my]
-        # fixedCache[LinePos(cursor[my]+1)] = initHashSet[GridSpan]()
-      #   break outer
+      # if cursor[my] >= gridTemplate.lines[my].len():
+      #   echo "autoFlow:BREAK:outer:i: ", i,  " mx: ", cursor[mx], " my: ", cursor[my]
       break blk
   
   ## computing auto flows
@@ -313,14 +311,14 @@ proc computeAutoFlow(
     while i < len(autos):
       block childBlock:
         ## increment cursor and index until one breaks the mold
-        print "autoflow:", i
+        # print "autoflow:", i
         while cursor[my] in fixedCache and cursor in fixedCache[cursor[my]]:
-          print "skipping fixedCache:", cursor
+          # print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
         while cursor[my] notin fixedCache or not (cursor in fixedCache[cursor[my]]):
           # set the index for each auto rather than the span directly
           # so that auto-flow works properly
-          print "set gridItem:index: ", i, " ", cursor[mx], " ", cursor[my]
+          # print "set gridItem:index: ", i, " ", cursor[mx], " ", cursor[my]
           autos[i].gridItem.index[mx] = cursor[mx] // (cursor[mx] + 1)
           autos[i].gridItem.index[my] = cursor[my] // (cursor[my] + 1)
           i.inc

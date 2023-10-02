@@ -386,12 +386,12 @@ proc computeNodeLayout*(
     echo "child:cols: ", children[i].gridItem.span.repr
     echo "child:box: ", " => ", children[i].box
 
-  var contentSized: array[GridDir, seq[int]]
+  var contentSized: array[GridDir, set[int16]]
   for dir in [dcol, drow]:
     for i in 0 ..< gridTemplate.lines[dir].len():
       if isContentSized(gridTemplate.lines[dir][i].track):
         echo "content size: " & $dir & ": ", i
-        contentSized[dir].add(i)
+        contentSized[dir].incl(i.int16)
   # for i in 0 ..< children.len():
   # for i in 0 ..< gridTemplate.lines[dcol].len():
   #   echo "line:dcol: ", i

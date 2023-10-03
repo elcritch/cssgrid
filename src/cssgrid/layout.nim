@@ -403,14 +403,15 @@ proc computeNodeLayout*(
   ## this algorithm tries to follow the specification at:
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
-  var hasAutos = false
+  var hasAutos = true
   for child in children:
     if child.gridItem == nil:
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
-      hasAutos = true
-    else:
-      hasAutos = false
+      # hasAutos = true
+    # elif child.gridItem.span == [0'i16..0'i16, 0'i16..0'i16]:
+    #   hasAutos = true
+    # hasAutos = false
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children

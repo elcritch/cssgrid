@@ -607,7 +607,7 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
-    parseGridTemplateRows gridTemplate, 50'ux
+    parseGridTemplateRows gridTemplate, csNone()
     gridTemplate.autos[drow] = 50'ux
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
@@ -643,7 +643,7 @@ suite "grids":
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
     checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(0, 50, 50, 50)
+    checks nodes[1].box == uiBox(50, 0, 50, 50)
 
     for i in 0..6:
       checks nodes[i].box.wh == uiSize(50, 50)

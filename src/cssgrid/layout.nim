@@ -282,7 +282,7 @@ import pretty
 
 proc computeAutoFlow(
     gridTemplate: GridTemplate,
-    node: GridNode,
+    node: UiBox,
     allNodes: seq[GridNode],
 ) =
   let (mx, my) =
@@ -383,10 +383,15 @@ proc computeAutoFlow(
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
-    node: GridNode,
+    parent: UiBox | GridNode,
     children: seq[GridNode],
     extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
+
+  let box = 
+    when parent is GridNode: UiBox(parent.box)
+    else: parent
+
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has
   ## both `UiBox: UiBox` and `gridItem: GridItem` fields. 
@@ -413,7 +418,7 @@ proc computeNodeLayout*(
   # compute UiSizes for auto flow items
   if hasAutos:
     # echo "hasAutos"
-    computeAutoFlow(gridTemplate, node, children)
+    computeAutoFlow(gridTemplate, box, children)
 
   # echo "gridTemplate: ", gridTemplate.repr
   # for i in 0 ..< children.len():
@@ -426,7 +431,7 @@ proc computeNodeLayout*(
   #   echo "line:dcol: ", i
 
   gridTemplate.computeContentSizes(children)
-  gridTemplate.computeTracks(node.box.UiBox, extendOnOverflow)
+  gridTemplate.computeTracks(box, extendOnOverflow)
 
   for child in children:
     # echo "CHILD fixed 1..3: "
@@ -437,10 +442,10 @@ proc computeNodeLayout*(
   # if extendOnOverflow:
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
-  return typeof(node.box)(uiBox(
-                node.box.x.float,
-                node.box.y.float,
-                node.box.w.float + w.float,
-                node.box.h.float + h.float))
+  return typeof(box)(uiBox(
+                box.x.float,
+                box.y.float,
+                box.w.float + w.float,
+                box.h.float + h.float))
   # echo "computeNodeLayout:done: "
   # print children

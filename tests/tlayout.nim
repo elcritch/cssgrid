@@ -31,6 +31,7 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   var nodes = newSeq[GridNode](cnt)
 
   var parent = GridNode()
+  assert parent is GridNode
   parent.box = uiBox(0, 0,
                   60*(gridTemplate.columns().len().float-1),
                   33*(gridTemplate.rows().len().float-1))

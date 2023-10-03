@@ -15,7 +15,7 @@ type
   LineName* = Atom
 
   GridNode* = concept node
-    distinctBase(node.box) = Rect
+    distinctBase(typeof(node.box)) is Rect
 
 type
   GridDir* = enum

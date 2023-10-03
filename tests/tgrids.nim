@@ -315,12 +315,10 @@ suite "grids":
     # print gridTemplate
 
     # print boxa
-    checks boxa.x.float == 0.0
-    checks boxa.y.float == 90.0
-    checks boxa.w.float == 60.0
-    checks boxa.h.float == 90.0
+    checks boxa == uiBox(0, 90, 60, 90)
 
     # print boxb
+    checks boxb == uiBox(120, 90, 00, 90)
     checks boxb.x.float == 120.0
     checks boxb.y.float == 90.0
     checks boxb.w.float == 0.0
@@ -344,23 +342,9 @@ suite "grids":
     itema.row = 1 // 2
 
     itema.setGridSpans(gridTemplate, contentSize)
-    # echo "setGridSpans:itema"
-    # print itema
-
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    ## computes
-    ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    # echo "boxa"
-    # print boxa
-    # echo "grid template post: ", repr gridTemplate
-    # print gridTemplate
-
-    # print boxa
-    checks boxa.x.float == 0.0
-    checks boxa.y.float == 0.0
-    checks boxa.w.float == 60.0
-    checks boxa.h.float == 90.0
+    checks boxa == uiBox(0, 0, 60, 90)
     
 
   test "compute layout with auto columns with fixed size":

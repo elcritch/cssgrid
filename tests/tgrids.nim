@@ -464,24 +464,12 @@ suite "grids":
     checks nodes[3].box.xy == uiSize(120, 0)
     checks nodes[4].box.xy == uiSize(180, 0)
 
-    checks nodes[2].box.x.float == 60.0
-    checks nodes[3].box.x.float == 120.0
-    checks nodes[4].box.x.float == 180.0
-
-    checks nodes[2].box.y.float == 0.0
-    checks nodes[3].box.y.float == 0.0
-    checks nodes[4].box.y.float == 0.0
-
-    checks nodes[5].box.x.float == 60.0
-    checks nodes[6].box.x.float == 120.0
-
-    checks nodes[5].box.y.float == 33.0
-    checks nodes[6].box.y.float == 33.0
-    checks nodes[7].box.y.float == 33.0
+    checks nodes[5].box.xy == uiSize(60, 33)
+    checks nodes[6].box.xy == uiSize(120, 33)
+    checks nodes[7].box.xy == uiSize(180, 33)
 
     for i in 2 ..< nodes.len() - 1:
-      checks nodes[i].box.w.float == 60.0
-      checks nodes[i].box.h.float == 33.0
+      checks nodes[i].box.wh == uiSize(60, 33)
 
   test "compute layout auto flow overflow":
     var gridTemplate: GridTemplate

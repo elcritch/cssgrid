@@ -622,12 +622,13 @@ suite "grids":
       nodes[i] = GridNode(id: "b" & $(i),
                           box: uiBox(0,0,50,50),
                           gridItem: GridItem())
-      nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
-      nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+      # nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+      # nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
     nodes[2].box.h = 150
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
+    let box1 = gridTemplate.computeNodeLayout(parent, nodes)
     let box = gridTemplate.computeNodeLayout(parent, nodes)
     echo "grid template:post: ", repr gridTemplate
     echo ""

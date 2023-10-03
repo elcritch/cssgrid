@@ -183,7 +183,7 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
 proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
   assert idx <= 1000, "max grids exceeded"
   if idx >= grid.lines[dir].len():
-    echo "gridAutoInsert: ", idx
+    # echo "gridAutoInsert: ", idx
     while idx >= grid.lines[dir].len():
       let offset = grid.lines[dir].len() - 1
       let track = grid.autos[dir]
@@ -194,7 +194,7 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
     let idx = index.line.ints - 1 + index.spanCnt()
-    echo "setSpan: ", idx, " index: ", index, " dir: ", dir, " cz: ", cz
+    # echo "setSpan: ", idx, " index: ", index, " dir: ", dir, " cz: ", cz
     grid.gridAutoInsert(dir, idx, cz)
     index.line.ints.int16
   else:
@@ -215,7 +215,7 @@ proc setGridSpans*(
   ## set grid spans for items, if needed set new auto
   ## rows or columns
   assert not item.isNil
-  echo "setGridSpans: ", item
+  # echo "setGridSpans: ", item
 
   let lrow = grid.lines[drow].len() - 1
   let lcol = grid.lines[dcol].len() - 1
@@ -422,7 +422,7 @@ proc computeNodeLayout*(
 
   # compute UiSizes for auto flow items
   if hasAutos:
-    echo "hasAutos"
+    # echo "hasAutos"
     computeAutoFlow(gridTemplate, box, children)
 
   # echo "gridTemplate: ", gridTemplate.repr

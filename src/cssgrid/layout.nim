@@ -108,6 +108,8 @@ proc computeLineLayout*(
         grdLn.width = grdVal.cmin
       elif grdVal.kind == UiContentMax:
         grdLn.width = grdVal.cmax
+      elif grdVal.kind == UiAuto:
+        grdLn.width = grdVal.amin
   
   # auto's
   for grdLn in lines.mitems():

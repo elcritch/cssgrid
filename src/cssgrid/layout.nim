@@ -27,6 +27,33 @@ proc computeLineOverflow*(
             result += amin
       _: discard
 
+proc computeContentSizes*(grid: GridTemplate,
+                    children: seq[GridNode]) =
+  ## computes content min / max for each grid track based on children
+  ## 
+  ## only includes children which only span a single track
+  ## for the current dimension
+  ## 
+  var contentSized: array[GridDir, set[int16]]
+  for dir in [dcol, drow]:
+    for i in 0 ..< grid.lines[dir].len():
+      if isContentSized(grid.lines[dir][i].track):
+        contentSized[dir].incl(i.int16)
+
+  for child in children:
+    let cspan = child.gridItem.span
+    for dir in [dcol, drow]:
+      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
+        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
+        let csize = if dir == dcol: UiBox(child.box).w
+                    else: UiBox(child.box).h
+        if track().value.kind == UiContentMin:
+          track().value.cmin = min(csize, track().value.cmin)
+        elif track().value.kind == UiContentMax:
+          track().value.cmax = max(csize, track().value.cmax)
+        else:
+          assert false, "shouldn't reach here " & $track().value.kind
+
 proc computeLineLayout*(
     lines: var seq[GridLine],
     length: UiScalar,
@@ -141,33 +168,6 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = f
 
   grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
-
-proc computeContentSizes*(grid: GridTemplate,
-                    children: seq[GridNode]) =
-  ## computes content min / max for each grid track based on children
-  ## 
-  ## only includes children which only span a single track
-  ## for the current dimension
-  ## 
-  var contentSized: array[GridDir, set[int16]]
-  for dir in [dcol, drow]:
-    for i in 0 ..< grid.lines[dir].len():
-      if isContentSized(grid.lines[dir][i].track):
-        contentSized[dir].incl(i.int16)
-
-  for child in children:
-    let cspan = child.gridItem.span
-    for dir in [dcol, drow]:
-      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
-        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
-        let csize = if dir == dcol: UiBox(child.box).w
-                    else: UiBox(child.box).h
-        if track().value.kind == UiContentMin:
-          track().value.cmin = min(csize, track().value.cmin)
-        elif track().value.kind == UiContentMax:
-          track().value.cmax = max(csize, track().value.cmax)
-        else:
-          assert false, "shouldn't reach here " & $track().value.kind
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   assert index.isName == true

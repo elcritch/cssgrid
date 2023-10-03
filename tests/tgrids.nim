@@ -564,9 +564,6 @@ suite "grids":
     gridTemplate.autos[drow] = 50'ux
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
-    # echo "grid template pre: ", repr gridTemplate
-    # gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
     parent.box.w = 50
     parent.box.h = 50
@@ -582,13 +579,7 @@ suite "grids":
       # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
       # nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
     nodes[7].box.w = 150
-
-    # echo "grid template:post: ", repr gridTemplate
-
     check gridTemplate.lines[dcol][0].track == 1'fr
-    # check gridTemplate.lines[dcol][0].aliases == toLineNames("first")
-    # check gridTemplate.lines[dcol][1].track.value.kind == UiPerc
-    # check gridTemplate.lines[dcol][1].track.value.perc == 50.0.UiScalar
 
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
@@ -605,9 +596,9 @@ suite "grids":
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
     checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(50, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
 
-    # for i in 0..6:
-    #   checks nodes[i].box.wh == uiSize(50, 50)
+    for i in 0..6:
+      checks nodes[i].box.wh == uiSize(50, 50)
 
-    # checks nodes[7].box == uiBox(0, 350, 150, 50)
+    checks nodes[7].box == uiBox(0, 350, 50, 50)

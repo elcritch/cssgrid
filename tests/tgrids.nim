@@ -406,10 +406,7 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a ====
-    checks nodes[0].box.x.float == 0.0
-    checks nodes[0].box.w.float == 60.0
-    checks nodes[0].box.y.float == 0.0
-    checks nodes[0].box.h.float == 66.0
+    checks nodes[0].box == uiBox(0, 0, 60, 66)
 
     # ==== item e ====
     # print nodes[1].box
@@ -501,20 +498,13 @@ suite "grids":
 
     check box.w == 750
     check box.h == 50
-    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-    check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
-    check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+    checks nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    checks nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    checks nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+    checks nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
-    check nodes[0].box.x.float == 0.0
-    check nodes[0].box.y.float == 0.0
-    check nodes[0].box.w.float == 50.0
-    check nodes[0].box.h.float == 50.0
-
-    check nodes[1].box.x.float == 50.0
-    check nodes[1].box.y.float == 0.0
-    check nodes[1].box.w.float == 100.0
-    check nodes[1].box.h.float == 50.0
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(50, 0, 100, 50)
 
   test "compute layout overflow (columnar)":
     var gridTemplate: GridTemplate
@@ -550,10 +540,7 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    # for i in 0 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    # printChildrens(0)
 
     # echo "grid template:post: ", repr gridTemplate
     # print gridTemplate.overflowSizes

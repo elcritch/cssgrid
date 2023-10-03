@@ -187,10 +187,10 @@ proc repr*(a: GridTemplate): string =
   result = "GridTemplate:"
   result &= "\n   cols: "
   for c in a.lines[dcol]:
-    result &= &"\n   {c.repr}"
-  result &= "\n\trows: "
+    result &= &"\n      {c.repr}"
+  result &= "\n   rows: "
   for r in a.lines[drow]:
-    result &= &"\n   {r.repr}"
+    result &= &"\n      {r.repr}"
 
 proc initGridLine*(
     track = csFrac(1),

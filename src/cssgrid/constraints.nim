@@ -8,6 +8,7 @@ type
     CxEnd
     CxCenter
 
+type
   ConstraintSizes* = enum
     UiFrac
     UiPerc
@@ -19,18 +20,17 @@ type
   ConstraintSize* = object
     case kind*: ConstraintSizes
     of UiFrac:
-      frac*: UiScalar
+      frac*: UiScalar ## set `fr` aka CSS Grid fractions
     of UiPerc:
-      perc*: UiScalar
+      perc*: UiScalar ## set percentage of parent box or grid
     of UiFixed:
-      coord*: UiScalar
+      coord*: UiScalar ## set fixed coordinate size
     of UiContentMin:
-      cmin*: UiScalar
+      cmin*: UiScalar ## sets layout to use min-content, `cmin` is calculated internally
     of UiContentMax:
-      cmax*: UiScalar
+      cmax*: UiScalar ## sets layout to use max-content, `cmax` is calculated internally
     of UiAuto:
-      amin*: UiScalar
-    
+      amin*: UiScalar ## sets layout to auto which is similar to a fraction but lower precedance down to min-content
 
   Constraints* = enum
     UiNone
@@ -44,19 +44,19 @@ type
   Constraint* = object
     case kind*: Constraints
     of UiNone:
+      ## default, which is parent width/height less the x/y positions of the node and it's parents
       discard
     of UiValue:
-      value*: ConstraintSize
+      value*: ConstraintSize ## used for `ConstraintSize` above
     of UiMin:
-      lmin, rmin*: ConstraintSize
+      lmin, rmin*: ConstraintSize ## minimum of lhs and rhs (partially supported)
     of UiMax:
-      lmax, rmax*: ConstraintSize
+      lmax, rmax*: ConstraintSize ## maximum of lhs and rhs (partially supported)
     of UiSum:
-      lsum, rsum*: ConstraintSize
+      lsum, rsum*: ConstraintSize ## sum of lhs and rhs (partially supported)
     of UiMinMax:
-      lmm, rmm*: ConstraintSize
-    of UiEnd:
-      discard
+      lmm, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
+    of UiEnd: discard ## marks end track of a CSS Grid layout
 
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)

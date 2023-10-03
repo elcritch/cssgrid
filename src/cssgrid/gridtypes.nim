@@ -70,6 +70,18 @@ macro ln*(n: string): GridIndex =
   result = quote do:
     GridIndex(line: atom(`n`), isName: true)
 
+proc toLineName*(name: int): Atom =
+  result.unsafeSetLen(name.sizeof)
+  for i in 0..<name.sizeof:
+    result[i] = char((name shr (i*8)) and 0xFF)
+
+proc ints*(a: Atom): int =
+  if a.len == 0:
+    return 0
+  let n = min(result.sizeof, a.len)
+  for i in 0..<n:
+    result = (result shl 8) or int(a[n - i - 1])
+
 proc columns*(grid: GridTemplate): seq[GridLine] =
   grid.lines[dcol]
 proc rows*(grid: GridTemplate): seq[GridLine] =
@@ -85,39 +97,27 @@ proc `repr`*(a: HashSet[LineName]): string =
 proc `$`*(a: GridIndex): string =
   result = "GridIdx{"
   if a.isName:
-    result &= "" & $a.line
+    result &= "'" & $a.line & "'"
   else:
-    result &= "" & $a.line
-  result &= ",s:" & $a.isSpan
-  result &= ",n:" & $a.isName
+    result &= $(a.line.ints())
+  if a.isSpan:
+    result &= ",s:" & $a.isSpan
   result &= "}"
 
 proc `$`*(a: GridItem): string =
   if a != nil:
     result = "GridItem{" 
-    result &= " span[dcol]: " & $a.span[dcol]
-    result &= ", span[drow]: " & $a.span
+    result &= "\tspan[dcol]: " & $a.span[dcol]
+    result &= "\n\t\t, span[drow]: " & $a.span
     result &= "\n\t\t"
-    result &= ", cS: " & repr a.index[dcol].a
+    result &= ", colS: " & $a.index[dcol].a
     result &= "\n\t\t"
-    result &= ", cE: " & repr a.index[dcol].b
+    result &= ", colE: " & $a.index[dcol].b
     result &= "\n\t\t"
-    result &= ", rS: " & repr a.index[drow].a
+    result &= ", rowS: " & $a.index[drow].a
     result &= "\n\t\t"
-    result &= ", rE: " & repr a.index[drow].b
+    result &= ", rowE: " & $a.index[drow].b
     result &= "}"
-
-proc toLineName*(name: int): Atom =
-  result.unsafeSetLen(name.sizeof)
-  for i in 0..<name.sizeof:
-    result[i] = char((name shr (i*8)) and 0xFF)
-
-proc ints*(a: Atom): int =
-  if a.len == 0:
-    return 0
-  let n = min(result.sizeof, a.len)
-  for i in 0..<n:
-    result = (result shl 8) or int(a[n - i - 1])
 
 proc toLineName*(name: string): Atom =
   discard result.addTruncate(name)

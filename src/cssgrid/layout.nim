@@ -215,6 +215,7 @@ proc setGridSpans*(
   ## set grid spans for items, if needed set new auto
   ## rows or columns
   assert not item.isNil
+  echo "setGridSpans: ", item
 
   let lrow = grid.lines[drow].len() - 1
   let lcol = grid.lines[dcol].len() - 1

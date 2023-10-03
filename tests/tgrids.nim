@@ -606,7 +606,7 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
-    parseGridTemplateRows gridTemplate, csNone()
+    parseGridTemplateRows gridTemplate, csAuto()
     gridTemplate.autos[drow] = csContentMax()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
@@ -624,7 +624,7 @@ suite "grids":
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-    nodes[7].box.h = 150
+    nodes[2].box.h = 150
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
@@ -643,8 +643,11 @@ suite "grids":
 
     checks nodes[0].box == uiBox(0, 0, 50, 50)
     checks nodes[1].box == uiBox(0, 50, 50, 50)
+    checks nodes[2].box == uiBox(0, 100, 50, 150)
+    checks nodes[3].box == uiBox(0, 250, 50, 50)
 
-    for i in 0..6:
-      checks nodes[i].box.wh == uiSize(50, 50)
+    for i in 0..7:
+      if i != 2:
+        checks nodes[i].box.wh == uiSize(50, 50)
 
-    checks nodes[7].box == uiBox(0, 350, 50, 50)
+    checks nodes[7].box == uiBox(0, 450, 50, 50)

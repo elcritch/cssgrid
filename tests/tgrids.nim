@@ -8,6 +8,8 @@ import cssgrid/layout
 import cssgrid/parser
 
 import pretty
+import macros
+
 
 type
   GridNode* = ref object
@@ -18,7 +20,12 @@ type
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box
 
-import macros
+template printChildrens(start = 0) =
+  for i in start ..< nodes.len():
+    echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+    echo "auto child:cols: ", nodes[i].gridItem.span.repr
+    echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+
 template checkUiFloats(af, bf, ln, ls) =
   if abs(af.float-bf.float) >= 1.0e-3:
     checkpoint(`ln` & ": Check failed: " & `ls` & " field: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
@@ -402,12 +409,6 @@ suite "grids":
     checks boxb.y.float == 180.0
     checks boxb.w.float == 60.0
     checks boxb.h.float == 20.0
-
-  template printChildrens(start = 0) =
-    for i in start ..< nodes.len():
-      echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-      echo "auto child:cols: ", nodes[i].gridItem.span.repr
-      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
   test "compute layout with auto flow":
     var gridTemplate: GridTemplate

@@ -28,7 +28,7 @@ template printChildrens(start = 0) =
 
 template checkUiFloats(af, bf, ln, ls) =
   if abs(af.float-bf.float) >= 1.0e-3:
-    checkpoint(`ln` & ": Check failed: " & `ls` & " field: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
+    checkpoint(`ln` & ":\n\tCheck failed: " & `ls` & "\n\tfield: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
     fail()
 
 macro checks(args: untyped{nkInfix}) =
@@ -591,8 +591,8 @@ suite "grids":
     # ==== item a's ====
     printChildrens()
 
-    # echo "grid template:post: ", repr gridTemplate
-    # print gridTemplate.overflowSizes
+    echo "grid template:post: ", repr gridTemplate
+    print gridTemplate.overflowSizes
 
     check box.w == 50
     check box.h == 500

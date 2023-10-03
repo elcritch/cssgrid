@@ -70,7 +70,7 @@ proc csFixed*[T](coord: T): Constraint =
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
 proc csContentMin*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMin, cmin: 0.UiScalar))
+  csValue(ConstraintSize(kind: UiContentMin, cmin: float.high().UiScalar))
 proc csContentMax*(): Constraint =
   csValue(ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
 

@@ -606,8 +606,8 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
-    parseGridTemplateRows gridTemplate, csAuto()
-    gridTemplate.autos[drow] = csContentMax()
+    parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = csContentMin()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
     var parent = GridNode()
@@ -635,7 +635,7 @@ suite "grids":
     print gridTemplate.overflowSizes
 
     check box.w == 50
-    check box.h == 400
+    check box.h == 500
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16

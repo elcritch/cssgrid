@@ -305,24 +305,11 @@ suite "grids":
     ## computes
     ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
-
     let boxb = itemb.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-
-    # print gridTemplate
-
-    # print boxa
     checks boxa == uiBox(0, 90, 60, 90)
-
-    # print boxb
     checks boxb == uiBox(120, 90, 00, 90)
-    checks boxb.x.float == 120.0
-    checks boxb.y.float == 90.0
-    checks boxb.w.float == 0.0
-    checks boxb.h.float == 90.0
 
   test "compute layout with fixed 1x1":
     var gridTemplate: GridTemplate

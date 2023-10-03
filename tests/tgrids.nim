@@ -498,22 +498,9 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    # checks nodes[0].box == uiBox(0, 0, 100, 100)
-
-    check nodes[0].box.x.float == 0.0
-    check nodes[0].box.y.float == 0.0
-    check nodes[0].box.w.float == 100.0
-    check nodes[0].box.h.float == 100.0
-
-    check nodes[1].box.x.float == 0.0
-    check nodes[1].box.y.float == 100.0
-    check nodes[1].box.w.float == 100.0
-    check nodes[1].box.h.float == 100.0
-
-    check nodes[3].box.x.float == 0.0
-    check nodes[3].box.y.float == 300.0
-    check nodes[3].box.w.float == 100.0
-    check nodes[3].box.h.float == 100.0
+    checks nodes[0].box == uiBox(0, 0, 100, 100)
+    checks nodes[1].box == uiBox(0, 100, 100, 100)
+    checks nodes[3].box == uiBox(0, 300, 100, 100)
 
   test "compute layout auto flow overflow (columnar)":
     var gridTemplate: GridTemplate

@@ -180,17 +180,17 @@ proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 
 proc repr*(a: GridLine): string =
-  result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
+  result = fmt"GL({a.track.repr}; <{$a.start}'p; {$a.width}'w> <- {$a.aliases})"
 proc repr*(a: GridTemplate): string =
   if a.isNil:
     return "nil"
   result = "GridTemplate:"
-  result &= "\n\tcols: "
+  result &= "\n   cols: "
   for c in a.lines[dcol]:
-    result &= &"\n\t\t{c.repr}"
+    result &= &"\n   {c.repr}"
   result &= "\n\trows: "
   for r in a.lines[drow]:
-    result &= &"\n\t\t{r.repr}"
+    result &= &"\n   {r.repr}"
 
 proc initGridLine*(
     track = csFrac(1),

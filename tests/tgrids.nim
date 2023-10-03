@@ -533,6 +533,7 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent, nodes)
     # echo "grid template:1: ", repr gridTemplate
     # print box
+    echo "grid template post: ", repr gridTemplate
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
@@ -584,10 +585,6 @@ suite "grids":
 
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
-    # echo "grid template:1: ", repr gridTemplate
-    # print box
-
-    # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
     printChildrens()
 

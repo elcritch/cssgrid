@@ -361,25 +361,11 @@ suite "grids":
     itemb.setGridSpans(gridTemplate, contentSize)
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
-    # echo "grid template post: ", repr gridTemplate
-    # print gridTemplate
-
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    # print boxa
-
-    checks boxa.x.float == 0.0
-    checks boxa.w.float == 60.0
-    checks boxa.y.float == 90.0
-    checks boxa.h.float == 90.0
+    checks boxa == uiBox(0, 90, 60, 90)
 
     let boxb = itemb.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
-    # print boxb
-    checks boxb.x.float == 240.0
-    checks boxb.y.float == 180.0
-    checks boxb.w.float == 60.0
-    checks boxb.h.float == 20.0
+    checks boxb == uiBox(240, 180, 60, 20)
 
   test "compute layout with auto flow":
     var gridTemplate: GridTemplate

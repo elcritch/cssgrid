@@ -23,6 +23,8 @@ proc computeLineOverflow*(
             result += cmin
           UiContentMax(cmax):
             result += cmax
+          UiAuto(amin):
+            result += amin
       _: discard
 
 proc computeLineLayout*(
@@ -59,8 +61,8 @@ proc computeLineLayout*(
             fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
-      UiAuto():
-        totalAutos += 1
+          UiAuto():
+            totalAutos += 1
       UiEnd():
         discard
       UiMin(lmin, rmin):
@@ -109,7 +111,7 @@ proc computeLineLayout*(
   
   # auto's
   for grdLn in lines.mitems():
-    if grdLn.track.kind == UiAuto:
+    if grdLn.track.isAuto:
       grdLn.width = remSpace / totalAutos.UiScalar
 
   var cursor = 0.0.UiScalar
@@ -150,6 +152,7 @@ proc computeContentSizes*(grid: GridTemplate,
     for i in 0 ..< grid.lines[dir].len():
       if isContentSized(grid.lines[dir][i].track):
         contentSized[dir].incl(i.int16)
+
   for child in children:
     let cspan = child.gridItem.span
     for dir in [dcol, drow]:

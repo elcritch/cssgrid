@@ -62,7 +62,7 @@ suite "grids":
       check gt.lines[dir][1].track.value.perc == 50.0.UiScalar
       check gt.lines[dir][1].aliases == toLineNames("second", "line2")
 
-      check gt.lines[dir][2].track.kind == UiAuto
+      check gt.lines[dir][2].track.value.kind == UiAuto
       check gt.lines[dir][2].aliases == toLineNames("line3")
 
       check gt.lines[dir][3].track.kind == UiValue

@@ -97,7 +97,7 @@ suite "grids":
     check gt.lines[dcol][1].track.value.kind == UiPerc
     check gt.lines[dcol][1].track.value.perc == 50.0.UiScalar
     check gt.lines[dcol][1].aliases == toLineNames("second", "line2")
-    check gt.lines[dcol][2].track.kind == UiAuto
+    check gt.lines[dcol][2].track.value.kind == UiAuto
     check gt.lines[dcol][2].aliases == toLineNames("line3")
     check gt.lines[dcol][3].track.value.kind == UiFixed
     check gt.lines[dcol][3].track.value.coord == 50.0.UiScalar

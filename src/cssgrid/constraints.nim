@@ -14,6 +14,7 @@ type
     UiFixed
     UiContentMin
     UiContentMax
+    UiAuto
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
@@ -27,11 +28,13 @@ type
       cmin*: UiScalar
     of UiContentMax:
       cmax*: UiScalar
+    of UiAuto:
+      amin*: UiScalar
+    
 
   Constraints* = enum
     UiNone
     UiValue
-    UiAuto
     UiMin
     UiMax
     UiSum
@@ -44,8 +47,6 @@ type
       discard
     of UiValue:
       value*: ConstraintSize
-    of UiAuto:
-      discard
     of UiMin:
       lmin, rmin*: ConstraintSize
     of UiMax:
@@ -60,7 +61,7 @@ type
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)
 proc csAuto*(): Constraint =
-  Constraint(kind: UiAuto)
+  csValue(ConstraintSize(kind: UiAuto, amin: 0.UiScalar))
 
 proc csFrac*[T](size: T): Constraint =
   csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
@@ -75,6 +76,8 @@ proc csContentMax*(): Constraint =
 
 proc isContentSized*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax] 
+proc isAuto*(cx: Constraint): bool =
+  cx.kind == UiValue and cx.value.kind in [UiAuto]
 
 proc csEnd*(): Constraint =
   Constraint(kind: UiEnd)
@@ -134,12 +137,12 @@ proc `==`*(a, b: ConstraintSize): bool =
       UiFixed(coord): return coord == b.coord
       UiContentMin(): return true
       UiContentMax(): return true
+      UiAuto(): return true
 
 proc `==`*(a, b: Constraint): bool =
   if a.kind == b.kind:
     match a:
       UiNone(): return true
-      UiAuto(): return true
       UiValue(value): return value == b.value
       UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin
       UiMax(lmax, rmax): return lmax == b.lmax and rmax == b.rmax
@@ -154,6 +157,7 @@ proc repr*(a: ConstraintSize): string =
     UiPerc(perc): result = $perc & "'perc"
     UiContentMin(cmin): result = $cmin & "'min"
     UiContentMax(cmax): result = $cmax & "'max"
+    UiAuto(amin): result = $amin & "'auto"
 
 proc `'ux`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit

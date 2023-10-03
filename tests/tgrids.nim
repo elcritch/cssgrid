@@ -23,8 +23,7 @@ proc `box=`*[T](v: T, box: UiBox) =
 template printChildrens(start = 0) =
   for i in start ..< nodes.len():
     # echo "child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    echo "\tchild:cols: ", nodes[i].gridItem.span.repr
-    echo "\tchild:box: ", nodes[i].id, " => ", nodes[i].box
+    echo "\tchild:box: ", nodes[i].id, " => ", nodes[i].box, " span: ", nodes[i].gridItem.span.repr
 
 template checkUiFloats(af, bf, ln, ls) =
   if abs(af.float-bf.float) >= 1.0e-3:
@@ -608,7 +607,7 @@ suite "grids":
 
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, csNone()
-    gridTemplate.autos[drow] = 50'ux
+    gridTemplate.autos[drow] = csContentMax()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
     var parent = GridNode()
@@ -623,9 +622,9 @@ suite "grids":
       nodes[i] = GridNode(id: "b" & $(i),
                           box: uiBox(0,0,50,50),
                           gridItem: GridItem())
-      nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
-      nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
-    nodes[7].box.w = 150
+      nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+      nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+    nodes[7].box.h = 150
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
@@ -635,15 +634,15 @@ suite "grids":
     printChildrens()
     print gridTemplate.overflowSizes
 
-    # check box.w == 50
-    # check box.h == 500
+    check box.w == 50
+    check box.h == 400
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
     checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(50, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
 
     for i in 0..6:
       checks nodes[i].box.wh == uiSize(50, 50)

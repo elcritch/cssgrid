@@ -163,7 +163,8 @@ proc `$`*(a: UiSize): string =
   &"UiSize<{a.x:2.2f}, {a.y:2.2f}>"
 proc `$`*(b: UiBox): string =
   let a = b.Rect
-  &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
+  # &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
+  &"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
 
 # const
 #   uiScale* = 1.0

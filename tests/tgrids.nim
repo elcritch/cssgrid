@@ -25,9 +25,19 @@ macro checks(args: untyped{nkInfix}) =
   let ln = args.lineinfo()
   let ls = args.repr()
   result = quote do:
-    if abs(`a`-`b`) >= 1.0e-3:
-      checkpoint(`ln` & ": Check failed: " & `ls` & " value was: " & $`a`)
-      fail()
+    when `a` is SomeFloat:
+      if abs(`a`-`b`) >= 1.0e-3:
+        checkpoint(`ln` & ": Check failed: " & `ls` & " value was: " & $`a` & " expected: " & $`b`)
+        fail()
+    when `a` is UiBox:
+      template checkFloat(af, bf) =
+        if abs(af.float-bf.float) >= 1.0e-3:
+          checkpoint(`ln` & ": Check failed: " & `ls` & " field: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
+          fail()
+      checkFloat(`a`.x,`b`.x)
+      checkFloat(`a`.y,`b`.y)
+      checkFloat(`a`.w,`b`.w)
+      checkFloat(`a`.h,`b`.h)
   result.copyLineInfo(args)
 
 suite "grids":
@@ -388,6 +398,12 @@ suite "grids":
     checks boxb.w.float == 60.0
     checks boxb.h.float == 20.0
 
+  template printChildrens(start = 0) =
+    for i in start ..< nodes.len():
+      echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+      echo "auto child:cols: ", nodes[i].gridItem.span.repr
+      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+
   test "compute layout with auto flow":
     var gridTemplate: GridTemplate
 
@@ -434,16 +450,14 @@ suite "grids":
 
     # ==== item e ====
     # print nodes[1].box
+    checks nodes[1].box == uiBox(240, 0, 60, 60)
     checks nodes[1].box.x.float == 240.0
-    checks nodes[1].box.w.float == 60.0
     checks nodes[1].box.y.float == 0.0
+    checks nodes[1].box.w.float == 60.0
     checks nodes[1].box.h.float == 66.0
 
     # ==== item b's ====
-    # for i in 2 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    # printChildrens(2)
 
     checks nodes[2].box.x.float == 60.0
     checks nodes[3].box.x.float == 120.0
@@ -482,13 +496,6 @@ suite "grids":
 
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
-
-    # echo "grid template post: ", repr gridTemplate
-    # ==== item a's ====
-    # for i in 0 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
 
     check box.w == 100
     check box.h == 400
@@ -641,7 +648,7 @@ suite "grids":
 
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, 50'ux
-    gridTemplate.autos[drow] = csContentMin()
+    gridTemplate.autos[drow] = 50'ux
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
     # echo "grid template pre: ", repr gridTemplate

@@ -383,14 +383,14 @@ proc computeAutoFlow(
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
-    parent: UiBox | GridNode,
+    parent: GridBox | GridNode,
     children: seq[GridNode],
     extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
 
   let box = 
     when parent is GridNode: UiBox(parent.box)
-    else: parent
+    elif parent is GridBox: UiBox(parent)
 
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has

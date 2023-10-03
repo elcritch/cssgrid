@@ -16,6 +16,8 @@ type
 
   GridNode* = concept node
     distinctBase(typeof(node.box)) is Rect
+  GridBox* = concept box
+    distinctBase(typeof(box)) is Rect
 
 type
   GridDir* = enum

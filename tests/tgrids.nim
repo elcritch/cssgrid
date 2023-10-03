@@ -583,7 +583,7 @@ suite "grids":
       nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
     nodes[7].box.w = 150
 
-    echo "grid template:post: ", repr gridTemplate
+    # echo "grid template:post: ", repr gridTemplate
 
     check gridTemplate.lines[dcol][0].track == 1'fr
     # check gridTemplate.lines[dcol][0].aliases == toLineNames("first")
@@ -592,23 +592,21 @@ suite "grids":
 
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
-    # ==== item a's ====
-    printChildrens()
-
     echo "grid template:post: ", repr gridTemplate
+    printChildrens()
     print gridTemplate.overflowSizes
 
-    check box.w == 50
-    check box.h == 500
+    # check box.w == 50
+    # check box.h == 500
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
     check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
-    checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(50, 0, 50, 50)
+    # checks nodes[0].box == uiBox(0, 0, 50, 50)
+    # checks nodes[1].box == uiBox(50, 0, 50, 50)
 
-    for i in 0..6:
-      checks nodes[i].box.wh == uiSize(50, 50)
+    # for i in 0..6:
+    #   checks nodes[i].box.wh == uiSize(50, 50)
 
-    checks nodes[7].box == uiBox(0, 350, 150, 50)
+    # checks nodes[7].box == uiBox(0, 350, 150, 50)

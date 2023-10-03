@@ -583,6 +583,13 @@ suite "grids":
       nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
     nodes[7].box.w = 150
 
+    echo "grid template:post: ", repr gridTemplate
+
+    check gridTemplate.lines[dcol][0].track == 1'fr
+    # check gridTemplate.lines[dcol][0].aliases == toLineNames("first")
+    # check gridTemplate.lines[dcol][1].track.value.kind == UiPerc
+    # check gridTemplate.lines[dcol][1].track.value.perc == 50.0.UiScalar
+
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
     # ==== item a's ====

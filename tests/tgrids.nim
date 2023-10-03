@@ -22,9 +22,9 @@ proc `box=`*[T](v: T, box: UiBox) =
 
 template printChildrens(start = 0) =
   for i in start ..< nodes.len():
-    echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    echo "auto child:cols: ", nodes[i].gridItem.span.repr
-    echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    # echo "child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+    echo "\tchild:cols: ", nodes[i].gridItem.span.repr
+    echo "\tchild:box: ", nodes[i].id, " => ", nodes[i].box
 
 template checkUiFloats(af, bf, ln, ls) =
   if abs(af.float-bf.float) >= 1.0e-3:
@@ -589,10 +589,7 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    for i in 0 ..< nodes.len():
-      echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-      echo "auto child:cols: ", nodes[i].gridItem.span.repr
-      echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    printChildrens()
 
     # echo "grid template:post: ", repr gridTemplate
     # print gridTemplate.overflowSizes

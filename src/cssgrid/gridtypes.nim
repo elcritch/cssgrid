@@ -70,6 +70,18 @@ macro ln*(n: string): GridIndex =
   result = quote do:
     GridIndex(line: atom(`n`), isName: true)
 
+proc toLineName*(name: int): Atom =
+  result.unsafeSetLen(name.sizeof)
+  for i in 0..<name.sizeof:
+    result[i] = char((name shr (i*8)) and 0xFF)
+
+proc ints*(a: Atom): int =
+  if a.len == 0:
+    return 0
+  let n = min(result.sizeof, a.len)
+  for i in 0..<n:
+    result = (result shl 8) or int(a[n - i - 1])
+
 proc columns*(grid: GridTemplate): seq[GridLine] =
   grid.lines[dcol]
 proc rows*(grid: GridTemplate): seq[GridLine] =
@@ -85,11 +97,11 @@ proc `repr`*(a: HashSet[LineName]): string =
 proc `$`*(a: GridIndex): string =
   result = "GridIdx{"
   if a.isName:
-    result &= "" & $a.line
+    result &= "'" & $a.line & "'"
   else:
-    result &= "" & $a.line
-  result &= ",s:" & $a.isSpan
-  result &= ",n:" & $a.isName
+    result &= $(a.line.ints())
+  if a.isSpan:
+    result &= ",s:" & $a.isSpan
   result &= "}"
 
 proc `$`*(a: GridItem): string =
@@ -97,27 +109,15 @@ proc `$`*(a: GridItem): string =
     result = "GridItem{" 
     result &= " span[dcol]: " & $a.span[dcol]
     result &= ", span[drow]: " & $a.span
-    result &= "\n\t\t"
-    result &= ", cS: " & repr a.index[dcol].a
-    result &= "\n\t\t"
-    result &= ", cE: " & repr a.index[dcol].b
-    result &= "\n\t\t"
-    result &= ", rS: " & repr a.index[drow].a
-    result &= "\n\t\t"
-    result &= ", rE: " & repr a.index[drow].b
+    result &= ",\n\t\t"
+    result &= "col: " & $a.index[dcol].a
+    result &= " "
+    result &= ", " & $a.index[dcol].b
+    result &= " "
+    result &= ", row: " & $a.index[drow].a
+    result &= " "
+    result &= ", " & $a.index[drow].b
     result &= "}"
-
-proc toLineName*(name: int): Atom =
-  result.unsafeSetLen(name.sizeof)
-  for i in 0..<name.sizeof:
-    result[i] = char((name shr (i*8)) and 0xFF)
-
-proc ints*(a: Atom): int =
-  if a.len == 0:
-    return 0
-  let n = min(result.sizeof, a.len)
-  for i in 0..<n:
-    result = (result shl 8) or int(a[n - i - 1])
 
 proc toLineName*(name: string): Atom =
   discard result.addTruncate(name)
@@ -179,18 +179,16 @@ proc `row`*(grid: GridItem): var Slice[GridIndex] =
 proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 
-proc repr*(a: GridLine): string =
-  result = fmt"GL({a.track.repr}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
-proc repr*(a: GridTemplate): string =
+proc `$`*(a: GridTemplate): string =
   if a.isNil:
     return "nil"
   result = "GridTemplate:"
-  result &= "\n\tcols: "
+  result &= "\n   cols: "
   for c in a.lines[dcol]:
-    result &= &"\n\t\t{c.repr}"
-  result &= "\n\trows: "
+    result &= &"\n      {$c}"
+  result &= "\n   rows: "
   for r in a.lines[drow]:
-    result &= &"\n\t\t{r.repr}"
+    result &= &"\n      {$r}"
 
 proc initGridLine*(
     track = csFrac(1),
@@ -219,6 +217,3 @@ proc newGridTemplate*(
 
 proc newGridItem*(): GridItem =
   new(result)
-
-proc `$`*(a: GridTemplate): string =
-  result = a.repr

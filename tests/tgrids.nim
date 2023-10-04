@@ -8,6 +8,8 @@ import cssgrid/layout
 import cssgrid/parser
 
 import pretty
+import macros
+
 
 type
   GridNode* = ref object
@@ -18,16 +20,35 @@ type
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box
 
-import macros
+template printChildrens(start = 0) =
+  for i in start ..< nodes.len():
+    # echo "child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
+    echo "\tchild:box: ", nodes[i].id, " => ", nodes[i].box, " span: ", nodes[i].gridItem.span.repr
+
+template checkUiFloats(af, bf, ln, ls) =
+  if abs(af.float-bf.float) >= 1.0e-3:
+    checkpoint(`ln` & ":\n\tCheck failed: " & `ls` & "\n\tfield: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
+    fail()
+
 macro checks(args: untyped{nkInfix}) =
   let a = args[1]
   let b = args[2]
   let ln = args.lineinfo()
   let ls = args.repr()
   result = quote do:
-    if abs(`a`-`b`) >= 1.0e-3:
-      checkpoint(`ln` & ": Check failed: " & `ls` & " value was: " & $`a`)
-      fail()
+
+    when `a` is SomeFloat:
+      if abs(`a`-`b`) >= 1.0e-3:
+        checkpoint(`ln` & ": Check failed: " & `ls` & " value was: " & $`a` & " expected: " & $`b`)
+        fail()
+    when `a` is UiBox:
+      checkUiFloats(`a`.x,`b`.x, `ln`, `ls`)
+      checkUiFloats(`a`.y,`b`.y, `ln`, `ls`)
+      checkUiFloats(`a`.w,`b`.w, `ln`, `ls`)
+      checkUiFloats(`a`.h,`b`.h, `ln`, `ls`)
+    when `a` is UiSize:
+      checkUiFloats(`a`.x,`b`.x, `ln`, `ls`)
+      checkUiFloats(`a`.y,`b`.y, `ln`, `ls`)
   result.copyLineInfo(args)
 
 suite "grids":
@@ -283,26 +304,11 @@ suite "grids":
     ## computes
     ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
-
     let boxb = itemb.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-
-    # print gridTemplate
-
-    # print boxa
-    checks boxa.x.float == 0.0
-    checks boxa.y.float == 90.0
-    checks boxa.w.float == 60.0
-    checks boxa.h.float == 90.0
-
-    # print boxb
-    checks boxb.x.float == 120.0
-    checks boxb.y.float == 90.0
-    checks boxb.w.float == 0.0
-    checks boxb.h.float == 90.0
+    checks boxa == uiBox(0, 90, 60, 90)
+    checks boxb == uiBox(120, 90, 00, 90)
 
   test "compute layout with fixed 1x1":
     var gridTemplate: GridTemplate
@@ -322,23 +328,9 @@ suite "grids":
     itema.row = 1 // 2
 
     itema.setGridSpans(gridTemplate, contentSize)
-    # echo "setGridSpans:itema"
-    # print itema
-
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    ## computes
-    ## 
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    # echo "boxa"
-    # print boxa
-    # echo "grid template post: ", repr gridTemplate
-    # print gridTemplate
-
-    # print boxa
-    checks boxa.x.float == 0.0
-    checks boxa.y.float == 0.0
-    checks boxa.w.float == 60.0
-    checks boxa.h.float == 90.0
+    checks boxa == uiBox(0, 0, 60, 90)
     
 
   test "compute layout with auto columns with fixed size":
@@ -368,25 +360,11 @@ suite "grids":
     itemb.setGridSpans(gridTemplate, contentSize)
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
-    # echo "grid template post: ", repr gridTemplate
-    # print gridTemplate
-
     let boxa = itema.computeBox(gridTemplate, contentSize)
-    # print boxa
-
-    checks boxa.x.float == 0.0
-    checks boxa.w.float == 60.0
-    checks boxa.y.float == 90.0
-    checks boxa.h.float == 90.0
+    checks boxa == uiBox(0, 90, 60, 90)
 
     let boxb = itemb.computeBox(gridTemplate, contentSize)
-    # echo "grid template post: ", repr gridTemplate
-    # print boxb
-    checks boxb.x.float == 240.0
-    checks boxb.y.float == 180.0
-    checks boxb.w.float == 60.0
-    checks boxb.h.float == 20.0
+    checks boxb == uiBox(240, 180, 60, 20)
 
   test "compute layout with auto flow":
     var gridTemplate: GridTemplate
@@ -427,42 +405,25 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a ====
-    checks nodes[0].box.x.float == 0.0
-    checks nodes[0].box.w.float == 60.0
-    checks nodes[0].box.y.float == 0.0
-    checks nodes[0].box.h.float == 66.0
+    checks nodes[0].box == uiBox(0, 0, 60, 66)
 
     # ==== item e ====
     # print nodes[1].box
-    checks nodes[1].box.x.float == 240.0
-    checks nodes[1].box.w.float == 60.0
-    checks nodes[1].box.y.float == 0.0
-    checks nodes[1].box.h.float == 66.0
+    checks nodes[1].box == uiBox(240, 0, 60, 66)
 
     # ==== item b's ====
-    # for i in 2 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    # printChildrens(2)
 
-    checks nodes[2].box.x.float == 60.0
-    checks nodes[3].box.x.float == 120.0
-    checks nodes[4].box.x.float == 180.0
+    checks nodes[2].box.xy == uiSize(60, 0)
+    checks nodes[3].box.xy == uiSize(120, 0)
+    checks nodes[4].box.xy == uiSize(180, 0)
 
-    checks nodes[2].box.y.float == 0.0
-    checks nodes[3].box.y.float == 0.0
-    checks nodes[4].box.y.float == 0.0
-
-    checks nodes[5].box.x.float == 60.0
-    checks nodes[6].box.x.float == 120.0
-
-    checks nodes[5].box.y.float == 33.0
-    checks nodes[6].box.y.float == 33.0
-    checks nodes[7].box.y.float == 33.0
+    checks nodes[5].box.xy == uiSize(60, 33)
+    checks nodes[6].box.xy == uiSize(120, 33)
+    checks nodes[7].box.xy == uiSize(180, 33)
 
     for i in 2 ..< nodes.len() - 1:
-      checks nodes[i].box.w.float == 60.0
-      checks nodes[i].box.h.float == 33.0
+      checks nodes[i].box.wh == uiSize(60, 33)
 
   test "compute layout auto flow overflow":
     var gridTemplate: GridTemplate
@@ -483,13 +444,6 @@ suite "grids":
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
 
-    # echo "grid template post: ", repr gridTemplate
-    # ==== item a's ====
-    # for i in 0 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
-
     check box.w == 100
     check box.h == 400
 
@@ -498,20 +452,9 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    check nodes[0].box.x.float == 0.0
-    check nodes[0].box.y.float == 0.0
-    check nodes[0].box.w.float == 100.0
-    check nodes[0].box.h.float == 100.0
-
-    check nodes[1].box.x.float == 0.0
-    check nodes[1].box.y.float == 100.0
-    check nodes[1].box.w.float == 100.0
-    check nodes[1].box.h.float == 100.0
-
-    check nodes[3].box.x.float == 0.0
-    check nodes[3].box.y.float == 300.0
-    check nodes[3].box.w.float == 100.0
-    check nodes[3].box.h.float == 100.0
+    checks nodes[0].box == uiBox(0, 0, 100, 100)
+    checks nodes[1].box == uiBox(0, 100, 100, 100)
+    checks nodes[3].box == uiBox(0, 300, 100, 100)
 
   test "compute layout auto flow overflow (columnar)":
     var gridTemplate: GridTemplate
@@ -528,7 +471,6 @@ suite "grids":
     parent.box.w = 50
     parent.box.h = 50
 
-    let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](8)
 
     # ==== item a's ====
@@ -544,30 +486,19 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    # for i in 0 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
-
-    # echo "grid template:post: ", repr gridTemplate
+    # printChildrens(0)
+    # echo "grid template:post: ", gridTemplate
     # print gridTemplate.overflowSizes
 
     check box.w == 750
     check box.h == 50
-    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-    check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
-    check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+    checks nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    checks nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    checks nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+    checks nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
-    check nodes[0].box.x.float == 0.0
-    check nodes[0].box.y.float == 0.0
-    check nodes[0].box.w.float == 50.0
-    check nodes[0].box.h.float == 50.0
-
-    check nodes[1].box.x.float == 50.0
-    check nodes[1].box.y.float == 0.0
-    check nodes[1].box.w.float == 100.0
-    check nodes[1].box.h.float == 50.0
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(50, 0, 100, 50)
 
   test "compute layout overflow (columnar)":
     var gridTemplate: GridTemplate
@@ -600,16 +531,14 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent, nodes)
     # echo "grid template:1: ", repr gridTemplate
     # print box
+    # echo "grid template post: ", gridTemplate
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    # for i in 0 ..< nodes.len():
-    #   echo "auto child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    #   echo "auto child:cols: ", nodes[i].gridItem.span.repr
-    #   echo "auto child:box: ", nodes[i].id, " => ", nodes[i].box
+    # printChildrens(0)
 
-    # echo "grid template:post: ", repr gridTemplate
-    # print gridTemplate.overflowSizes
+    # echo "grid template:post: ", gridTemplate
+    print gridTemplate.overflowSizes
 
     check box.w == 500
     check box.h == 50
@@ -618,79 +547,108 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
     check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
-    check nodes[0].box.x.float == 0.0
-    check nodes[0].box.y.float == 0.0
-    check nodes[0].box.w.float == 50.0
-    check nodes[0].box.h.float == 50.0
-
-    check nodes[1].box.x.float == 50.0
-    check nodes[1].box.y.float == 0.0
-    check nodes[1].box.w.float == 50.0
-    check nodes[1].box.h.float == 50.0
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(50, 0, 50, 50)
     for i in 0..6:
-      check nodes[i].box.h.float == 50.0
-      check nodes[i].box.w.float == 50.0
+      checks nodes[i].box.wh == uiSize(50, 50)
 
-    check nodes[7].box.x.float == 350.0
-    check nodes[7].box.y.float == 0.0
-    check nodes[7].box.w.float == 150.0
-    check nodes[7].box.h.float == 50.0
+    checks nodes[7].box == uiBox(350, 0, 150, 50)
 
-suite "syntaxes":
+  test "compute layout overflow (rows)":
+    var gridTemplate: GridTemplate
 
-  setup:
-    echo "setup"
+    parseGridTemplateColumns gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 50'ux
+    gridTemplate.autos[drow] = 50'ux
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.autoFlow = grRow
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 50
 
-    var gt: GridTemplate
+    let contentSize = uiSize(30, 30)
+    var nodes = newSeq[GridNode](8)
 
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gt, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gt, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
-    gt.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(id: "b" & $(i),
+                          box: uiBox(0,0,50,50),
+                          gridItem: nil)
+      # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
+      # nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
+    nodes[7].box.w = 150
+    check gridTemplate.lines[dcol][0].track == 1'fr
 
-  template checkSpans(gridTemplate: GridTemplate, gridItem: GridItem) =
-    # print gridItem
-    let contentSize = uiSize(0, 0)
-    gridItem.setGridSpans(gt, contentSize)
+    # ==== process grid ====
+    let box = gridTemplate.computeNodeLayout(parent, nodes)
+    # echo "grid template:post: ", gridTemplate
+    # echo "grid template:post: ", repr gridTemplate
+    # echo ""
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
-    check gridItem.index[dcol].a.line == 2.toLineName
-    check gridItem.index[dcol].b == ln"five"
+    # check box.w == 50
+    # check box.h == 500
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    check gridItem.span[dcol].a == 2
-    check gridItem.span[dcol].b == 5
-    check gridItem.span[drow].a == 1
-    check gridItem.span[drow].b == 2
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
 
-  test "getLine":
-    ## mixed
-    let first = gt.getLine(dcol, ln"first")
-    check first.track == csFixed(40.0)
+    for i in 0..6:
+      checks nodes[i].box.wh == uiSize(50, 50)
 
-    let second = gt.getLine(dcol, ln"second")
-    check second.track == csFixed(50.0)
+    checks nodes[7].box == uiBox(0, 350, 50, 50)
 
-    let line3 = gt.getLine(dcol, 3.mkIndex)
-    check line3.track == csAuto()
+  test "compute layout manual overflow (rows)":
+    var gridTemplate: GridTemplate
 
-    let five1 = gt.getLine(dcol, ln"five")
-    check five1.track == csFixed(40.0)
-    gt.getLine(dcol, ln"five").track = csFixed(30.0)
-    let five2 = gt.getLine(dcol, ln"five")
-    check five2.track == csFixed(30.0)
+    parseGridTemplateColumns gridTemplate, 1'fr
+    # parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = csContentMin()
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.autoFlow = grRow
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 50
 
+    let contentSize = uiSize(30, 30)
+    var nodes = newSeq[GridNode](8)
 
-  test "auto span":
-    ## mixed
-    
-    var gridItem1 = newGridItem()
-    gridItem1.column = 2 // ln"five"
-    gridItem1.row = "row1-start"
-    checkSpans(gt, gridItem1)
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(id: "b" & $(i),
+                          box: uiBox(0,0,50,50),
+                          gridItem: GridItem())
+      nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+      nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+    nodes[2].box.h = 150
+    check gridTemplate.lines[dcol][0].track == 1'fr
 
-  test "manual span":
-    ## span
-    var gridItem2 = newGridItem()
-    gridItem2.column = 2 // ln"five"
-    gridItem2.row = "row1-start" // span "row1-start"
-    checkSpans(gt, gridItem2)
+    # ==== process grid ====
+    let box1 = gridTemplate.computeNodeLayout(parent, nodes)
+    let box = gridTemplate.computeNodeLayout(parent, nodes)
+    # echo "grid template:post: ", gridTemplate
+    # echo ""
+    # printChildrens()
+    # print gridTemplate.overflowSizes
+
+    check box.w == 50
+    check box.h == 500
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
+
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
+    checks nodes[2].box == uiBox(0, 100, 50, 150)
+    checks nodes[3].box == uiBox(0, 250, 50, 50)
+
+    for i in 0..7:
+      if i != 2:
+        checks nodes[i].box.wh == uiSize(50, 50)
+
+    checks nodes[7].box == uiBox(0, 450, 50, 50)

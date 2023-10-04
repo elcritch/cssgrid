@@ -10,25 +10,29 @@ proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
   for grdLn in lines:
-    match grdLn.track:
-      UiNone():
-        discard
-      UiValue(value):
-        match value:
-          UiFixed(coord):
-            result += coord
-          UiFrac(_): discard
-          UiPerc(): discard
-          UiContentMin(cmin):
-            result += cmin
-          UiContentMax(cmax):
-            result += cmax
-          UiAuto(amin):
-            result += amin
-      _: discard
+    # echo "grdLn: ", grdLn.isAuto
+    if grdLn.isAuto:
+      match grdLn.track:
+        UiNone():
+          discard
+        UiValue(value):
+          match value:
+            UiFixed(coord):
+              result += coord
+            UiFrac(_): discard
+            UiPerc(): discard
+            UiContentMax(cmax):
+              result += cmax
+            UiContentMin(cmin):
+              if cmin.float32 != float32.high():
+                result += cmin
+            UiAuto(amin):
+              if amin.float32 != float32.high():
+                result += amin
+        _: discard
 
 proc computeContentSizes*(grid: GridTemplate,
-                    children: seq[GridNode]) =
+                          children: seq[GridNode]) =
   ## computes content min / max for each grid track based on children
   ## 
   ## only includes children which only span a single track
@@ -47,7 +51,9 @@ proc computeContentSizes*(grid: GridTemplate,
         template track(): auto = grid.lines[dir][cspan[dir].a-1].track
         let csize = if dir == dcol: UiBox(child.box).w
                     else: UiBox(child.box).h
-        if track().value.kind == UiContentMin:
+        if track().value.kind == UiAuto:
+          track().value.amin = min(csize, track().value.amin)
+        elif track().value.kind == UiContentMin:
           track().value.cmin = min(csize, track().value.cmin)
         elif track().value.kind == UiContentMax:
           track().value.cmax = max(csize, track().value.cmax)
@@ -85,7 +91,8 @@ proc computeLineLayout*(
             totalFracs += frac
           UiPerc(): discard
           UiContentMin(cmin):
-            fixed += cmin
+            if cmin.float32 != float32.high():
+              fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
           UiAuto():
@@ -131,12 +138,14 @@ proc computeLineLayout*(
       elif grdVal.kind == UiPerc:
         grdLn.width = length * grdVal.perc / 100
         remSpace -= max(grdLn.width, 0.UiScalar)
-      elif grdVal.kind == UiContentMin:
-        grdLn.width = grdVal.cmin
       elif grdVal.kind == UiContentMax:
         grdLn.width = grdVal.cmax
+      elif grdVal.kind == UiContentMin:
+        if grdVal.cmin.float32 != float32.high():
+          grdLn.width = grdVal.cmin
       elif grdVal.kind == UiAuto:
-        grdLn.width = grdVal.amin
+        if grdVal.amin.float32 != float32.high():
+          grdLn.width = grdVal.amin
   
   # auto's
   for grdLn in lines.mitems():
@@ -183,11 +192,12 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
 proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
   assert idx <= 1000, "max grids exceeded"
   if idx >= grid.lines[dir].len():
+    # echo "gridAutoInsert: ", idx
     while idx >= grid.lines[dir].len():
       let offset = grid.lines[dir].len() - 1
       let track = grid.autos[dir]
       var ln = initGridLine(track = track, isAuto = true)
-      grid.lines[dir].insert(ln, offset)
+      grid.lines[dir].insert(ln, max(offset, 0))
 
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
@@ -214,6 +224,7 @@ proc setGridSpans*(
   ## set grid spans for items, if needed set new auto
   ## rows or columns
   assert not item.isNil
+  # echo "setGridSpans: ", item
 
   let lrow = grid.lines[drow].len() - 1
   let lcol = grid.lines[dcol].len() - 1
@@ -227,6 +238,8 @@ proc setGridSpans*(
     item.span[drow].a = grid.setSpan(item.index[drow].a, drow, 0)
   if item.span[drow].b == 0 or item.span[drow].b notin 0..lrow:
     item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
+
+import pretty
 
 proc computeBox*(
     item: GridItem,
@@ -399,14 +412,15 @@ proc computeNodeLayout*(
   ## this algorithm tries to follow the specification at:
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
-  var hasAutos = false
+  var hasAutos = true
   for child in children:
     if child.gridItem == nil:
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
-      hasAutos = true
-    else:
-      hasAutos = false
+      # hasAutos = true
+    # elif child.gridItem.span == [0'i16..0'i16, 0'i16..0'i16]:
+    #   hasAutos = true
+    # hasAutos = false
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children
@@ -445,7 +459,8 @@ proc computeNodeLayout*(
   return typeof(box)(uiBox(
                 box.x.float,
                 box.y.float,
-                box.w.float + w.float,
-                box.h.float + h.float))
+                gridTemplate.lines[dcol][^1].start.float,
+                gridTemplate.lines[drow][^1].start.float,
+              ))
   # echo "computeNodeLayout:done: "
   # print children

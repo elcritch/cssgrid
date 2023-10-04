@@ -10,15 +10,17 @@ type
 
 type
   ConstraintSizes* = enum
+    UiAuto
     UiFrac
     UiPerc
     UiFixed
     UiContentMin
     UiContentMax
-    UiAuto
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
+    of UiAuto:
+      amin*: UiScalar ## default, which is parent width/height less the x/y positions of the node and it's parents
     of UiFrac:
       frac*: UiScalar ## set `fr` aka CSS Grid fractions
     of UiPerc:
@@ -29,22 +31,19 @@ type
       cmin*: UiScalar ## sets layout to use min-content, `cmin` is calculated internally
     of UiContentMax:
       cmax*: UiScalar ## sets layout to use max-content, `cmax` is calculated internally
-    of UiAuto:
-      amin*: UiScalar ## sets layout to auto which is similar to a fraction but lower precedance down to min-content
 
   Constraints* = enum
-    UiNone
     UiValue
     UiMin
     UiMax
     UiSum
     UiMinMax
+    UiNone
     UiEnd
 
   Constraint* = object
     case kind*: Constraints
     of UiNone:
-      ## default, which is parent width/height less the x/y positions of the node and it's parents
       discard
     of UiValue:
       value*: ConstraintSize ## used for `ConstraintSize` above
@@ -70,12 +69,12 @@ proc csFixed*[T](coord: T): Constraint =
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
 proc csContentMin*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMin, cmin: 0.UiScalar))
+  csValue(ConstraintSize(kind: UiContentMin, cmin: float.high().UiScalar))
 proc csContentMax*(): Constraint =
   csValue(ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
 
 proc isContentSized*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax] 
+  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiAuto] 
 proc isAuto*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiAuto]
 
@@ -150,7 +149,7 @@ proc `==`*(a, b: Constraint): bool =
       UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
       UiEnd(): return true
 
-proc repr*(a: ConstraintSize): string =
+proc `$`*(a: ConstraintSize): string =
   match a:
     UiFrac(frac): result = $frac & "'fr"
     UiFixed(coord): result = $coord & "'ux"

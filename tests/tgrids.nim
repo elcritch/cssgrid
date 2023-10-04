@@ -202,10 +202,10 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     # print gridItem
-    let contentSize = uiSize(0, 0)
-    gridItem.setGridSpans(gridTemplate, contentSize)
+    let node = GridNode(box: uiBox(0, 0, 0, 0), gridItem: gridItem)
+    gridItem.setGridSpans(gridTemplate, node.box.wh)
 
-    let itemBox = gridItem.computeBox(gridTemplate, contentSize)
+    let itemBox = node.computeBox(gridTemplate)
     # print itemBox
     # print "post: ", gridItem
 
@@ -232,11 +232,12 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     gridItem.setGridSpans(gridTemplate, contentSize)
+    let node = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: gridItem)
     # print gridItem
 
     ## test stretch
     var itemBox: UiBox
-    itemBox = gridItem.computeBox(gridTemplate, contentSize)
+    itemBox = node.computeBox(gridTemplate)
     # print itemBox
     checks itemBox.x.float == 40.0
     checks itemBox.w.float == 920.0
@@ -246,7 +247,7 @@ suite "grids":
     ## test start
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStart
-    itemBox = gridItem.computeBox(gridTemplate, contentSize)
+    itemBox = node.computeBox(gridTemplate)
     # print itemBox
     checks itemBox.x.float == 40.0
     checks itemBox.w.float == 500.0
@@ -256,7 +257,7 @@ suite "grids":
     ## test end
     gridTemplate.justifyItems = CxEnd
     gridTemplate.alignItems = CxEnd
-    itemBox = gridItem.computeBox(gridTemplate, contentSize)
+    itemBox = node.computeBox(gridTemplate)
     # print itemBox
     checks itemBox.x.float == 460.0
     checks itemBox.w.float == 500.0
@@ -266,7 +267,7 @@ suite "grids":
     ## test start / stretch
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStretch
-    itemBox = gridItem.computeBox(gridTemplate, contentSize)
+    itemBox = node.computeBox(gridTemplate)
     # print itemBox
     checks itemBox.x.float == 40.0
     checks itemBox.w.float == 500.0
@@ -303,8 +304,13 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     ## computes
     ## 
-    let boxa = itema.computeBox(gridTemplate, contentSize)
-    let boxb = itemb.computeBox(gridTemplate, contentSize)
+    let nodea = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float),
+                         gridItem: itema)
+    let nodeb = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float),
+                         gridItem: itemb)
+
+    let boxa = nodea.computeBox(gridTemplate)
+    let boxb = nodeb.computeBox(gridTemplate)
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     checks boxa == uiBox(0, 90, 60, 90)
@@ -329,7 +335,8 @@ suite "grids":
 
     itema.setGridSpans(gridTemplate, contentSize)
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    let boxa = itema.computeBox(gridTemplate, contentSize)
+    let nodea = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: itema)
+    let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 0, 60, 90)
     
 
@@ -360,10 +367,12 @@ suite "grids":
     itemb.setGridSpans(gridTemplate, contentSize)
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    let boxa = itema.computeBox(gridTemplate, contentSize)
+    let nodea = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: itema)
+    let nodeb = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: itemb)
+    let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 90, 60, 90)
 
-    let boxb = itemb.computeBox(gridTemplate, contentSize)
+    let boxb = nodeb.computeBox(gridTemplate)
     checks boxb == uiBox(240, 180, 60, 20)
 
   test "compute layout with auto flow":

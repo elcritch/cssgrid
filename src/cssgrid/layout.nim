@@ -242,45 +242,46 @@ proc setGridSpans*(
 import pretty
 
 proc computeBox*(
-    item: GridItem,
+    node: GridNode,
     grid: GridTemplate,
-    maxContentSize: UiSize
 ): UiBox =
-  ## computing grid layout
-  assert not item.isNil
-  item.setGridSpans(grid, maxContentSize)
+  ## compute child positions inside grid
+  assert not node.isNil
+  assert not node.gridItem.isNil
+  let contentSize = node.box.wh
+  node.gridItem.setGridSpans(grid, contentSize)
 
   # set columns
-  result.x = grid.lines[dcol].getGrid(item.span[dcol].a)
-  let rxw = grid.lines[dcol].getGrid(item.span[dcol].b)
+  result.x = grid.lines[dcol].getGrid(node.gridItem.span[dcol].a)
+  let rxw = grid.lines[dcol].getGrid(node.gridItem.span[dcol].b)
   let rww = (rxw - result.x) - grid.gaps[dcol]
   case grid.justifyItems:
   of CxStretch:
     result.w = rww
   of CxCenter:
-    result.x = result.x + (rww - maxContentSize.x)/2.0
-    result.w = maxContentSize.x
+    result.x = result.x + (rww - contentSize.x)/2.0
+    result.w = contentSize.x
   of CxStart:
-    result.w = maxContentSize.x
+    result.w = contentSize.x
   of CxEnd:
-    result.x = rxw - maxContentSize.x
-    result.w = maxContentSize.x
+    result.x = rxw - contentSize.x
+    result.w = contentSize.x
 
   # set rows
-  result.y = grid.lines[drow].getGrid(item.span[drow].a)
-  let ryh = grid.lines[drow].getGrid(item.span[drow].b)
+  result.y = grid.lines[drow].getGrid(node.gridItem.span[drow].a)
+  let ryh = grid.lines[drow].getGrid(node.gridItem.span[drow].b)
   let rhh = (ryh - result.y) - grid.gaps[drow]
   case grid.alignItems:
   of CxStretch:
     result.h = rhh
   of CxCenter:
-    result.y = result.y + (rhh - maxContentSize.y)/2.0
-    result.h = maxContentSize.y
+    result.y = result.y + (rhh - contentSize.y)/2.0
+    result.h = contentSize.y
   of CxStart:
-    result.h = maxContentSize.y
+    result.h = contentSize.y
   of CxEnd:
-    result.y = ryh - maxContentSize.y
-    result.h = maxContentSize.y
+    result.y = ryh - contentSize.y
+    result.h = contentSize.y
 
 proc fixedCount*(gridItem: GridItem): range[0..4] =
   if gridItem.index[dcol].a.line.ints != 0: result.inc
@@ -451,7 +452,7 @@ proc computeNodeLayout*(
     # echo "CHILD fixed 1..3: "
     if fixedCount(child.gridItem) in 1..3:
       continue
-    let cbox = child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize)
+    let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
   
   # if extendOnOverflow:

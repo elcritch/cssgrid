@@ -220,8 +220,10 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, [first] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+    parseGridTemplateColumns gridTemplate, [first] 40'ux ["second", "line2"] 50'ux \
+        ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux \
+        ["third-line"] auto ["last-line"]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     # echo "grid template: ", repr gridTemplate
 
@@ -233,7 +235,7 @@ suite "grids":
     gridItem.row.b = 3.mkIndex
     gridItem.setGridSpans(gridTemplate, contentSize)
     let node = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: gridItem)
-    # print gridItem
+    echo gridTemplate
 
     ## test stretch
     var itemBox: UiBox
@@ -259,8 +261,18 @@ suite "grids":
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStretch
     itemBox = node.computeBox(gridTemplate)
-    # print itemBox
+    echo ""
+    print itemBox
     checks itemBox == uiBox(40, 0, 500, 350)
+
+    ## test stretch / start
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.alignItems = CxStart
+    itemBox = node.computeBox(gridTemplate)
+    echo ""
+    print itemBox
+    checks itemBox == uiBox(40, 0, 920, 200)
+    
     
   test "compute layout with auto columns":
     var gridTemplate: GridTemplate

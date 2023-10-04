@@ -37,8 +37,6 @@ type
     gaps*: array[GridDir, UiScalar]
     justifyItems*: ConstraintBehavior
     alignItems*: ConstraintBehavior
-    justifyContent*: ConstraintBehavior
-    alignContent*: ConstraintBehavior
     autoFlow*: GridFlow
     overflowSizes*: array[GridDir, UiScalar]
 

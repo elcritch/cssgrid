@@ -465,8 +465,8 @@ proc computeNodeLayout*(
   return typeof(box)(uiBox(
                 box.x.float,
                 box.y.float,
-                gridTemplate.lines[dcol][^1].start.float,
-                gridTemplate.lines[drow][^1].start.float,
+                max(box.x.float, gridTemplate.lines[dcol][^1].start.float),
+                max(box.x.float, gridTemplate.lines[drow][^1].start.float),
               ))
   # echo "computeNodeLayout:done: "
   # print children

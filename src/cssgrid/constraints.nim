@@ -172,3 +172,13 @@ proc `'pp`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
   result = csPerc(f)
+
+template `cx`*(n: static string): auto =
+  when n == "auto":
+    csAuto()
+  elif n == "min-content":
+    csContentMin()
+  elif n == "max-content":
+    csContentMax()
+  else:
+    {.error: "unknown constraint constant: " & n.}

@@ -3,6 +3,7 @@ import sequtils
 
 import unittest
 import cssgrid/numberTypes
+import cssgrid/constraints
 import cssgrid/gridtypes
 import cssgrid/layout
 import cssgrid/parser
@@ -68,3 +69,9 @@ suite "syntaxes":
     gridItem2.column = 2 // ln"five"
     gridItem2.row = "row1-start" // span "row1-start"
     checkSpans(gt, gridItem2)
+
+  test "cx macros":
+    ## span
+    check csAuto() == cx"auto"
+    check csContentMin() == cx"min-content"
+    check csContentMax() == cx"max-content"

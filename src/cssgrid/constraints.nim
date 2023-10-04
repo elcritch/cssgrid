@@ -75,7 +75,7 @@ proc csContentMax*(): Constraint =
   csValue(ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
 
 proc isContentSized*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax] 
+  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiAuto] 
 proc isAuto*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiAuto]
 
@@ -150,7 +150,7 @@ proc `==`*(a, b: Constraint): bool =
       UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
       UiEnd(): return true
 
-proc repr*(a: ConstraintSize): string =
+proc `$`*(a: ConstraintSize): string =
   match a:
     UiFrac(frac): result = $frac & "'fr"
     UiFixed(coord): result = $coord & "'ux"

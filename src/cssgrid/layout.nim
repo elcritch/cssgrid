@@ -19,18 +19,18 @@ proc computeLineOverflow*(
             result += coord
           UiFrac(_): discard
           UiPerc(): discard
+          UiContentMax(cmax):
+            result += cmax
           UiContentMin(cmin):
             if cmin.float32 != float32.high():
               result += cmin
-          UiContentMax(cmax):
-            result += cmax
           UiAuto(amin):
             if amin.float32 != float32.high():
               result += amin
       _: discard
 
 proc computeContentSizes*(grid: GridTemplate,
-                    children: seq[GridNode]) =
+                          children: seq[GridNode]) =
   ## computes content min / max for each grid track based on children
   ## 
   ## only includes children which only span a single track
@@ -49,7 +49,9 @@ proc computeContentSizes*(grid: GridTemplate,
         template track(): auto = grid.lines[dir][cspan[dir].a-1].track
         let csize = if dir == dcol: UiBox(child.box).w
                     else: UiBox(child.box).h
-        if track().value.kind == UiContentMin:
+        if track().value.kind == UiAuto:
+          track().value.amin = min(csize, track().value.amin)
+        elif track().value.kind == UiContentMin:
           track().value.cmin = min(csize, track().value.cmin)
         elif track().value.kind == UiContentMax:
           track().value.cmax = max(csize, track().value.cmax)
@@ -87,7 +89,8 @@ proc computeLineLayout*(
             totalFracs += frac
           UiPerc(): discard
           UiContentMin(cmin):
-            fixed += cmin
+            if cmin.float32 != float32.high():
+              fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
           UiAuto():
@@ -133,12 +136,14 @@ proc computeLineLayout*(
       elif grdVal.kind == UiPerc:
         grdLn.width = length * grdVal.perc / 100
         remSpace -= max(grdLn.width, 0.UiScalar)
-      elif grdVal.kind == UiContentMin:
-        grdLn.width = grdVal.cmin
       elif grdVal.kind == UiContentMax:
         grdLn.width = grdVal.cmax
+      elif grdVal.kind == UiContentMin:
+        if grdVal.cmin.float32 != float32.high():
+          grdLn.width = grdVal.cmin
       elif grdVal.kind == UiAuto:
-        grdLn.width = grdVal.amin
+        if grdVal.amin.float32 != float32.high():
+          grdLn.width = grdVal.amin
   
   # auto's
   for grdLn in lines.mitems():

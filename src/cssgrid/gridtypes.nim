@@ -179,18 +179,16 @@ proc `row`*(grid: GridItem): var Slice[GridIndex] =
 proc `$`*(a: GridLine): string =
   result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
 
-proc repr*(a: GridLine): string =
-  result = fmt"GL({a.track.repr}; <{$a.start}'p; {$a.width}'w> <- {$a.aliases})"
-proc repr*(a: GridTemplate): string =
+proc `$`*(a: GridTemplate): string =
   if a.isNil:
     return "nil"
   result = "GridTemplate:"
   result &= "\n   cols: "
   for c in a.lines[dcol]:
-    result &= &"\n      {c.repr}"
+    result &= &"\n      {$c}"
   result &= "\n   rows: "
   for r in a.lines[drow]:
-    result &= &"\n      {r.repr}"
+    result &= &"\n      {$r}"
 
 proc initGridLine*(
     track = csFrac(1),
@@ -219,6 +217,3 @@ proc newGridTemplate*(
 
 proc newGridItem*(): GridItem =
   new(result)
-
-proc `$`*(a: GridTemplate): string =
-  result = a.repr

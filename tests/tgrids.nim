@@ -471,7 +471,6 @@ suite "grids":
     parent.box.w = 50
     parent.box.h = 50
 
-    let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](8)
 
     # ==== item a's ====
@@ -487,8 +486,8 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    # printChildrens(0)
-    # echo "grid template:post: ", repr gridTemplate
+    printChildrens(0)
+    # echo "grid template:post: ", gridTemplate
     # print gridTemplate.overflowSizes
 
     check box.w == 750
@@ -532,14 +531,14 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent, nodes)
     # echo "grid template:1: ", repr gridTemplate
     # print box
-    echo "grid template post: ", repr gridTemplate
+    echo "grid template post: ", gridTemplate
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    # printChildrens(0)
+    printChildrens(0)
 
-    # echo "grid template:post: ", repr gridTemplate
-    # print gridTemplate.overflowSizes
+    # echo "grid template:post: ", gridTemplate
+    print gridTemplate.overflowSizes
 
     check box.w == 500
     check box.h == 50
@@ -582,6 +581,7 @@ suite "grids":
 
     # ==== process grid ====
     let box = gridTemplate.computeNodeLayout(parent, nodes)
+    # echo "grid template:post: ", gridTemplate
     # echo "grid template:post: ", repr gridTemplate
     # echo ""
     # printChildrens()
@@ -630,13 +630,13 @@ suite "grids":
     # ==== process grid ====
     let box1 = gridTemplate.computeNodeLayout(parent, nodes)
     let box = gridTemplate.computeNodeLayout(parent, nodes)
-    echo "grid template:post: ", repr gridTemplate
+    echo "grid template:post: ", gridTemplate
     echo ""
     printChildrens()
     print gridTemplate.overflowSizes
 
     check box.w == 50
-    check box.h == 550
+    check box.h == 500
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16

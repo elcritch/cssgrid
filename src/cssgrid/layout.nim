@@ -451,7 +451,8 @@ proc computeNodeLayout*(
     # echo "CHILD fixed 1..3: "
     if fixedCount(child.gridItem) in 1..3:
       continue
-    child.box = typeof(child.box)(child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize))
+    let cbox = child.gridItem.computeBox(gridTemplate, child.box.wh.UiSize)
+    child.box = typeof(child.box)(cbox)
   
   # if extendOnOverflow:
   let w = gridTemplate.overflowSizes[dcol]

@@ -252,36 +252,40 @@ proc computeBox*(
   node.gridItem.setGridSpans(grid, contentSize)
 
   # set columns
-  result.x = grid.lines[dcol].getGrid(node.gridItem.span[dcol].a)
-  let rxw = grid.lines[dcol].getGrid(node.gridItem.span[dcol].b)
-  let rww = (rxw - result.x) - grid.gaps[dcol]
-  case grid.justifyItems:
-  of CxStretch:
-    result.w = rww
-  of CxCenter:
-    result.x = result.x + (rww - contentSize.x)/2.0
-    result.w = contentSize.x
-  of CxStart:
-    result.w = contentSize.x
-  of CxEnd:
-    result.x = rxw - contentSize.x
-    result.w = contentSize.x
+  template calcBoxFor(f, v, dir) =
+    result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
+    let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
+    let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
+    case grid.justifyItems:
+    of CxStretch:
+      result.`v` = rvw
+    of CxCenter:
+      result.`f` = result.`f` + (rvw - contentSize.x)/2.0
+      result.`v` = contentSize.`f`
+    of CxStart:
+      result.`v` = contentSize.`f`
+    of CxEnd:
+      result.`f` = rfw - contentSize.`f`
+      result.`v` = contentSize.`f`
+
+  calcBoxFor(x, w, dcol)
+  calcBoxFor(y, h, drow)
 
   # set rows
-  result.y = grid.lines[drow].getGrid(node.gridItem.span[drow].a)
-  let ryh = grid.lines[drow].getGrid(node.gridItem.span[drow].b)
-  let rhh = (ryh - result.y) - grid.gaps[drow]
-  case grid.alignItems:
-  of CxStretch:
-    result.h = rhh
-  of CxCenter:
-    result.y = result.y + (rhh - contentSize.y)/2.0
-    result.h = contentSize.y
-  of CxStart:
-    result.h = contentSize.y
-  of CxEnd:
-    result.y = ryh - contentSize.y
-    result.h = contentSize.y
+  # result.y = grid.lines[drow].getGrid(node.gridItem.span[drow].a)
+  # let ryh = grid.lines[drow].getGrid(node.gridItem.span[drow].b)
+  # let rhh = (ryh - result.y) - grid.gaps[drow]
+  # case grid.alignItems:
+  # of CxStretch:
+  #   result.h = rhh
+  # of CxCenter:
+  #   result.y = result.y + (rhh - contentSize.y)/2.0
+  #   result.h = contentSize.y
+  # of CxStart:
+  #   result.h = contentSize.y
+  # of CxEnd:
+  #   result.y = ryh - contentSize.y
+  #   result.h = contentSize.y
 
 proc fixedCount*(gridItem: GridItem): range[0..4] =
   if gridItem.index[dcol].a.line.ints != 0: result.inc

@@ -239,40 +239,28 @@ suite "grids":
     var itemBox: UiBox
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox.x.float == 40.0
-    checks itemBox.w.float == 920.0
-    checks itemBox.y.float == 0.0
-    checks itemBox.h.float == 350.0
+    checks itemBox == uiBox(40, 0, 920, 350)
 
     ## test start
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStart
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox.x.float == 40.0
-    checks itemBox.w.float == 500.0
-    checks itemBox.y.float == 0.0
-    checks itemBox.h.float == 200.0
+    checks itemBox == uiBox(40, 0, 500, 200)
 
     ## test end
     gridTemplate.justifyItems = CxEnd
     gridTemplate.alignItems = CxEnd
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox.x.float == 460.0
-    checks itemBox.w.float == 500.0
-    checks itemBox.y.float == 150.0
-    checks itemBox.h.float == 200.0
+    checks itemBox == uiBox(460, 150, 500, 200)
     
     ## test start / stretch
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStretch
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox.x.float == 40.0
-    checks itemBox.w.float == 500.0
-    checks itemBox.y.float == 0.0
-    checks itemBox.h.float == 350.0
+    checks itemBox == uiBox(40, 0, 500, 350)
     
   test "compute layout with auto columns":
     var gridTemplate: GridTemplate

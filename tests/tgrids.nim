@@ -678,13 +678,13 @@ suite "grids":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
-    # parseGridTemplateRows gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 1'fr
     gridTemplate.autos[drow] = 1'fr
     gridTemplate.justifyItems = CxStart
     gridTemplate.autoFlow = grRow
     var parent = GridNode()
     parent.box.w = 50
-    parent.box.h = 450
+    parent.box.h = 400
 
     var nodes = newSeq[GridNode](8)
 
@@ -707,7 +707,7 @@ suite "grids":
     print gridTemplate.overflowSizes
 
     check box.w == 50
-    check box.h == 500
+    check box.h == 400
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
@@ -715,11 +715,11 @@ suite "grids":
 
     checks nodes[0].box == uiBox(0, 0, 50, 50)
     checks nodes[1].box == uiBox(0, 50, 50, 50)
-    checks nodes[2].box == uiBox(0, 100, 50, 150)
-    checks nodes[3].box == uiBox(0, 250, 50, 50)
+    checks nodes[2].box == uiBox(0, 100, 50, 50)
+    checks nodes[3].box == uiBox(0, 150, 50, 50)
 
     for i in 0..7:
       if i != 2:
         checks nodes[i].box.wh == uiSize(50, 50)
 
-    checks nodes[7].box == uiBox(0, 450, 50, 50)
+    checks nodes[7].box == uiBox(0, 350, 50, 50)

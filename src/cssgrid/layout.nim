@@ -256,17 +256,18 @@ proc computeBox*(
     result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
+    let cvw = min(contentSize.`f`, rvw)
     case `axis`:
     of CxStretch:
       result.`v` = rvw
     of CxCenter:
-      result.`f` = (rvw/2 - contentSize.`f`/2) + result.`f`
-      result.`v` = contentSize.`f`
+      result.`f` = (rvw/2 - cvw/2) + result.`f`
+      result.`v` = cvw
     of CxStart:
-      result.`v` = contentSize.`f`
+      result.`v` = cvw
     of CxEnd:
-      result.`f` = rfw - contentSize.`f`
-      result.`v` = contentSize.`f`
+      result.`f` = rfw - cvw
+      result.`v` = cvw
 
   calcBoxFor(x, w, dcol, grid.justifyItems)
   calcBoxFor(y, h, drow, grid.alignItems)

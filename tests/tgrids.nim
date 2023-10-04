@@ -239,6 +239,8 @@ suite "grids":
 
     ## test stretch
     var itemBox: UiBox
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.alignItems = CxStretch
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
     checks itemBox == uiBox(40, 0, 920, 350)
@@ -272,6 +274,16 @@ suite "grids":
     echo ""
     print itemBox
     checks itemBox == uiBox(40, 0, 920, 200)
+    
+    ## test stretch / start
+    gridTemplate.justifyItems = CxCenter
+    gridTemplate.alignItems = CxCenter
+    itemBox = node.computeBox(gridTemplate)
+    echo ""
+    print itemBox
+    # 920/2-500/2+40
+    # 350/2-200/2+0
+    checks itemBox == uiBox(250, 75, 500, 200)
     
     
   test "compute layout with auto columns":

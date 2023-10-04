@@ -260,7 +260,7 @@ proc computeBox*(
     of CxStretch:
       result.`v` = rvw
     of CxCenter:
-      result.`f` = result.`f` + (rvw - contentSize.x)/2.0
+      result.`f` = (rvw/2 - contentSize.`f`/2) + result.`f`
       result.`v` = contentSize.`f`
     of CxStart:
       result.`v` = contentSize.`f`

@@ -175,7 +175,7 @@ proc `row`*(grid: GridItem): var Slice[GridIndex] =
   grid.index[drow]
 
 proc `$`*(a: GridLine): string =
-  result = fmt"GL({$a.track}; <{$a.start} x {$a.width}'w> <- {$a.aliases})"
+  result = fmt"GL({a.track}; <{$a.start.float.round(2)} x {$a.width.float.round(2)}'w> <- {$a.aliases})"
 
 proc `$`*(a: GridTemplate): string =
   if a.isNil:

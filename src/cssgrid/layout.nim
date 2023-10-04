@@ -10,7 +10,7 @@ proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
   for grdLn in lines:
-    echo "grdLn: ", grdLn.isAuto
+    # echo "grdLn: ", grdLn.isAuto
     if grdLn.isAuto:
       match grdLn.track:
         UiNone():

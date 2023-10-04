@@ -486,7 +486,7 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    printChildrens(0)
+    # printChildrens(0)
     # echo "grid template:post: ", gridTemplate
     # print gridTemplate.overflowSizes
 
@@ -531,11 +531,11 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent, nodes)
     # echo "grid template:1: ", repr gridTemplate
     # print box
-    echo "grid template post: ", gridTemplate
+    # echo "grid template post: ", gridTemplate
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a's ====
-    printChildrens(0)
+    # printChildrens(0)
 
     # echo "grid template:post: ", gridTemplate
     print gridTemplate.overflowSizes
@@ -630,10 +630,10 @@ suite "grids":
     # ==== process grid ====
     let box1 = gridTemplate.computeNodeLayout(parent, nodes)
     let box = gridTemplate.computeNodeLayout(parent, nodes)
-    echo "grid template:post: ", gridTemplate
-    echo ""
-    printChildrens()
-    print gridTemplate.overflowSizes
+    # echo "grid template:post: ", gridTemplate
+    # echo ""
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
     check box.w == 50
     check box.h == 500

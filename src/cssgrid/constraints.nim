@@ -19,6 +19,8 @@ type
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
+    of UiAuto:
+      amin*: UiScalar ## default, which is parent width/height less the x/y positions of the node and it's parents
     of UiFrac:
       frac*: UiScalar ## set `fr` aka CSS Grid fractions
     of UiPerc:
@@ -29,8 +31,6 @@ type
       cmin*: UiScalar ## sets layout to use min-content, `cmin` is calculated internally
     of UiContentMax:
       cmax*: UiScalar ## sets layout to use max-content, `cmax` is calculated internally
-    of UiAuto:
-      amin*: UiScalar ## sets layout to auto which is similar to a fraction but lower precedance down to min-content
 
   Constraints* = enum
     UiValue
@@ -44,7 +44,6 @@ type
   Constraint* = object
     case kind*: Constraints
     of UiNone:
-      ## default, which is parent width/height less the x/y positions of the node and it's parents
       discard
     of UiValue:
       value*: ConstraintSize ## used for `ConstraintSize` above

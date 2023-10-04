@@ -248,7 +248,7 @@ proc computeBox*(
   ## compute child positions inside grid
   assert not node.isNil
   assert not node.gridItem.isNil
-  let contentSize = node.box.wh
+  let contentSize = node.box.wh.UiSize
   node.gridItem.setGridSpans(grid, contentSize)
 
   # set columns

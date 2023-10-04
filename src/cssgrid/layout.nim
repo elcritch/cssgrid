@@ -252,11 +252,11 @@ proc computeBox*(
   node.gridItem.setGridSpans(grid, contentSize)
 
   # set columns
-  template calcBoxFor(f, v, dir) =
+  template calcBoxFor(f, v, dir, axis) =
     result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
-    case grid.justifyItems:
+    case `axis`:
     of CxStretch:
       result.`v` = rvw
     of CxCenter:
@@ -268,8 +268,8 @@ proc computeBox*(
       result.`f` = rfw - contentSize.`f`
       result.`v` = contentSize.`f`
 
-  calcBoxFor(x, w, dcol)
-  calcBoxFor(y, h, drow)
+  calcBoxFor(x, w, dcol, grid.justifyItems)
+  calcBoxFor(y, h, drow, grid.alignItems)
 
   # set rows
   # result.y = grid.lines[drow].getGrid(node.gridItem.span[drow].a)

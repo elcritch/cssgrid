@@ -20,11 +20,13 @@ proc computeLineOverflow*(
           UiFrac(_): discard
           UiPerc(): discard
           UiContentMin(cmin):
-            result += cmin
+            if cmin.float32 != float32.high():
+              result += cmin
           UiContentMax(cmax):
             result += cmax
           UiAuto(amin):
-            result += amin
+            if amin.float32 != float32.high():
+              result += amin
       _: discard
 
 proc computeContentSizes*(grid: GridTemplate,
@@ -188,7 +190,7 @@ proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
       let offset = grid.lines[dir].len() - 1
       let track = grid.autos[dir]
       var ln = initGridLine(track = track, isAuto = true)
-      grid.lines[dir].insert(ln, offset)
+      grid.lines[dir].insert(ln, max(offset, 0))
 
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row

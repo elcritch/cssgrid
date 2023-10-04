@@ -10,12 +10,12 @@ type
 
 type
   ConstraintSizes* = enum
+    UiAuto
     UiFrac
     UiPerc
     UiFixed
     UiContentMin
     UiContentMax
-    UiAuto
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
@@ -33,12 +33,12 @@ type
       amin*: UiScalar ## sets layout to auto which is similar to a fraction but lower precedance down to min-content
 
   Constraints* = enum
-    UiNone
     UiValue
     UiMin
     UiMax
     UiSum
     UiMinMax
+    UiNone
     UiEnd
 
   Constraint* = object

@@ -10,24 +10,26 @@ proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
   for grdLn in lines:
-    match grdLn.track:
-      UiNone():
-        discard
-      UiValue(value):
-        match value:
-          UiFixed(coord):
-            result += coord
-          UiFrac(_): discard
-          UiPerc(): discard
-          UiContentMax(cmax):
-            result += cmax
-          UiContentMin(cmin):
-            if cmin.float32 != float32.high():
-              result += cmin
-          UiAuto(amin):
-            if amin.float32 != float32.high():
-              result += amin
-      _: discard
+    echo "grdLn: ", grdLn.isAuto
+    if grdLn.isAuto:
+      match grdLn.track:
+        UiNone():
+          discard
+        UiValue(value):
+          match value:
+            UiFixed(coord):
+              result += coord
+            UiFrac(_): discard
+            UiPerc(): discard
+            UiContentMax(cmax):
+              result += cmax
+            UiContentMin(cmin):
+              if cmin.float32 != float32.high():
+                result += cmin
+            UiAuto(amin):
+              if amin.float32 != float32.high():
+                result += amin
+        _: discard
 
 proc computeContentSizes*(grid: GridTemplate,
                           children: seq[GridNode]) =
@@ -457,7 +459,7 @@ proc computeNodeLayout*(
   return typeof(box)(uiBox(
                 box.x.float,
                 box.y.float,
-                box.w.float + w.float,
-                box.h.float + h.float))
+                box.w.float + max(0.0, w.float + box.x.float-w.float),
+                box.h.float + max(0.0, h.float + box.y.float-h.float)))
   # echo "computeNodeLayout:done: "
   # print children

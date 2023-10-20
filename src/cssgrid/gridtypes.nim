@@ -1,8 +1,7 @@
-import std/[strformat, sugar]
+import std/[strformat]
 import std/[sequtils, strutils, hashes, sets, tables]
-import std/[typetraits, sets, tables]
+import std/[typetraits]
 import std/[macrocache, macros]
-import patty
 import stack_strings
 
 import numberTypes, constraints

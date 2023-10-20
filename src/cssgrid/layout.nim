@@ -10,7 +10,6 @@ proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
   for grdLn in lines:
-    # echo "grdLn: ", grdLn.isAuto
     if grdLn.isAuto:
       match grdLn.track:
         UiNone():
@@ -224,7 +223,6 @@ proc setGridSpans*(
   ## set grid spans for items, if needed set new auto
   ## rows or columns
   assert not item.isNil
-  # echo "setGridSpans: ", item
 
   let lrow = grid.lines[drow].len() - 1
   let lcol = grid.lines[dcol].len() - 1
@@ -272,22 +270,6 @@ proc computeBox*(
   calcBoxFor(x, w, dcol, grid.justifyItems)
   calcBoxFor(y, h, drow, grid.alignItems)
 
-  # set rows
-  # result.y = grid.lines[drow].getGrid(node.gridItem.span[drow].a)
-  # let ryh = grid.lines[drow].getGrid(node.gridItem.span[drow].b)
-  # let rhh = (ryh - result.y) - grid.gaps[drow]
-  # case grid.alignItems:
-  # of CxStretch:
-  #   result.h = rhh
-  # of CxCenter:
-  #   result.y = result.y + (rhh - contentSize.y)/2.0
-  #   result.h = contentSize.y
-  # of CxStart:
-  #   result.h = contentSize.y
-  # of CxEnd:
-  #   result.y = ryh - contentSize.y
-  #   result.h = contentSize.y
-
 proc fixedCount*(gridItem: GridItem): range[0..4] =
   if gridItem.index[dcol].a.line.ints != 0: result.inc
   if gridItem.index[dcol].b.line.ints != 0: result.inc
@@ -296,8 +278,6 @@ proc fixedCount*(gridItem: GridItem): range[0..4] =
 
 proc isAutoUiSizeed*(gridItem: GridItem): bool =
   gridItem.fixedCount() == 0
-
-import pretty
 
 proc computeAutoFlow(
     gridTemplate: GridTemplate,
@@ -317,10 +297,6 @@ proc computeAutoFlow(
       # echo "in: cur: ", cur[mx]
       if cur[mx] in span[mx] and cur[my] in span[my]:
         return true
-
-  # echo "computeAutoFlow:gridTemplate.lines"
-  # print gridTemplate.lines[mx].len()
-  # print gridTemplate
 
   # setup caches
   var autos = newSeqOfCap[GridNode](allNodes.len())
@@ -343,15 +319,6 @@ proc computeAutoFlow(
     else:
       autos.add child
 
-  # echo "computeAutoFlow:"
-  # print fixedCache
-
-  # setup cursor for current grid UiSize
-  # for i in 1..fixedCache.len():
-  #   for gspan in fixedCache[i.LinePos]:
-  #     echo "\ti: ", i, " => ", gspan[my], " // ", gspan[mx]
-
-  # var cursor = (1.LinePos, 1.LinePos)
   var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
   var i = 0
   var foundOverflow = false
@@ -365,8 +332,6 @@ proc computeAutoFlow(
       cursor[my] = cursor[my] + 1
       if cursor[my] >= gridTemplate.lines[my].len():
         foundOverflow = true
-      # if cursor[my] >= gridTemplate.lines[my].len():
-      #   echo "autoFlow:BREAK:outer:i: ", i,  " mx: ", cursor[mx], " my: ", cursor[my]
       break blk
   
   ## computing auto flows
@@ -439,30 +404,17 @@ proc computeNodeLayout*(
 
   # compute UiSizes for auto flow items
   if hasAutos:
-    # echo "hasAutos"
     computeAutoFlow(gridTemplate, box, children)
-
-  # echo "gridTemplate: ", gridTemplate.repr
-  # for i in 0 ..< children.len():
-  #   # echo "child:cols: ", " :: ", children[i].gridItem.span[dcol].repr, " x ", children[i].gridItem.span[drow].repr
-  #   echo "child:id: ", children[i].id
-  #   echo "child:cols: ", children[i].gridItem.span.repr
-  #   echo "child:box: ", " => ", children[i].box
-
-  # for i in 0 ..< gridTemplate.lines[dcol].len():
-  #   echo "line:dcol: ", i
 
   gridTemplate.computeContentSizes(children)
   gridTemplate.computeTracks(box, extendOnOverflow)
 
   for child in children:
-    # echo "CHILD fixed 1..3: "
     if fixedCount(child.gridItem) in 1..3:
       continue
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
   
-  # if extendOnOverflow:
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
   return typeof(box)(uiBox(
@@ -471,5 +423,3 @@ proc computeNodeLayout*(
                 max(box.w.float, gridTemplate.lines[dcol][^1].start.float),
                 max(box.h.float, gridTemplate.lines[drow][^1].start.float),
               ))
-  # echo "computeNodeLayout:done: "
-  # print children

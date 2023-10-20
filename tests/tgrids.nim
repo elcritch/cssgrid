@@ -763,6 +763,7 @@ suite "grids":
     print gridTemplate.overflowSizes
 
     check gridTemplate.lines[drow].len() == 9
+
     # check box.w == 50
     # check box.h == 400
     # check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16

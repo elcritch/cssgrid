@@ -157,7 +157,7 @@ proc computeLineLayout*(
     grdLn.start = cursor
     cursor += grdLn.width + spacing
 
-proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
+proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or
       grid.lines[dcol][^1].track.kind != UiEnd:
@@ -165,6 +165,8 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = f
   if grid.lines[drow].len() == 0 or
       grid.lines[drow][^1].track.kind != UiEnd:
     grid.lines[drow].add initGridLine(csEnd())
+
+proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
   # The free space is calculated after any non-flexible items. In 
   grid.overflowSizes[dcol] = grid.lines[dcol].computeLineOverflow()
   grid.overflowSizes[drow] = grid.lines[drow].computeLineOverflow()
@@ -191,19 +193,18 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
 
 proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
   assert idx <= 1000, "max grids exceeded"
-  if idx >= grid.lines[dir].len():
-    # echo "gridAutoInsert: ", idx
-    while idx >= grid.lines[dir].len():
-      let offset = grid.lines[dir].len() - 1
-      let track = grid.autos[dir]
-      var ln = initGridLine(track = track, isAuto = true)
-      grid.lines[dir].insert(ln, max(offset, 0))
+  # assert idx < 8
+  while idx >= grid.lines[dir].len():
+    let offset = grid.lines[dir].len() - 1
+    let track = grid.autos[dir]
+    var ln = initGridLine(track = track, isAuto = true)
+    grid.lines[dir].insert(ln, max(offset, 0))
 
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
     let idx = index.line.ints - 1 + index.spanCnt()
-    # echo "setSpan: ", idx, " index: ", index, " dir: ", dir, " cz: ", cz
+    assert idx < 9
     grid.gridAutoInsert(dir, idx, cz)
     index.line.ints.int16
   else:
@@ -411,6 +412,7 @@ proc computeNodeLayout*(
     when parent is GridNode: UiBox(parent.box)
     elif parent is GridBox: UiBox(parent)
 
+  gridTemplate.createEndTracks()
   ## implement full(ish) CSS grid algorithm here
   ## currently assumes that `N`, the ref object, has
   ## both `UiBox: UiBox` and `gridItem: GridItem` fields. 
@@ -427,6 +429,7 @@ proc computeNodeLayout*(
     # elif child.gridItem.span == [0'i16..0'i16, 0'i16..0'i16]:
     #   hasAutos = true
     # hasAutos = false
+    # echo "computeNodeLayout:child: ", child.id, " gridItem: ", child.gridItem
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children

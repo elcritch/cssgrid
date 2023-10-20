@@ -146,7 +146,7 @@ proc spanCnt*(a: GridIndex): int =
 proc `//`*(a, b: int|GridIndex): Slice[GridIndex] =
   result.a = mkIndex(a)
   result.b = mkIndex(b)
-  when not b.typeof is GridIndex:
+  when b.typeof isnot GridIndex:
     result.b.isSpan = false
 
 proc `column=`*(grid: GridItem, index: Slice[GridIndex]) =

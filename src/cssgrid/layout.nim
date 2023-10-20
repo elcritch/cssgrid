@@ -263,8 +263,10 @@ proc computeBox*(
       result.`f` = rfw - cvw
       result.`v` = cvw
 
-  calcBoxFor(x, w, dcol, grid.justifyItems)
-  calcBoxFor(y, h, drow, grid.alignItems)
+  let justify = node.gridItem.justify.get(grid.justifyItems)
+  let align = node.gridItem.align.get(grid.alignItems)
+  calcBoxFor(x, w, dcol, justify)
+  calcBoxFor(y, h, drow, align)
 
 proc fixedCount*(gridItem: GridItem): range[0..4] =
   if gridItem.index[dcol].a.line.ints != 0: result.inc

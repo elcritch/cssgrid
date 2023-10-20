@@ -1,4 +1,5 @@
-import std/[strformat]
+import std/options
+import std/strformat
 import std/[sequtils, strutils, hashes, sets, tables]
 import std/[typetraits]
 import std/[macrocache, macros]
@@ -6,6 +7,7 @@ import stack_strings
 
 import numberTypes, constraints
 export numberTypes, constraints, stack_strings
+export options
 
 const CssGridAtomSize {.intdefine.} = 16
 
@@ -57,8 +59,8 @@ type
   GridItem* = ref object
     span*: GridSpan
     index*: array[GridDir, Slice[GridIndex]]
-    justify*: ConstraintBehavior
-    align*: ConstraintBehavior
+    justify*: Option[ConstraintBehavior]
+    align*: Option[ConstraintBehavior]
 
 proc atom*(a: static string): Atom =
   discard result.addTruncate a

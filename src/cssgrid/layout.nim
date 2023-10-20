@@ -4,8 +4,6 @@ import numberTypes, constraints, gridtypes, parser
 
 export constraints, gridtypes
 
-let defaultLine = GridLine(track: csFrac(1))
-
 proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
@@ -294,7 +292,6 @@ proc computeAutoFlow(
 
   proc `in`(cur: array[GridDir, LinePos], cache: HashSet[GridSpan]): bool =
     for span in cache:
-      # echo "in: cur: ", cur[mx]
       if cur[mx] in span[mx] and cur[my] in span[my]:
         return true
 
@@ -313,7 +310,6 @@ proc computeAutoFlow(
       var span = child.gridItem.span
       span[mx].b.dec
       let rng = child.gridItem.span[my]
-      # print rng
       for j in rng.a ..< rng.b:
         fixedCache.mgetOrPut(j, initHashSet[GridSpan]()).incl span
     else:
@@ -342,14 +338,11 @@ proc computeAutoFlow(
     while i < len(autos):
       block childBlock:
         ## increment cursor and index until one breaks the mold
-        # print "autoflow:", i
         while cursor[my] in fixedCache and cursor in fixedCache[cursor[my]]:
-          # print "skipping fixedCache:", cursor
           incrCursor(1, childBlock, autoFlow)
         while cursor[my] notin fixedCache or not (cursor in fixedCache[cursor[my]]):
           # set the index for each auto rather than the span directly
           # so that auto-flow works properly
-          # print "set gridItem:index: ", i, " ", cursor[mx], " ", cursor[my]
           autos[i].gridItem.index[mx] = cursor[mx] // (cursor[mx] + 1)
           autos[i].gridItem.index[my] = cursor[my] // (cursor[my] + 1)
           i.inc
@@ -389,11 +382,6 @@ proc computeNodeLayout*(
     if child.gridItem == nil:
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
-      # hasAutos = true
-    # elif child.gridItem.span == [0'i16..0'i16, 0'i16..0'i16]:
-    #   hasAutos = true
-    # hasAutos = false
-    # echo "computeNodeLayout:child: ", child.id, " gridItem: ", child.gridItem
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children

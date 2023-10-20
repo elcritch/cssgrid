@@ -204,7 +204,6 @@ proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): 
   ## todo: clean this up? maybe use static bools for col vs row
   if not index.isName:
     let idx = index.line.ints - 1 + index.spanCnt()
-    assert idx < 9
     grid.gridAutoInsert(dir, idx, cz)
     index.line.ints.int16
   else:

@@ -15,10 +15,10 @@ type
 
   GridNode* = concept node
     distinctBase(typeof(node.box)) is Rect
+    typeof(node.gridItem) is GridItem
   GridBox* = concept box
     distinctBase(typeof(box)) is Rect
 
-type
   GridDir* = enum
     dcol
     drow
@@ -29,7 +29,6 @@ type
     grColumn
     grColumnDense
 
-type
   GridTemplate* = ref object
     lines*: array[GridDir, seq[GridLine]]
     autos*: array[GridDir, Constraint]
@@ -58,6 +57,8 @@ type
   GridItem* = ref object
     span*: GridSpan
     index*: array[GridDir, Slice[GridIndex]]
+    justify*: ConstraintBehavior
+    align*: ConstraintBehavior
 
 proc atom*(a: static string): Atom =
   discard result.addTruncate a

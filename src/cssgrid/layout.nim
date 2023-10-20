@@ -235,8 +235,6 @@ proc setGridSpans*(
   if item.span[drow].b == 0 or item.span[drow].b notin 0..lrow:
     item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
 
-import pretty
-
 proc computeBox*(
     node: GridNode,
     grid: GridTemplate,
@@ -353,10 +351,6 @@ proc computeAutoFlow(
   if foundOverflow:
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
-
-  # echo "autos:post:"
-  # print autos.mapIt(it.box)
-  # print autos.mapIt(it.gridItem.span)
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,

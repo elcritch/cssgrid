@@ -18,18 +18,18 @@ template borrowMaths*(typ, base: typedesc) =
   proc `-` *(x: typ): typ = typ(`-`(base(x)))
 
   ## allow NewType(3.2) + 3.2 ... 
-  proc `+` *(x: typ, y: static[float32|float64|int]): typ = typ(`+`(base x, base y))
-  proc `-` *(x: typ, y: static[float32|float64|int]): typ = typ(`-`(base x, base y))
-  proc `+` *(x: static[float32|float64|int], y: typ): typ = typ(`+`(base x, base y))
-  proc `-` *(x: static[float32|float64|int], y: typ): typ = typ(`-`(base x, base y))
+  # proc `+` *(x: typ, y: static[float32|float64|int]): typ = typ(`+`(base x, base y))
+  # proc `-` *(x: typ, y: static[float32|float64|int]): typ = typ(`-`(base x, base y))
+  # proc `+` *(x: static[float32|float64|int], y: typ): typ = typ(`+`(base x, base y))
+  # proc `-` *(x: static[float32|float64|int], y: typ): typ = typ(`-`(base x, base y))
 
   proc `*` *(x, y: typ): typ = typ(`*`(base(x), base(y)))
   proc `/` *(x, y: typ): typ = typ(`/`(base(x), base(y)))
 
-  proc `*` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`*`(base(x), base(y)))
-  proc `/` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`/`(base(x), base(y)))
-  proc `*` *(x: static[base], y: typ): typ = typ(`*`(base(x), base(y)))
-  proc `/` *(x: static[base], y: typ): typ = typ(`/`(base(x), base(y)))
+  # proc `*` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`*`(base(x), base(y)))
+  # proc `/` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`/`(base(x), base(y)))
+  # proc `*` *(x: static[base], y: typ): typ = typ(`*`(base(x), base(y)))
+  # proc `/` *(x: static[base], y: typ): typ = typ(`/`(base(x), base(y)))
 
   proc `min` *(x: typ, y: typ): typ {.borrow.}
   proc `max` *(x: typ, y: typ): typ {.borrow.}
@@ -160,11 +160,12 @@ proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
 proc `$`*(a: UiSize): string =
-  &"UiSize<{a.x:2.2f}, {a.y:2.2f}>"
+  fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+
 proc `$`*(b: UiBox): string =
   let a = b.Rect
   # &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
-  &"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
+  fmt"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
 
 # const
 #   uiScale* = 1.0

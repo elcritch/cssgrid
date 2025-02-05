@@ -13,16 +13,19 @@ proc calculateMinOrMaxes*(node: GridNode, fs: static string, doMax: static bool)
       else:
         result = min(n.box.h + n.box.y, result)
 
+template getParentBoxOrWindows*(node: GridNode): UiBox =
+  if node.parent.isNil:
+    node.frame.windowSize
+  else:
+    node.parent.box
+
 template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped) =
+  mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
   echo "calcBasicConstraintImpl: ", "name= ", node.name
-  let parentBox =
-    if node.parent.isNil:
-      node.frame[].windowSize
-    else:
-      node.parent[].box
+  let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar

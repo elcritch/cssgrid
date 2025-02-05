@@ -65,7 +65,7 @@ proc csAuto*(): Constraint =
 proc csFrac*[T](size: T): Constraint =
   csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
 proc csFixed*[T](coord: T): Constraint =
-  csValue(ConstraintSize(kind: UiFixed, coord: coord.UiScalar))
+  csValue(ConstraintSize(kind: UiFixed, coord: UiScalar(coord)))
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
 proc csContentMin*(): Constraint =
@@ -89,7 +89,7 @@ proc csSum*[U, T](a: U, b: T): Constraint =
           elif a is Constraint: a.value
           else: csFixed(a).value
   let b = when b is ConstraintSize: b
-          elif a is Constraint: a.value
+          elif b is Constraint: b.value
           else: csFixed(b).value
   Constraint(kind: UiSum, lsum: a, rsum: b)
 
@@ -99,7 +99,7 @@ proc csMax*[U, T](a: U, b: T): Constraint =
           elif a is Constraint: a.value
           else: csFixed(a).value
   let b = when b is ConstraintSize: b
-          elif a is Constraint: a.value
+          elif b is Constraint: b.value
           else: csFixed(b).value
   Constraint(kind: UiMax, lmax: a, rmax: b)
 
@@ -109,7 +109,7 @@ proc csMin*[U, T](a: U, b: T): Constraint =
           elif a is Constraint: a.value
           else: csFixed(a).value
   let b = when b is ConstraintSize: b
-          elif a is Constraint: a.value
+          elif b is Constraint: b.value
           else: csFixed(b).value
   Constraint(kind: UiMin, lmin: a, rmin: b)
 
@@ -119,7 +119,7 @@ proc csMinMax*[U, T](a: U, b: T): Constraint =
           elif a is Constraint: a.value
           else: csFixed(a).value
   let b = when b is ConstraintSize: b
-          elif a is Constraint: a.value
+          elif b is Constraint: a.value
           else: csFixed(b).value
   Constraint(kind: UiMinMax, lmm: a, rmm: b)
 

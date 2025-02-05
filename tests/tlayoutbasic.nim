@@ -340,6 +340,10 @@ suite "Compute Layout Tests":
     gridChild.gridItem.column = 1
     gridChild.gridItem.row = 1
     
+    # Setup parent fixed size
+    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
+    parent.cxSize[drow] = csFixed(300)  # set fixed parent
+
     # Inner child with percentage constraint
     innerChild.cxSize[dcol] = csPerc(50)
     innerChild.cxSize[drow] = csPerc(50)

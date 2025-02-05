@@ -2,18 +2,22 @@ import numberTypes, constraints, gridtypes
 
 import prettyprints
 
-proc calculateMinOrMaxes*(node: GridNode, fs: static string, doMax: static bool): UiScalar =
-  for n in node.children:
-    when fs == "w":
-      when doMax:
-        result = max(n.box.w + n.box.y, result)
-      else:
-        result = min(n.box.w + n.box.y, result)
-    elif fs == "h":
-      when doMax:
-        result = max(n.box.h + n.box.y, result)
-      else:
-        result = min(n.box.h + n.box.y, result)
+template getPos*(node: GridNode, fs: static string): UiScalar =
+  when fs == "x": node.box.x
+  elif fs == "y": node.box.y
+  elif fs == "w": node.box.x
+  elif fs == "h": node.box.y
+
+template getSize*(node: GridNode, fs: static string): UiScalar =
+  when fs == "w": node.box.w
+  elif fs == "h": node.box.h
+  elif fs == "x": node.box.w
+  elif fs == "y": node.box.h
+
+template getSize*(node: GridNode, dir: GridDir): UiScalar =
+  case dir
+  of dcol: getVal(node, "w")
+  of drow: getVal(node, "h")
 
 template getParentBoxOrWindows*(node: GridNode): UiBox =
   if node.parent.isNil:
@@ -21,7 +25,7 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
   else:
     node.parent.box
 
-proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
+proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
   ## Recursively calculates the content size for a node by examining its children
   var maxSize = 0.UiScalar
   
@@ -72,39 +76,6 @@ proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
 
   return maxSize
 
-proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
-  ## Computes content min/max for each grid track based on children
-  ## including nested children for auto tracks
-  var contentSized: array[GridDir, set[int16]]
-  for dir in [dcol, drow]:
-    for i in 0 ..< grid.lines[dir].len():
-      if isContentSized(grid.lines[dir][i].track):
-        contentSized[dir].incl(i.int16)
-
-  # Process each child and track
-  for child in children:
-    let cspan = child.gridItem.span
-    for dir in [dcol, drow]:
-      debugPrint "calculateContentSize:", child.name
-      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
-        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
-        
-        # Calculate size recursively including all nested children
-        let contentSize = calculateContentSize(child, dir)
-        debugPrint "calculateContentSize:", child.name, "contentSize=", contentSize, "track().value=", track().value
-        
-        # Update track size based on content
-        if track().value.kind == UiAuto:
-          track().value.amin = contentSize
-        elif track().value.kind == UiFrac:
-          track().value.fmin = contentSize
-        elif track().value.kind == UiContentMin:
-          track().value.cmin = min(contentSize, track().value.cmin)
-        elif track().value.kind == UiContentMax:
-          track().value.cmax = max(contentSize, track().value.cmax)
-        else:
-          assert false, "shouldn't reach here " & $track().value.kind
-
 template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
@@ -135,9 +106,17 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
               parentBox.f
           res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin(cmins):
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
+          for n in node.children:
+            when astToStr(f) == "w":
+              res = min(node.box.x + node.box.w, res)
+            elif astToStr(f) == "h":
+              res = min(node.box.y + node.box.h, res)
         UiContentMax(cmaxs):
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
+          for n in node.children:
+            when astToStr(f) == "w":
+              res = max(node.box.x + node.box.w, res)
+            elif astToStr(f) == "h":
+              res = max(node.box.y + node.box.h, res)
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h

@@ -366,6 +366,39 @@ proc computeAutoFlow(
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
+proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
+  ## Computes content min/max for each grid track based on children
+  ## including nested children for auto tracks
+  var contentSized: array[GridDir, set[int16]]
+  for dir in [dcol, drow]:
+    for i in 0 ..< grid.lines[dir].len():
+      if isContentSized(grid.lines[dir][i].track):
+        contentSized[dir].incl(i.int16)
+
+  # Process each child and track
+  for child in children:
+    let cspan = child.gridItem.span
+    for dir in [dcol, drow]:
+      debugPrint "calculateContentSize:", child.name
+      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
+        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
+        
+        # Calculate size recursively including all nested children
+        let contentSize = calculateContentSize(child, dir)
+        debugPrint "calculateContentSize:", child.name, "contentSize=", contentSize, "track().value=", track().value
+        
+        # Update track size based on content
+        if track().value.kind == UiAuto:
+          track().value.amin = contentSize
+        elif track().value.kind == UiFrac:
+          track().value.fmin = contentSize
+        elif track().value.kind == UiContentMin:
+          track().value.cmin = min(contentSize, track().value.cmin)
+        elif track().value.kind == UiContentMax:
+          track().value.cmax = max(contentSize, track().value.cmax)
+        else:
+          assert false, "shouldn't reach here " & $track().value.kind
+
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
     parent: GridNode,

@@ -83,58 +83,99 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       discard
   echo "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
-template calcBasicConstraintPostImpl(node: Figuro, dir: static GridDir, f: untyped) =
-  ## computes basic constraints for box'es when set
-  ## this let's the use do things like set 90'pp (90 percent)
-  ## of the box width post css grid or auto constraints layout
-  trace "calcBasicConstraintPostImpl: ", name = node.name, boxH= node.box.h
-  let parentBox =
-    if node.parent.isNil:
-      node.frame[].windowSize
-    else:
-      node.parent[].box
-  template calcBasic(val: untyped): untyped =
+template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: untyped) =
+  ## Computes post-layout adjustments to basic constraints
+  ## This runs after the main layout pass to handle any final adjustments
+  ## needed for proper positioning and sizing
+  echo "calcBasicConstraintPostImpl: ", " name = ", node.name
+  let parentBox = node.getParentBoxOrWindows()
+
+  template calcBasicPost(val: untyped): untyped =
     block:
-      var res: UICoord
+      var res: UiSize
       match val:
+        UiAuto(_):
+          when astToStr(f) in ["w"]:
+            # For width, adjust based on parent width and current x position
+            if not node.parent.isNil and not node.parent.gridTemplate.isNil:
+              # If parent has grid, keep current width
+              res = node.box.f
+            else:
+              # Otherwise fill available space
+              res = parentBox.f - node.box.x
+          elif astToStr(f) in ["h"]:
+            # Similar handling for height
+            if not node.parent.isNil and not node.parent.gridTemplate.isNil:
+              res = node.box.f
+            else:
+              res = parentBox.f - node.box.y
+        UiFixed(coord):
+          # Fixed values remain unchanged
+          res = coord.UiSize
+        UiFrac(frac):
+          # Fraction of remaining space
+          if not node.parent.isNil:
+            when astToStr(f) in ["w"]:
+              let availableSpace = parentBox.f - node.box.x
+              res = frac.UiSize * availableSpace
+            elif astToStr(f) in ["h"]:
+              let availableSpace = parentBox.f - node.box.y
+              res = frac.UiSize * availableSpace
+        UiPerc(perc):
+          # Percentage calculations based on parent size
+          let ppval =
+            when astToStr(f) == "x":
+              parentBox.w
+            elif astToStr(f) == "y":
+              parentBox.h
+            else:
+              parentBox.f
+          res = perc.UiSize / 100.0.UiSize * ppval
         UiContentMin(cmins):
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
+          # Keep existing size if it's content-based
+          res = node.box.f
         UiContentMax(cmaxs):
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
-          trace "CONTENT MAX: ", node = node.name, res = res, d = repr(dir), children = node.children.mapIt((it.name, it.box.w, it.box.h))
-        _:
+          # Keep existing size if it's content-based
           res = node.box.f
       res
 
+  echo "POST CONTENT csValue: ", " node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
     when astToStr(f) in ["w", "h"]:
       node.cxSize[dir]
     else:
       node.cxOffset[dir]
   
-  trace "CONTENT csValue: ", node = node.name, d = repr(dir), w = node.box.w, h = node.box.h
   match csValue:
     UiNone:
       discard
     UiSum(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
+      let lv = ls.calcBasicPost()
+      let rv = rs.calcBasicPost()
       node.box.f = lv + rv
     UiMin(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
+      let lv = ls.calcBasicPost()
+      let rv = rs.calcBasicPost()
       node.box.f = min(lv, rv)
     UiMax(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
+      let lv = ls.calcBasicPost()
+      let rv = rs.calcBasicPost()
       node.box.f = max(lv, rv)
     UiMinMax(ls, rs):
-      discard
+      # For post-processing, use the actual computed size if within bounds,
+      # otherwise clamp to the nearest bound
+      let lv = ls.calcBasicPost()
+      let rv = rs.calcBasicPost()
+      if node.box.f < lv:
+        node.box.f = lv
+      elif node.box.f > rv:
+        node.box.f = rv
     UiValue(value):
-      node.box.f = calcBasic(value)
+      node.box.f = calcBasicPost(value)
     UiEnd:
       discard
-  trace "CONTENT csValue:POST ", node = node.name, w = node.box.w, h = node.box.h
+
+  echo "calcBasicConstraintPostImpl:done: ", " name = ", node.name, " boxH = ", node.box.h
 
 
 proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =

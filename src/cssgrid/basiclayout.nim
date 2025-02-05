@@ -111,9 +111,6 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
               res = node.box.f
             else:
               res = parentBox.f - node.box.y
-        UiFixed(coord):
-          # Fixed values remain unchanged
-          res = coord.UiScalar
         UiFrac(frac):
           # Fraction of remaining space
           if not node.parent.isNil:
@@ -123,6 +120,9 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
             elif astToStr(f) in ["h"]:
               let availableSpace = parentBox.f - node.box.y
               res = frac.UiScalar * availableSpace
+        UiFixed(coord):
+          # Fixed values remain unchanged
+          res = coord.UiScalar
         UiPerc(perc):
           # Percentage calculations based on parent size
           let ppval =

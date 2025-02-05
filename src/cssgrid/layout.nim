@@ -51,8 +51,10 @@ proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
               maxSize = max(maxSize, cmin)
           UiAuto(_):
             maxSize = max(maxSize, node.box.w)
+            debugPrint "calculateContentSize:w: ", "auto=", maxSize
           UiFrac(_, _):
             maxSize = max(maxSize, node.box.w)
+            debugPrint "calculateContentSize:w: ", "frac=", maxSize
           _: discard
       _: discard
   else:
@@ -66,8 +68,10 @@ proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
               maxSize = max(maxSize, cmin)
           UiAuto(_):
             maxSize = max(maxSize, node.box.h)
+            debugPrint "calculateContentSize:h: ", "auto=", maxSize
           UiFrac(_, _):
             maxSize = max(maxSize, node.box.h)
+            debugPrint "calculateContentSize:h: ", "frac=", maxSize
           _: discard
       _: discard
 
@@ -95,11 +99,13 @@ proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
   for child in children:
     let cspan = child.gridItem.span
     for dir in [dcol, drow]:
+      debugPrint "calculateContentSize:", child.name
       if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
         template track(): auto = grid.lines[dir][cspan[dir].a-1].track
         
         # Calculate size recursively including all nested children
         let contentSize = calculateContentSize(child, dir)
+        debugPrint "calculateContentSize:", child.name, "contentSize=", contentSize, "track().value=", track().value
         
         # Update track size based on content
         if track().value.kind == UiAuto:
@@ -484,9 +490,11 @@ proc computeNodeLayout*(
   prettyLayout(parent)
 
   gridTemplate.computeContentSizes(parent.children)
-  # debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
-  # printGrid(gridTemplate)
+  debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
+  printGrid(gridTemplate)
   gridTemplate.computeTracks(box, extendOnOverflow)
+  debugPrint "GRID:ComputedTracks: "
+  printGrid(gridTemplate)
 
   debugPrint "COMPUTE Parent: "
   prettyLayout(parent)

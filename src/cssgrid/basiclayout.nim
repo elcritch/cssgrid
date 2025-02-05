@@ -1,4 +1,4 @@
-import numberTypes, constraints, gridtypes, parser
+import numberTypes, constraints, gridtypes
 
 proc calculateMinOrMaxes*(node: GridNode, fs: static string, doMax: static bool): UiSize =
   for n in node.children:

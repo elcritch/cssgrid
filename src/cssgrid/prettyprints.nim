@@ -31,22 +31,22 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
   case cs.kind
   of UiAuto:
     if cs.amin.float32 == float32.high():
-      mode.withStyle(fgCyan, text = "cs:auto")
+      mode.withStyle(fgCyan, text = "auto")
     else:
-      mode.withStyle(fgCyan, text = &"cs:auto(min:{cs.amin.float.float:.2f})")
+      mode.withStyle(fgCyan, text = &"auto(min:{cs.amin.float.float:.2f})")
   of UiFrac:
-    mode.withStyle(fgMagenta, text = &"cs:{cs.frac.float:.2f}fr (min:{cs.fmin.float:.2f})")
+    mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr (min:{cs.fmin.float:.2f})")
   of UiPerc:
-    mode.withStyle(fgYellow, text = &"cs:{cs.perc.float:.2f}%")
+    mode.withStyle(fgYellow, text = &"{cs.perc.float:.2f}'pp")
   of UiFixed:
-    mode.withStyle(fgGreen, text = &"cs:{cs.coord.float:.2f}px")
+    mode.withStyle(fgGreen, text = &"{cs.coord.float:.2f}'ui")
   of UiContentMin:
     if cs.cmin.float32 == float32.high():
-      mode.withStyle(fgBlue, text = "cs:min-content")
+      mode.withStyle(fgBlue, text = "min-content")
     else:
-      mode.withStyle(fgBlue, text = &"cs:min-content({cs.cmin.float:.2f})")
+      mode.withStyle(fgBlue, text = &"min-content({cs.cmin.float:.2f})")
   of UiContentMax:
-    mode.withStyle(fgBlue, text = &"cs:max-content({cs.cmax.float:.2f})")
+    mode.withStyle(fgBlue, text = &"max-content({cs.cmax.float:.2f})")
 
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind
@@ -154,14 +154,14 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   # Constraints
   for i, constraint in node.cxSize:
     if constraint.kind != UiNone:
-      let dir = if i == dcol: "width" else: "height"
+      let dir = if i == dcol: "W" else: "H"
       mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
       prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   
   for i, constraint in node.cxOffset:
     if constraint.kind != UiNone:
-      let dir = if i == dcol: "x" else: "y"
+      let dir = if i == dcol: "X" else: "Y"
       mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
       prettyConstraint(constraint, "")
   mode.withStyle(fgWhite, text = "\n")

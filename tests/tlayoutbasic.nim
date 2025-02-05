@@ -131,6 +131,10 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = csContentMax()
     calcBasicConstraint(child, dcol, isXY = false)
     
+    echo "BOX: ", parent.cxOffset.repr
+    echo "BOX: ", parent.cxSize.repr
+    printLayout(parent, cmTerminal)
+
     check child.box.w >= grandchild.box.w # Should be at least as wide as content
 
   test "Position constraints":

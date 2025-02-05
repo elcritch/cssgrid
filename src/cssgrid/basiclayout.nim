@@ -1,6 +1,6 @@
 import numberTypes, constraints, gridtypes
 
-proc calculateMinOrMaxes*(node: GridNode, fs: static string, doMax: static bool): UiSize =
+proc calculateMinOrMaxes*(node: GridNode, fs: static string, doMax: static bool): UiScalar =
   for n in node.children:
     when fs == "w":
       when doMax:
@@ -17,7 +17,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
-  trace "calcBasicConstraintImpl: ", name= node.name
+  echo "calcBasicConstraintImpl: ", "name= ", node.name
   let parentBox =
     if node.parent.isNil:
       node.frame[].windowSize
@@ -25,7 +25,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       node.parent[].box
   template calcBasic(val: untyped): untyped =
     block:
-      var res: UiSize
+      var res: UiScalar
       match val:
         UiAuto(_):
           when astToStr(f) in ["w"]:
@@ -33,10 +33,9 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
           elif astToStr(f) in ["h"]:
             res = parentBox.f - node.box.y
         UiFixed(coord):
-          res = coord.UiSize
+          res = coord.UiScalar
         UiFrac(frac):
-          node.checkParent()
-          res = frac.UiSize * node.parent[].box.f
+          res = frac.UiScalar * node.parent[].box.f
         UiPerc(perc):
           let ppval =
             when astToStr(f) == "x":
@@ -45,14 +44,14 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
               parentBox.h
             else:
               parentBox.f
-          res = perc.UiSize / 100.0.UiSize * ppval
+          res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin(cmins):
           res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
         UiContentMax(cmaxs):
           res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
       res
 
-  trace "CONTENT csValue: ", node = node.name, d = repr(dir), w = node.box.w, h = node.box.h
+  echo "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
     when astToStr(f) in ["w", "h"]:
       node.cxSize[dir]
@@ -79,7 +78,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       node.box.f = calcBasic(value)
     UiEnd:
       discard
-  trace "calcBasicConstraintImpl:done: ", name= node.name, boxH= node.box.h
+  echo "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
 proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node

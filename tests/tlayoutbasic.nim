@@ -13,7 +13,7 @@ import pretty
 
 type
   TestNode = ref object
-    UiBox: UiBox
+    box: UiBox
     name*: string
     parent*: TestNode
     children*: seq[TestNode]
@@ -28,7 +28,7 @@ type
 proc newTestNode(name: string, x, y, w, h: float32): TestNode =
   result = TestNode(
     name: name,
-    UiBox: uiBox(x, y, w, h),
+    box: uiBox(x, y, w, h),
     children: @[],
     frame: Frame(windowSize: uiBox(0, 0, 800, 600))
   )
@@ -42,8 +42,8 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(node, dcol, isXY = false)
     calcBasicConstraint(node, drow, isXY = false)
     
-    check node.UiBox.w == 200
-    check node.UiBox.h == 150
+    check node.box.w == 200
+    check node.box.h == 150
 
   test "Percentage constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -57,8 +57,8 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child, dcol, isXY = false)
     calcBasicConstraint(child, drow, isXY = false)
     
-    check child.UiBox.w == 200 # 50% of 400
-    check child.UiBox.h == 75  # 25% of 300
+    check child.box.w == 200 # 50% of 400
+    check child.box.h == 75  # 25% of 300
 
   test "Auto constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -73,8 +73,8 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child, drow, isXY = false)
     
     # Auto should fill available space (parent size - offset)
-    check child.UiBox.w == 390 # 400 - 10
-    check child.UiBox.h == 290 # 300 - 10
+    check child.box.w == 390 # 400 - 10
+    check child.box.h == 290 # 300 - 10
 
   test "Min/Max constraints":
     let node = newTestNode("test", 0, 0, 100, 100)
@@ -82,12 +82,12 @@ suite "Basic CSS Layout Tests":
     # Test min constraint
     node.cxSize[dcol] = csMin(csFixed(150), csFixed(200))
     calcBasicConstraint(node, dcol, isXY = false)
-    check node.UiBox.w == 150
+    check node.box.w == 150
     
     # Test max constraint
     node.cxSize[drow] = csMax(csFixed(150), csFixed(200))
     calcBasicConstraint(node, drow, isXY = false)
-    check node.UiBox.h == 200
+    check node.box.h == 200
 
   test "Complex nested constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -107,8 +107,8 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child1, dcol, isXY = false)
     calcBasicConstraint(child2, dcol, isXY = false)
     
-    check child1.UiBox.w == 200 # max(50% of 400, 100)
-    check child2.UiBox.w == 150 # (25% of 400) + 50
+    check child1.box.w == 200 # max(50% of 400, 100)
+    check child2.box.w == 150 # (25% of 400) + 50
 
   test "Content based constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -124,7 +124,7 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = csContentMax()
     calcBasicConstraint(child, dcol, isXY = false)
     
-    check child.UiBox.w >= grandchild.UiBox.w # Should be at least as wide as content
+    check child.box.w >= grandchild.UiBox.w # Should be at least as wide as content
 
   test "Position constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -140,8 +140,8 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child, dcol, isXY = true)
     calcBasicConstraint(child, drow, isXY = true)
     
-    check child.UiBox.x == 20
-    check child.UiBox.y == 30 # 10% of 300
+    check child.box.x == 20
+    check child.box.y == 30 # 10% of 300
 
 when isMainModule:
   echo "Running basic layout tests..."

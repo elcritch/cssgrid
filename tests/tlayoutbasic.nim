@@ -375,6 +375,92 @@ suite "Compute Layout Tests":
     check child.box.x == 25  # (100 - 50) / 2
     check child.box.y == 25  # (100 - 50) / 2
 
+suite "Post Layout Constraint Tests":
+  test "Post-process auto sizing with grid":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 50, 50, 200, 150)
+    parent.addChild(child)
+    
+    # Setup grid
+    parent.gridTemplate = newGridTemplate()
+    child.cxSize[dcol] = csAuto()
+    child.cxSize[drow] = csAuto()
+    
+    # Initial layout
+    calcBasicConstraint(child, dcol, isXY = false)
+    calcBasicConstraint(child, drow, isXY = false)
+    
+    # Post processing should preserve grid sizes
+    calcBasicConstraintPost(child, dcol, isXY = false)
+    calcBasicConstraintPost(child, drow, isXY = false)
+    
+    check child.box.w == 200
+    check child.box.h == 150
+
+  test "Post-process MinMax constraints":
+    let node = newTestNode("test", 0, 0, 300, 200)
+    
+    # Set min/max constraints
+    node.cxSize[dcol] = csMinMax(
+      csFixed(100),  # min
+      csFixed(250)   # max
+    )
+    
+    # Initial layout might set a size outside bounds
+    node.box.w = 400  # Intentionally set larger than max
+    
+    # Post processing should clamp to max
+    calcBasicConstraintPost(node, dcol, isXY = false)
+    check node.box.w == 250
+    
+    # Test min bound
+    node.box.w = 50  # Intentionally set smaller than min
+    calcBasicConstraintPost(node, dcol, isXY = false)
+    check node.box.w == 100
+
+  test "Post-process fractional sizing":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 100, 100, 200, 150)
+    parent.addChild(child)
+    
+    child.cxSize[dcol] = csFrac(0.5)  # 50% of remaining space
+    
+    # Post processing should consider remaining space
+    calcBasicConstraintPost(child, dcol, isXY = false)
+    check child.box.w == 150  # (400 - 100) * 0.5
+
+  test "Post-process content-based sizing":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 200, 150)
+    parent.addChild(child)
+    
+    child.cxSize[dcol] = csContentMax()
+    child.box.w = 250  # Set by previous layout pass
+    
+    # Post processing should preserve content-based size
+    calcBasicConstraintPost(child, dcol, isXY = false)
+    check child.box.w == 250
+
+  test "Post-process nested constraints":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child1 = newTestNode("child1", 50, 50, 200, 150)
+    let child2 = newTestNode("child2", 0, 0, 100, 100)
+    
+    parent.addChild(child1)
+    child1.addChild(child2)
+    
+    # Setup complex constraints
+    child1.cxSize[dcol] = csSum(csFixed(100), csPerc(25))
+    child2.cxSize[dcol] = csPerc(50)  # 50% of child1
+    
+    # Post process parent first
+    calcBasicConstraintPost(child1, dcol, isXY = false)
+    check child1.box.w == 200  # 100 + (400 * 0.25)
+    
+    # Then post process child
+    calcBasicConstraintPost(child2, dcol, isXY = false)
+    check child2.box.w == 100  # 50% of child1's 200
+
 
 when isMainModule:
   echo "Running basic layout tests..."

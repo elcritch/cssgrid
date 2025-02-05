@@ -119,7 +119,7 @@ proc csMinMax*[U, T](a: U, b: T): Constraint =
           elif a is Constraint: a.value
           else: csFixed(a).value
   let b = when b is ConstraintSize: b
-          elif b is Constraint: a.value
+          elif b is Constraint: b.value
           else: csFixed(b).value
   Constraint(kind: UiMinMax, lmm: a, rmm: b)
 

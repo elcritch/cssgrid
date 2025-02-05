@@ -442,6 +442,7 @@ suite "Compute Layout Tests":
 
 suite "Post Layout Constraint Tests":
   test "Post-process auto sizing with grid":
+    prettyPrintWriteMode = cmTerminal
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child = newTestNode("child", 50, 50, 200, 150)
     parent.addChild(child)
@@ -461,6 +462,7 @@ suite "Post Layout Constraint Tests":
     
     check child.box.w == 200
     check child.box.h == 150
+    prettyPrintWriteMode = cmNone
 
   test "Post-process MinMax constraints":
     let node = newTestNode("test", 0, 0, 300, 200)

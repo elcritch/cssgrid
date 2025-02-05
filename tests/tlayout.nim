@@ -17,6 +17,10 @@ type
     id: string
     box: UiBox
     gridItem: GridItem
+    gridTemplate: GridTemplate
+    cxSize: array[GridDir, Constraint]  # For width/height
+    cxOffset: array[GridDir, Constraint] # For x/y positions
+    children: seq[GridNode]
 
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box

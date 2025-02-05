@@ -30,7 +30,7 @@ template debugPrint*(args: varargs[string, `$`]) =
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =
   case cs.kind
   of UiAuto:
-    if cs.amin.float32 == float32.high():
+    if cs.amin.float32 == 0:
       mode.withStyle(fgCyan, text = "auto")
     else:
       mode.withStyle(fgCyan, text = &"auto(min:{cs.amin.float.float:.2f})")
@@ -41,7 +41,7 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
   of UiFixed:
     mode.withStyle(fgGreen, text = &"{cs.coord.float:.2f}'ui")
   of UiContentMin:
-    if cs.cmin.float32 == float32.high():
+    if cs.cmin.float32 == 0:
       mode.withStyle(fgBlue, text = "min-content")
     else:
       mode.withStyle(fgBlue, text = &"min-content({cs.cmin.float:.2f})")

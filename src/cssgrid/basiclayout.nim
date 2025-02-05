@@ -79,6 +79,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
+      debugPrint "calcBasic: ", val
       var res: UiScalar
       match val:
         UiAuto(_):
@@ -100,12 +101,14 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
               parentBox.f
           res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin(cmins):
+          debugPrint "CMINS: ", cmins
           for n in node.children:
             when astToStr(f) == "w":
               res = min(node.box.x + node.box.w, res)
             elif astToStr(f) == "h":
               res = min(node.box.y + node.box.h, res)
         UiContentMax(cmaxs):
+          debugPrint "CMAXS: ", cmaxs
           for n in node.children:
             when astToStr(f) == "w":
               res = max(node.box.x + node.box.w, res)
@@ -119,6 +122,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       node.cxSize[dir]
     else:
       node.cxOffset[dir]
+  debugPrint "csValue: ", csValue, "f: ", astToStr(f)
   match csValue:
     UiNone:
       discard

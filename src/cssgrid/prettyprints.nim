@@ -2,7 +2,7 @@
 import strformat
 import terminal
 
-import numberTypes, constraints, gridtypes, parser
+import numberTypes, constraints, gridtypes
 
 import strformat
 import terminal

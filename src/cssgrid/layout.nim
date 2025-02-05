@@ -142,7 +142,7 @@ proc computeLineLayout*(
             fixed += cmax
           UiAuto(amin):
             # Store the auto track's content size
-            debugPrint "GRID FIND AMIN: ", amin
+            debugPrint "GRID FIND AMIN: ", $amin
             if amin.float32 != float32.high():
               autoSizes.add(amin)
             else:
@@ -307,6 +307,7 @@ proc computeBox*(
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
     let cvw = min(contentSize.`f`, rvw)
+    debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
     case `axis`:
     of CxStretch:
       result.`v` = rvw
@@ -412,7 +413,7 @@ proc computeAutoFlow(
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
-    parent: GridBox | GridNode,
+    parent: GridNode,
     extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
 
@@ -446,10 +447,18 @@ proc computeNodeLayout*(
     debugPrint "computeAutoFlow: "
     computeAutoFlow(gridTemplate, box, parent.children)
 
+  debugPrint "GRID:PRE "
+  printGrid(gridTemplate)
   gridTemplate.computeContentSizes(parent.children)
+  debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
+  printGrid(gridTemplate)
   gridTemplate.computeTracks(box, extendOnOverflow)
+  debugPrint "GRID:POST TRACKS "
+  printGrid(gridTemplate)
 
+  debugPrint "COMPUTE Parent: "
   debugPrint "COMPUTE BOXES: "
+  prettyLayout(parent)
   for child in parent.children:
     if fixedCount(child.gridItem) in 1..3:
       continue
@@ -489,7 +498,7 @@ proc computeLayout*(node: GridNode, depth: int) =
     # adjust box to not include offset in wh
     # box.w = box.w - box.x
     # box.h = box.h - box.y
-    let res = node.gridTemplate.computeNodeLayout(box).UiBox
+    let res = node.gridTemplate.computeNodeLayout(node).UiBox
     node.box = res
 
     for n in node.children:

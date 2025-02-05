@@ -3,83 +3,92 @@ import strformat
 import terminal
 
 import numberTypes, constraints, gridtypes, parser
-import basiclayout
 
 import strformat
 import terminal
 
 type ColorMode* = enum
   cmNone
+  cmPlain
   cmTerminal
 
-template withStyle(fg: ForegroundColor, style: set[Style] = {}, text: string) =
-  if mode == cmTerminal:
-    stdout.styledWrite(fg, style, text)
-  else:
-    stdout.write(text)
+var prettyPrintWriteMode* = cmNone
 
-proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode = cmTerminal) =
+template withStyle(fg: ForegroundColor, style: set[Style] = {}, text: string) =
+  if prettyPrintWriteMode == cmTerminal:
+    stdout.styledWrite(fg, style, text)
+  elif prettyPrintWriteMode == cmTerminal:
+    stdout.write(text)
+  else:
+    discard
+
+template debugPrint*(args: varargs[string, `$`]) =
+  for arg in args:
+    withStyle(fgGreen, text = arg)
+  withStyle(fgGreen, text = "\n")
+
+proc prettyConstraintSize*(cs: ConstraintSize, indent = "") =
   case cs.kind
   of UiAuto:
     if cs.amin.float32 == float32.high():
-      withStyle(fgCyan, text = "auto")
+      withStyle(fgCyan, text = "cs:auto")
     else:
-      withStyle(fgCyan, text = &"auto({cs.amin.float.float:.2f})")
+      withStyle(fgCyan, text = &"cs:auto({cs.amin.float.float:.2f})")
   of UiFrac:
-    withStyle(fgMagenta, text = &"{cs.frac.float:.2f}fr")
+    withStyle(fgMagenta, text = &"cs:{cs.frac.float:.2f}fr")
   of UiPerc:
-    withStyle(fgYellow, text = &"{cs.perc.float:.2f}%")
+    withStyle(fgYellow, text = &"cs:{cs.perc.float:.2f}%")
   of UiFixed:
-    withStyle(fgGreen, text = &"{cs.coord.float:.2f}px")
+    withStyle(fgGreen, text = &"cs:{cs.coord.float:.2f}px")
   of UiContentMin:
     if cs.cmin.float32 == float32.high():
-      withStyle(fgBlue, text = "min-content")
+      withStyle(fgBlue, text = "cs:min-content")
     else:
-      withStyle(fgBlue, text = &"min-content({cs.cmin.float:.2f})")
+      withStyle(fgBlue, text = &"cs:min-content({cs.cmin.float:.2f})")
   of UiContentMax:
-    withStyle(fgBlue, text = &"max-content({cs.cmax.float:.2f})")
+    withStyle(fgBlue, text = &"cs:max-content({cs.cmax.float:.2f})")
 
-proc prettyConstraint*(c: Constraint, indent = "", mode = cmTerminal) =
+proc prettyConstraint*(c: Constraint, indent = "") =
   case c.kind
   of UiNone:
     withStyle(fgWhite, text = "none")
   of UiValue:
-    prettyConstraintSize(c.value, indent, mode)
+    prettyConstraintSize(c.value, indent)
   of UiMin:
-    stdout.write("min(")
-    prettyConstraintSize(c.lmin, "", mode)
-    stdout.write(", ")
-    prettyConstraintSize(c.rmin, "", mode)
-    stdout.write(")")
+    withStyle(fgWhite, text = "min(")
+    prettyConstraintSize(c.lmin, "")
+    withStyle(fgWhite, text = ", ")
+    prettyConstraintSize(c.rmin, "")
+    withStyle(fgWhite, text = ")")
   of UiMax:
-    stdout.write("max(")
-    prettyConstraintSize(c.lmax, "", mode)
-    stdout.write(", ")
-    prettyConstraintSize(c.rmax, "", mode)
-    stdout.write(")")
+    withStyle(fgWhite, text = "max(")
+    prettyConstraintSize(c.lmax, "")
+    withStyle(fgWhite, text = ", ")
+    prettyConstraintSize(c.rmax, "")
+    withStyle(fgWhite, text = ")")
   of UiSum:
-    stdout.write("sum(")
-    prettyConstraintSize(c.lsum, "", mode)
-    stdout.write(", ")
-    prettyConstraintSize(c.rsum, "", mode)
-    stdout.write(")")
+    withStyle(fgWhite, text = "sum(")
+    prettyConstraintSize(c.lsum, "")
+    withStyle(fgWhite, text = ", ")
+    prettyConstraintSize(c.rsum, "")
+    withStyle(fgWhite, text = ")")
   of UiMinMax:
-    stdout.write("minmax(")
-    prettyConstraintSize(c.lmm, "", mode)
-    stdout.write(", ")
-    prettyConstraintSize(c.rmm, "", mode)
-    stdout.write(")")
+    withStyle(fgWhite, text = "minmax(")
+    prettyConstraintSize(c.lmm, "")
+    withStyle(fgWhite, text = ", ")
+    prettyConstraintSize(c.rmm, "")
+    withStyle(fgWhite, text = ")")
   of UiEnd:
     withStyle(fgRed, text = "end")
 
-proc prettyGridLine*(line: GridLine, indent = "", mode = cmTerminal) =
+proc prettyGridLine*(line: GridLine, indent = "") =
   if line.track.kind != UiEnd:
     withStyle(fgWhite, {styleBright}, text = indent & "track: ")
-    prettyConstraint(line.track, "", mode)
-    # stdout.write("\n")
+    prettyConstraint(line.track, "")
+    # withStyle(fgWhite, text = "\n")
     
     if line.aliases.len > 0:
-      stdout.write(indent)
+      withStyle(fgWhite, text = indent)
       let lines = line.aliases.toSeq.join(", ")
       withStyle(fgCyan, text = &" names: [{lines}]\n")
     
@@ -94,9 +103,9 @@ proc prettyGridLine*(line: GridLine, indent = "", mode = cmTerminal) =
       withStyle(fgCyan, text = "true")
   else:
     withStyle(fgRed, text = &" [end track]\n")
-  stdout.write("\n")
+  withStyle(fgWhite, text = "\n")
 
-proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode = cmTerminal) =
+proc prettyGridTemplate*(grid: GridTemplate, indent = "") =
   if grid.isNil:
     withStyle(fgWhite, {styleBright}, text = indent & "GridTemplate: ")
     withStyle(fgRed, text = "nil\n")
@@ -108,13 +117,13 @@ proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode = cmTerminal) =
   withStyle(fgGreen, {styleBright}, text = indent & "  Columns:\n")
   for i, col in grid.lines[dcol]:
     withStyle(fgYellow, text = indent & &"    [{i+1}]:")
-    prettyGridLine(col, indent & "  ", mode)
+    prettyGridLine(col, indent & "  ")
   
   # Add rows
   withStyle(fgGreen, {styleBright}, text = indent & "  Rows:\n")
   for i, row in grid.lines[drow]:
     withStyle(fgYellow, text = indent & &"    [{i+1}]:")
-    prettyGridLine(row, indent & "  ", mode)
+    prettyGridLine(row, indent & "  ")
   
   # Add properties
   withStyle(fgMagenta, {styleBright}, text = indent & "  Properties:\n")
@@ -133,7 +142,7 @@ proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode = cmTerminal) =
       text = value & "\n"
     )
 
-proc prettyLayout*(node: GridNode, indent = "", mode = cmTerminal) =
+proc prettyLayout*(node: GridNode, indent = "") =
   # Node name
   withStyle(fgWhite, {styleBright}, text = indent & "Node: ")
   withStyle(fgGreen, text = node.name & "\n")
@@ -144,7 +153,7 @@ proc prettyLayout*(node: GridNode, indent = "", mode = cmTerminal) =
   
   # Grid template
   if not node.gridTemplate.isNil:
-    prettyGridTemplate(node.gridTemplate, indent & "  ", mode)
+    prettyGridTemplate(node.gridTemplate, indent & "  ")
   
   # Grid item
   if not node.gridItem.isNil:
@@ -166,24 +175,24 @@ proc prettyLayout*(node: GridNode, indent = "", mode = cmTerminal) =
     if constraint.kind != UiNone:
       let dir = if i == dcol: "width" else: "height"
       withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "", mode)
-      stdout.write("\n")
+      prettyConstraint(constraint, "")
+      withStyle(fgWhite, text = "\n")
   
   for i, constraint in node.cxOffset:
     if constraint.kind != UiNone:
       let dir = if i == dcol: "x" else: "y"
       withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "", mode)
-      stdout.write("\n")
+      prettyConstraint(constraint, "")
+      withStyle(fgWhite, text = "\n")
   
   # Process children
   for child in node.children:
-    prettyLayout(child, indent & "  ", mode)
+    prettyLayout(child, indent & "  ")
 
-proc printLayout*(node: GridNode, mode = cmTerminal) =
-  prettyLayout(node, "", mode)
+proc printLayout*(node: GridNode) =
+  prettyLayout(node, "")
   stdout.flushFile()
 
-proc printGrid*(grid: GridTemplate, mode = cmTerminal) =
-  prettyGridTemplate(grid, "", mode)
+proc printGrid*(grid: GridTemplate) =
+  prettyGridTemplate(grid, "")
   stdout.flushFile()

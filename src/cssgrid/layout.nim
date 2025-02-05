@@ -6,6 +6,8 @@ import basiclayout
 
 export constraints, gridtypes
 
+import prettyprints
+
 proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
@@ -140,7 +142,7 @@ proc computeLineLayout*(
             fixed += cmax
           UiAuto(amin):
             # Store the auto track's content size
-            echo "GRID FIND AMIN: ", amin
+            debugPrint "GRID FIND AMIN: ", amin
             if amin.float32 != float32.high():
               autoSizes.add(amin)
             else:
@@ -191,9 +193,9 @@ proc computeLineLayout*(
           grdLn.width = grdVal.cmin
       of UiAuto:
         # First ensure minimum content width
-        echo "UI AUTO: ", autoSizes
+        debugPrint "UI AUTO: ", autoSizes
         let autoIndex = autoSizes.find(grdVal.amin)
-        echo "UI AUTO: autoIndex: ", autoIndex
+        debugPrint "UI AUTO: autoIndex: ", autoIndex
         if autoIndex >= 0:
           let minWidth = autoSizes[autoIndex]
           # Distribute remaining space equally among auto tracks
@@ -228,6 +230,8 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = f
 
   grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
+
+  prettyGridTemplate(grid)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   assert index.isName == true
@@ -409,7 +413,6 @@ proc computeAutoFlow(
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
     parent: GridBox | GridNode,
-    children: seq[GridNode],
     extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
 
@@ -426,30 +429,35 @@ proc computeNodeLayout*(
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
   var hasAutos = true
-  for child in children:
+  for child in parent.children:
     if child.gridItem == nil:
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children
-  for child in children:
+  for child in parent.children:
     if fixedCount(child.gridItem) in 1..3:
       # child.UiBox = child.gridItem.computeUiSize(gridTemplate, child.UiBox.wh)
       assert false, "todo: implement me!"
 
   # compute UiSizes for auto flow items
   if hasAutos:
-    computeAutoFlow(gridTemplate, box, children)
+    debugPrint "computeAutoFlow: "
+    computeAutoFlow(gridTemplate, box, parent.children)
 
-  gridTemplate.computeContentSizes(children)
+  gridTemplate.computeContentSizes(parent.children)
   gridTemplate.computeTracks(box, extendOnOverflow)
 
-  for child in children:
+  debugPrint "COMPUTE BOXES: "
+  for child in parent.children:
     if fixedCount(child.gridItem) in 1..3:
       continue
+    debugPrint "COMPUTE BOXES:CHILD: "
+    prettyLayout(child)
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
+    prettyLayout(child)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
@@ -462,7 +470,7 @@ proc computeNodeLayout*(
 
 proc computeLayout*(node: GridNode, depth: int) =
   ## Computes constraints and auto-layout.
-  echo "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
+  debugPrint "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
   calcBasicConstraint(node, dcol, isXY = true)
@@ -472,7 +480,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 
   # css grid impl
   if not node.gridTemplate.isNil:
-    echo "computeLayout:gridTemplate", " name = ", node.name, " box = ", node.box.repr
+    debugPrint "computeLayout:gridTemplate", " name = ", node.name, " box = ", node.box.repr
     # compute children first, then lay them out in grid
     for n in node.children:
       computeLayout(n, depth + 1)
@@ -481,14 +489,14 @@ proc computeLayout*(node: GridNode, depth: int) =
     # adjust box to not include offset in wh
     # box.w = box.w - box.x
     # box.h = box.h - box.y
-    let res = node.gridTemplate.computeNodeLayout(box, node.children).UiBox
+    let res = node.gridTemplate.computeNodeLayout(box).UiBox
     node.box = res
 
     for n in node.children:
       for c in n.children:
         calcBasicConstraint(c, dcol, isXY = false)
         calcBasicConstraint(c, drow, isXY = false)
-    echo "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
+    debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:
       computeLayout(n, depth + 1)
@@ -499,12 +507,12 @@ proc computeLayout*(node: GridNode, depth: int) =
       calcBasicConstraintPost(n, drow, isXY = true)
       calcBasicConstraintPost(n, dcol, isXY = false)
       calcBasicConstraintPost(n, drow, isXY = false)
-      echo "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
+      debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
-  # debug "computeLayout:post: ",
+  # debugPrint "computeLayout:post: ",
   #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
 
-proc printLayout*(node: GridNode, depth = 0) =
+proc printLayoutShort*(node: GridNode, depth = 0) =
   stdout.styledWriteLine(
     " ".repeat(depth),
     {styleDim},
@@ -528,7 +536,7 @@ proc printLayout*(node: GridNode, depth = 0) =
     "]",
   )
   for c in node.children:
-    printLayout(c, depth + 2)
+    printLayoutShort(c, depth + 2)
 
-  echo "computeLayout:post: ",
+  debugPrint "computeLayout:post: ",
     " name = ", node.name, " wh = ", node.box.wh

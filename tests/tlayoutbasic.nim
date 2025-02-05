@@ -9,6 +9,7 @@ import cssgrid/basiclayout
 import cssgrid/layout
 import cssgrid/parser
 import cssgrid/layout
+import cssgrid/prettyprints
 
 import pretty
 
@@ -342,19 +343,22 @@ suite "Compute Layout Tests":
     check innerChild.box.h == 150  # 50% of grid child height
 
   test "Auto flow grid":
+    static:
+      debugBasicLayoutPrint = true
+      debugLayoutPrint = true
     let parent = newTestNode("autoflow-grid", 0, 0, 400, 300)
     var children: seq[TestNode]
     
+    # Setup grid template
+    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
+    parent.cxSize[drow] = csFixed(300)  # set fixed parent
+
     # Create 4 children
     for i in 1..4:
       let child = newTestNode("child" & $i, 0, 0, 100, 100)
       children.add(child)
       parent.addChild(child)
     
-    # Setup grid template
-    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
-    parent.cxSize[drow] = csFixed(300)  # set fixed parent
-
     # Setup grid with 2 columns
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
@@ -362,18 +366,34 @@ suite "Compute Layout Tests":
       initGridLine(csFrac(1))
     ]
     parent.gridTemplate.autoFlow = grRow
+    parent.gridTemplate.autos[drow] = cx"auto"
     
     # Don't set explicit grid positions - let autoflow handle it
     for child in children:
       child.gridItem = newGridItem()
     
     computeLayout(parent, 0)
-    printLayout(parent)
+
+    echo "\nLayout: "
+    prettyprints.printLayout(parent)
     
     # Check that children are arranged in a 2x2 grid
     check children[0].box.x < children[1].box.x  # First row
     check children[2].box.y > children[0].box.y  # Second row
     check children[2].box.x == children[0].box.x # Same column
+
+    check children[0].box.w == 200
+    check children[1].box.w == 200
+    check children[2].box.w == 200
+    check children[3].box.w == 200
+
+    check children[0].box.h == 0
+    check children[1].box.h == 0
+    check children[2].box.h == 0
+    check children[3].box.h == 0
+    static:
+      debugBasicLayoutPrint = false
+      debugLayoutPrint = false
 
   test "Grid alignment and justification":
     let parent = newTestNode("aligned-grid", 0, 0, 400, 300)
@@ -397,7 +417,7 @@ suite "Compute Layout Tests":
     
     computeLayout(parent, 0)
     
-    printLayout(parent)
+    # printLayout(parent)
 
     # Child should be centered in its 100x100 grid cell
     check child.box.x == 25  # (100 - 50) / 2

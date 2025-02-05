@@ -1,5 +1,7 @@
 import numberTypes, constraints, gridtypes
 
+import prettyprints
+
 proc calculateMinOrMaxes*(node: GridNode, fs: static string, doMax: static bool): UiScalar =
   for n in node.children:
     when fs == "w":
@@ -24,7 +26,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
-  echo "calcBasicConstraintImpl: ", "name= ", node.name
+  debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
@@ -54,7 +56,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
           res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
       res
 
-  echo "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
+  debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
     when astToStr(f) in ["w", "h"]:
       node.cxSize[dir]
@@ -81,13 +83,13 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       node.box.f = calcBasic(value)
     UiEnd:
       discard
-  echo "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
+  debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
 template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: untyped) =
   ## Computes post-layout adjustments to basic constraints
   ## This runs after the main layout pass to handle any final adjustments
   ## needed for proper positioning and sizing
-  echo "calcBasicConstraintPostImpl: ", " name = ", node.name
+  debugPrint "calcBasicConstraintPostImpl: ", " name = ", node.name
   let parentBox = node.getParentBoxOrWindows()
 
   template calcBasicPost(val: untyped): untyped =
@@ -139,7 +141,7 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
           res = node.box.f
       res
 
-  echo "POST CONTENT csValue: ", " node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
+  debugPrint "POST CONTENT csValue: ", " node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
     when astToStr(f) in ["w", "h"]:
       node.cxSize[dir]
@@ -175,7 +177,7 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
     UiEnd:
       discard
 
-  echo "calcBasicConstraintPostImpl:done: ", " name = ", node.name, " boxH = ", node.box.h
+  debugPrint "calcBasicConstraintPostImpl:done: ", " name = ", node.name, " boxH = ", node.box.h
 
 
 proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =

@@ -171,8 +171,8 @@ suite "Compute Layout Tests":
     parent.addChild(child2)
     
     # Set fixed-parent constraint
-    parent.cxSize[dcol] = csFixed(400)  # 50% of parent
-    parent.cxSize[drow] = csFixed(300)  # 50% of parent
+    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
+    parent.cxSize[drow] = csFixed(300)  # set fixed parent
 
     # Set percentage-based constraints for children
     child1.cxSize[dcol] = csPerc(50)  # 50% of parent
@@ -203,8 +203,8 @@ suite "Compute Layout Tests":
     echo "parent: cxOffset: ", repr parent.cxOffset
 
     # Setup grid template
-    parent.cxSize[dcol] = csFixed(400)  # 50% of parent
-    parent.cxSize[drow] = csFixed(300)  # 50% of parent
+    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
+    parent.cxSize[drow] = csFixed(300)  # set fixed parent
 
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[

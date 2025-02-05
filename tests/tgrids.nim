@@ -694,7 +694,7 @@ suite "grids":
 
     checks nodes[7].box == uiBox(0, 450, 50, 50)
 
-  test "compute layout manual overflow (rows)":
+  test "compute layout manual overflow rows second":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr

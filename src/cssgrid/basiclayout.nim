@@ -26,7 +26,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
-  debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
+  # debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
@@ -56,7 +56,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
           res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
       res
 
-  debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
+  # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
     when astToStr(f) in ["w", "h"]:
       node.cxSize[dir]
@@ -83,7 +83,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       node.box.f = calcBasic(value)
     UiEnd:
       discard
-  debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
+  # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
 template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: untyped) =
   ## Computes post-layout adjustments to basic constraints

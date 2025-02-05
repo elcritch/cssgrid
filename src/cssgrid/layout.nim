@@ -20,13 +20,15 @@ proc computeLineOverflow*(
           match value:
             UiFixed(coord):
               result += coord
-            UiFrac(_): discard
             UiPerc(): discard
             UiContentMax(cmax):
               result += cmax
             UiContentMin(cmin):
               if cmin.float32 != float32.high():
                 result += cmin
+            UiFrac(fmin): 
+              if fmin.float32 != float32.high():
+                result += fmin
             UiAuto(amin):
               if amin.float32 != float32.high():
                 result += amin
@@ -173,16 +175,21 @@ proc computeLineLayout*(
   fixed += spacing * UiScalar(lines.len() - 1)
 
   # Calculate minimum space needed for auto tracks
-  let totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
+  let
+    totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
+    totalFracMin = fracSizes.foldl(a + b, 0.UiScalar)
   var
-    freeSpace = max(length - fixed - totalAutoMin, 0.0.UiScalar)
+    freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
     remSpace = freeSpace
 
-  # debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
-  # debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
-  # debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
+  debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
+  debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
+  debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
 
   # Second pass: handle fractions and auto tracks
+  debugPrint "UI AUTO: ", autoSizes
+  debugPrint "UI FRAC: ", fracSizes
+
   for i, grdLn in lines.mpairs():
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
@@ -198,20 +205,26 @@ proc computeLineLayout*(
           grdLn.width = grdVal.cmin
 
       of UiFrac:
+        let fracIndex = fracSizes.find(grdVal.fmin)
         # Allocate remaining space proportionally to fractions
         if totalFracs > 0:
+          debugPrint "UI FRACE: ", "totalFracs=", totalFracs,
+                        "grdVal.frac=", grdVal.frac, "grdVal.fmin=", grdVal.fmin
           grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
           remSpace -= grdLn.width
 
       of UiAuto:
         # First ensure minimum content width
-        debugPrint "UI AUTO: ", autoSizes
         let autoIndex = autoSizes.find(grdVal.amin)
-        debugPrint "UI AUTO: autoIndex: ", autoIndex
         if autoIndex >= 0:
           let minWidth = autoSizes[autoIndex]
           # Distribute remaining space equally among auto tracks
-          let autoShare = if autoSizes.len > 0: remSpace / autoSizes.len.UiScalar else: 0.UiScalar
+          let autoShare =
+            if autoSizes.len > 0:
+              remSpace / autoSizes.len.UiScalar
+            else:
+              0.UiScalar
+          debugPrint "UI AUTO: minWidth: ", minWidth, "autoShare=", autoShare
           grdLn.width = max(minWidth, autoShare)
 
   # Final pass: calculate positions
@@ -319,7 +332,7 @@ proc computeBox*(
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
     let cvw = min(contentSize.`f`, rvw)
-    debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
+    # debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
     case `axis`:
     of CxStretch:
       result.`v` = rvw
@@ -459,26 +472,27 @@ proc computeNodeLayout*(
     debugPrint "computeAutoFlow: "
     computeAutoFlow(gridTemplate, box, parent.children)
 
-  debugPrint "GRID:PRE "
-  printGrid(gridTemplate)
+  debugPrint "COMPUTE parent layout: "
+  prettyLayout(parent)
+
   gridTemplate.computeContentSizes(parent.children)
-  debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
-  printGrid(gridTemplate)
+  # debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
+  # printGrid(gridTemplate)
   gridTemplate.computeTracks(box, extendOnOverflow)
-  debugPrint "GRID:POST TRACKS "
-  printGrid(gridTemplate)
 
   debugPrint "COMPUTE Parent: "
-  debugPrint "COMPUTE BOXES: "
   prettyLayout(parent)
+  debugPrint "COMPUTE BOXES: "
   for child in parent.children:
     if fixedCount(child.gridItem) in 1..3:
       continue
-    debugPrint "COMPUTE BOXES:CHILD: "
-    prettyLayout(child)
+    # debugPrint "COMPUTE BOXES:CHILD: "
+    # prettyLayout(child)
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
     prettyLayout(child)
+  debugPrint "COMPUTE POST: "
+  prettyLayout(parent)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]

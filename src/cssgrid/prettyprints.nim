@@ -33,9 +33,9 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "") =
     if cs.amin.float32 == float32.high():
       withStyle(fgCyan, text = "cs:auto")
     else:
-      withStyle(fgCyan, text = &"cs:auto({cs.amin.float.float:.2f})")
+      withStyle(fgCyan, text = &"cs:auto(min:{cs.amin.float.float:.2f})")
   of UiFrac:
-    withStyle(fgMagenta, text = &"cs:{cs.frac.float:.2f}fr")
+    withStyle(fgMagenta, text = &"cs:{cs.frac.float:.2f}fr (min:{cs.fmin.float:.2f})")
   of UiPerc:
     withStyle(fgYellow, text = &"cs:{cs.perc.float:.2f}%")
   of UiFixed:

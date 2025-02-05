@@ -131,8 +131,6 @@ proc computeLineLayout*(
         match value:
           UiFixed(coord):
             fixed += coord
-          UiFrac(frac):
-            totalFracs += frac
           UiPerc(perc):
             fixed += length * perc / 100
           UiContentMin(cmin):
@@ -140,6 +138,8 @@ proc computeLineLayout*(
               fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
+          UiFrac(frac):
+            totalFracs += frac
           UiAuto(amin):
             # Store the auto track's content size
             debugPrint "GRID FIND AMIN: ", $amin
@@ -165,23 +165,21 @@ proc computeLineLayout*(
   # Account for spacing between tracks
   fixed += spacing * UiScalar(lines.len() - 1)
 
-  var
-    freeSpace = max(length - fixed, 0.0.UiScalar)
-    remSpace = freeSpace
-
   # Calculate minimum space needed for auto tracks
   let totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
+  var
+    freeSpace = max(length - fixed, 0.0.UiScalar) - totalAutoMin
+    remSpace = freeSpace
+
+  debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
+  debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
+  debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
   
   # Second pass: handle fractions and auto tracks
   for i, grdLn in lines.mpairs():
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
       case grdVal.kind
-      of UiFrac:
-        # Allocate remaining space proportionally to fractions
-        if totalFracs > 0:
-          grdLn.width = freeSpace * grdVal.frac/totalFracs
-          remSpace -= grdLn.width
       of UiFixed:
         grdLn.width = grdVal.coord
       of UiPerc:
@@ -191,6 +189,13 @@ proc computeLineLayout*(
       of UiContentMin:
         if grdVal.cmin.float32 != float32.high():
           grdLn.width = grdVal.cmin
+
+      of UiFrac:
+        # Allocate remaining space proportionally to fractions
+        if totalFracs > 0:
+          grdLn.width = freeSpace * grdVal.frac/totalFracs
+          remSpace -= grdLn.width
+
       of UiAuto:
         # First ensure minimum content width
         debugPrint "UI AUTO: ", autoSizes

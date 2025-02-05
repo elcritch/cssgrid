@@ -24,7 +24,7 @@ template withStyle(fg: ForegroundColor, style: set[Style] = {}, text: string) =
 
 template debugPrint*(args: varargs[string, `$`]) =
   for arg in args:
-    withStyle(fgGreen, text = arg)
+    withStyle(fgGreen, text = " " & arg)
   withStyle(fgGreen, text = "\n")
 
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "") =

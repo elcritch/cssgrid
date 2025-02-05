@@ -343,9 +343,6 @@ suite "Compute Layout Tests":
     check innerChild.box.h == 150  # 50% of grid child height
 
   test "Auto flow grid":
-    static:
-      debugBasicLayoutPrint = true
-      debugLayoutPrint = true
     let parent = newTestNode("autoflow-grid", 0, 0, 400, 300)
     var children: seq[TestNode]
     
@@ -391,9 +388,6 @@ suite "Compute Layout Tests":
     check children[1].box.h == 0
     check children[2].box.h == 0
     check children[3].box.h == 0
-    static:
-      debugBasicLayoutPrint = false
-      debugLayoutPrint = false
 
   test "Grid alignment and justification":
     let parent = newTestNode("aligned-grid", 0, 0, 400, 300)

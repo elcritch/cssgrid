@@ -1,4 +1,5 @@
 import patty
+import std/terminal
 
 import numberTypes, constraints, gridtypes, parser
 import basiclayout
@@ -452,6 +453,32 @@ proc computeLayout*(node: GridNode, depth: int) =
 
   # debug "computeLayout:post: ",
   #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
+
+proc printLayout*(node: Figuro, depth = 0) =
+  stdout.styledWriteLine(
+    " ".repeat(depth),
+    {styleDim},
+    fgWhite,
+    "node: ",
+    resetStyle,
+    fgWhite,
+    $node.name,
+    " [xy: ",
+    fgGreen,
+    $node.box.x.float.round(2),
+    "x",
+    $node.box.y.float.round(2),
+    fgWhite,
+    "; wh:",
+    fgYellow,
+    $node.box.w.float.round(2),
+    "x",
+    $node.box.h.float.round(2),
+    fgWhite,
+    "]",
+  )
+  for c in node.children:
+    printLayout(c, depth + 2)
 
   echo "computeLayout:post: ",
     " name = ", node.name, " wh = ", node.box.wh

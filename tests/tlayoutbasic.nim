@@ -482,7 +482,7 @@ suite "Post Layout Constraint Tests":
     
     # Post processing should clamp to max
     prettyPrintWriteMode = cmTerminal
-    calcBasicConstraintPost(child, dcol, isXY = false)
+    computeLayout(parent)
     printLayout(child, cmTerminal)
 
     check child.box.w == 250

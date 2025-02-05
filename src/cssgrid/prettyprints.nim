@@ -155,7 +155,7 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   for i, constraint in node.cxSize:
     if constraint.kind != UiNone:
       let dir = if i == dcol: "W" else: "H"
-      mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+      mode.withStyle(fgWhite, {styleBright}, text = indent & &" {dir}: ")
       prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   

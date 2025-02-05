@@ -1,0 +1,46 @@
+on:
+  push:
+    branches:
+    - "main"
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        nimversion:
+          - '2.x'
+
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Cache packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nimble
+        key: ${{ runner.os }}-${{ hashFiles('cssgrid.nimble') }}
+
+    - uses: iffy/install-nim@v4
+      with:
+        version: ${{ matrix.nimversion }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install Nimble
+      run: |
+        nimble install nimble
+        nim -v
+        nimble -v
+
+    - name: Install Deps
+      run: |
+        # sync deps
+        nimble install -d --verbose
+
+    - name: Build Tests
+      run: |
+        nim test

@@ -51,7 +51,7 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind
   of UiNone:
-    mode.withStyle(fgWhite, text = "none")
+    mode.withStyle(fgBlue, text = ":none")
   of UiValue:
     prettyConstraintSize(c.value, indent, mode)
   of UiMin:
@@ -153,17 +153,15 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   
   # Constraints
   for i, constraint in node.cxSize:
-    if constraint.kind != UiNone:
-      let dir = if i == dcol: "W" else: "H"
-      mode.withStyle(fgWhite, {styleBright}, text = indent & &" {dir}: ")
-      prettyConstraint(constraint, "", mode)
+    let dir = if i == dcol: "W" else: "H"
+    mode.withStyle(fgWhite, {styleBright}, text = indent & &" {dir}: ")
+    prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   
   for i, constraint in node.cxOffset:
-    if constraint.kind != UiNone:
-      let dir = if i == dcol: "X" else: "Y"
-      mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "")
+    let dir = if i == dcol: "X" else: "Y"
+    mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+    prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   
   # Grid template

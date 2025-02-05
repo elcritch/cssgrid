@@ -179,7 +179,7 @@ proc computeLineLayout*(
     totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
     totalFracMin = fracSizes.foldl(a + b, 0.UiScalar)
   var
-    freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
+    freeSpace = max(length - fixed - totalAutoMin, 0.0.UiScalar)
     remSpace = freeSpace
 
   debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed

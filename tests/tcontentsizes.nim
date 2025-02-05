@@ -71,6 +71,7 @@ suite "Nested Content Size Tests":
       
       computeLayout(parent, 0)
       
+      printLayout(parent)
       # Auto track should be at least as wide as the fixed grandchild
       check autoChild.box.w >= 150
       check autoChild.box.h >= 80

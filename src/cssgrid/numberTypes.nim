@@ -1,6 +1,6 @@
 import std/[strformat, sequtils, strutils, hashes, sets, tables]
 
-import patty
+import pkg/patty
 export patty
 
 import vmath, bumpy, math

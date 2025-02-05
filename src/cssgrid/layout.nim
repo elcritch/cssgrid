@@ -1,8 +1,12 @@
 import patty
+import std/terminal
 
 import numberTypes, constraints, gridtypes, parser
+import basiclayout
 
 export constraints, gridtypes
+
+import prettyprints
 
 proc computeLineOverflow*(
     lines: var seq[GridLine],
@@ -16,46 +20,20 @@ proc computeLineOverflow*(
           match value:
             UiFixed(coord):
               result += coord
-            UiFrac(_): discard
             UiPerc(): discard
             UiContentMax(cmax):
               result += cmax
             UiContentMin(cmin):
               if cmin.float32 != float32.high():
                 result += cmin
+            UiFrac(fr, fmin): 
+              if fmin.float32 != float32.high():
+                result += fmin
             UiAuto(amin):
               if amin.float32 != float32.high():
                 result += amin
         _: discard
-
-proc computeContentSizes*(grid: GridTemplate,
-                          children: seq[GridNode]) =
-  ## computes content min / max for each grid track based on children
-  ## 
-  ## only includes children which only span a single track
-  ## for the current dimension
-  ## 
-  var contentSized: array[GridDir, set[int16]]
-  for dir in [dcol, drow]:
-    for i in 0 ..< grid.lines[dir].len():
-      if isContentSized(grid.lines[dir][i].track):
-        contentSized[dir].incl(i.int16)
-
-  for child in children:
-    let cspan = child.gridItem.span
-    for dir in [dcol, drow]:
-      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
-        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
-        let csize = if dir == dcol: UiBox(child.box).w
-                    else: UiBox(child.box).h
-        if track().value.kind == UiAuto:
-          track().value.amin = min(csize, track().value.amin)
-        elif track().value.kind == UiContentMin:
-          track().value.cmin = min(csize, track().value.cmin)
-        elif track().value.kind == UiContentMax:
-          track().value.cmax = max(csize, track().value.cmax)
-        else:
-          assert false, "shouldn't reach here " & $track().value.kind
+  debugPrint "computeLineOverflow: ", result
 
 proc computeLineLayout*(
     lines: var seq[GridLine],
@@ -65,7 +43,8 @@ proc computeLineLayout*(
   var
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
-    totalAutos = 0
+    autoSizes: seq[UiScalar] = @[]
+    fracSizes: seq[UiScalar] = @[]
     isUndefined = false
 
   # browser css grids:
@@ -84,71 +63,101 @@ proc computeLineLayout*(
         match value:
           UiFixed(coord):
             fixed += coord
-          UiFrac(frac):
-            totalFracs += frac
-          UiPerc(): discard
+          UiPerc(perc):
+            fixed += length * perc / 100
           UiContentMin(cmin):
             if cmin.float32 != float32.high():
               fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
-          UiAuto():
-            totalAutos += 1
+          UiFrac(frac, fmin):
+            debugPrint "GRID FIND FMIN: ", $fmin
+            totalFracs += frac
+            if fmin.float32 != float32.high():
+              fracSizes.add(fmin)
+            else:
+              fracSizes.add(0.UiScalar)
+          UiAuto(amin):
+            # Store the auto track's content size
+            debugPrint "GRID FIND AMIN: ", $amin
+            if amin.float32 != float32.high():
+              autoSizes.add(amin)
+            else:
+              autoSizes.add(0.UiScalar)
       UiEnd():
         discard
       UiMin(lmin, rmin):
         if lmin.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
       UiMax(lmax, rmax):
         if lmax.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
       UiSum(lsum, rsum):
         if lsum.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
       UiMinMax(lmm, rmm):
         if lmm.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
+
+  # Account for spacing between tracks
   fixed += spacing * UiScalar(lines.len() - 1)
 
+  # Calculate minimum space needed for auto tracks
+  let
+    totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
+    totalFracMin = fracSizes.foldl(a + b, 0.UiScalar)
   var
-    freeSpace = max(length - fixed, 0.0.UiScalar)
-    remSpace = max(freeSpace, 0.UiScalar)
-  
-  # frac's
-  # 1'fr 1'fr min(1'fr, 10em)
-  for grdLn in lines.mitems():
+    freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
+    remSpace = freeSpace
+
+  debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
+  debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
+  debugPrint "computeLineLayout:autoSizes", "fracSizes=", fracSizes, "totalFracMin=", totalFracMin
+  debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
+
+  # Second pass: handle fractions and auto tracks
+  debugPrint "UI AUTO: ", autoSizes
+  debugPrint "UI FRAC: ", fracSizes
+
+  for i, grdLn in lines.mpairs():
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
-      if grdVal.kind == UiFrac:
-        grdLn.width = freeSpace * grdVal.frac/totalFracs
-        remSpace -= max(grdLn.width, 0.UiScalar)
-      elif grdVal.kind == UiFixed:
+      case grdVal.kind
+      of UiFixed:
         grdLn.width = grdVal.coord
-      elif grdVal.kind == UiPerc:
+      of UiPerc:
         grdLn.width = length * grdVal.perc / 100
-        remSpace -= max(grdLn.width, 0.UiScalar)
-      elif grdVal.kind == UiContentMax:
+      of UiContentMax:
         grdLn.width = grdVal.cmax
-      elif grdVal.kind == UiContentMin:
+      of UiContentMin:
         if grdVal.cmin.float32 != float32.high():
           grdLn.width = grdVal.cmin
-      elif grdVal.kind == UiAuto:
-        if grdVal.amin.float32 != float32.high():
-          grdLn.width = grdVal.amin
-  
-  # auto's
-  for grdLn in lines.mitems():
-    if grdLn.track.isAuto:
-      grdLn.width = remSpace / totalAutos.UiScalar
 
+      of UiFrac:
+        let fracIndex = fracSizes.find(grdVal.fmin)
+        # Allocate remaining space proportionally to fractions
+        if totalFracs > 0:
+          debugPrint "UI FRAC: ", "totalFracs=", totalFracs,
+                        "grdVal.frac=", grdVal.frac, "grdVal.fmin=", grdVal.fmin
+          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
+          # grdLn.width = freeSpace * grdVal.frac/totalFracs
+          remSpace -= grdLn.width
+
+      of UiAuto:
+        # First ensure minimum content width
+        let autoIndex = autoSizes.find(grdVal.amin)
+        if autoIndex >= 0:
+          let minWidth = autoSizes[autoIndex]
+          # Distribute remaining space equally among auto tracks
+          let autoShare =
+            if autoSizes.len > 0:
+              remSpace / autoSizes.len.UiScalar
+            else:
+              0.UiScalar
+          debugPrint "UI AUTO: minWidth: ", minWidth, "autoShare=", autoShare
+          grdLn.width = max(minWidth, autoShare)
+
+  # Final pass: calculate positions
   var cursor = 0.0.UiScalar
   for grdLn in lines.mitems():
     grdLn.start = cursor
@@ -176,6 +185,8 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = f
 
   grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
   grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
+
+  prettyGridTemplate(grid)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   assert index.isName == true
@@ -251,6 +262,7 @@ proc computeBox*(
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
     let cvw = min(contentSize.`f`, rvw)
+    debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
     case `axis`:
     of CxStretch:
       result.`v` = rvw
@@ -354,10 +366,42 @@ proc computeAutoFlow(
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
+proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
+  ## Computes content min/max for each grid track based on children
+  ## including nested children for auto tracks
+  var contentSized: array[GridDir, set[int16]]
+  for dir in [dcol, drow]:
+    for i in 0 ..< grid.lines[dir].len():
+      if isContentSized(grid.lines[dir][i].track):
+        contentSized[dir].incl(i.int16)
+
+  # Process each child and track
+  for child in children:
+    let cspan = child.gridItem.span
+    for dir in [dcol, drow]:
+      debugPrint "calculateContentSize:", child.name
+      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
+        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
+        
+        # Calculate size recursively including all nested children
+        let contentSize = calculateContentSize(child, dir)
+        debugPrint "calculateContentSize:", child.name, "contentSize=", contentSize, "track().value=", track().value
+        
+        # Update track size based on content
+        if track().value.kind == UiAuto:
+          track().value.amin = contentSize
+        elif track().value.kind == UiFrac:
+          track().value.fmin = contentSize
+        elif track().value.kind == UiContentMin:
+          track().value.cmin = min(contentSize, track().value.cmin)
+        elif track().value.kind == UiContentMax:
+          track().value.cmax = max(contentSize, track().value.cmax)
+        else:
+          assert false, "shouldn't reach here " & $track().value.kind
+
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
-    parent: GridBox | GridNode,
-    children: seq[GridNode],
+    parent: GridNode,
     extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
 
@@ -374,30 +418,46 @@ proc computeNodeLayout*(
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
   var hasAutos = true
-  for child in children:
+  for child in parent.children:
     if child.gridItem == nil:
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children
-  for child in children:
+  for child in parent.children:
     if fixedCount(child.gridItem) in 1..3:
       # child.UiBox = child.gridItem.computeUiSize(gridTemplate, child.UiBox.wh)
       assert false, "todo: implement me!"
 
   # compute UiSizes for auto flow items
   if hasAutos:
-    computeAutoFlow(gridTemplate, box, children)
+    debugPrint "computeAutoFlow: "
+    computeAutoFlow(gridTemplate, box, parent.children)
 
-  gridTemplate.computeContentSizes(children)
+  debugPrint "COMPUTE parent layout: "
+  prettyLayout(parent)
+
+  gridTemplate.computeContentSizes(parent.children)
+  debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
+  printGrid(gridTemplate)
   gridTemplate.computeTracks(box, extendOnOverflow)
+  debugPrint "GRID:ComputedTracks: "
+  printGrid(gridTemplate)
 
-  for child in children:
+  debugPrint "COMPUTE Parent: "
+  prettyLayout(parent)
+  debugPrint "COMPUTE BOXES: "
+  for child in parent.children:
     if fixedCount(child.gridItem) in 1..3:
       continue
+    # debugPrint "COMPUTE BOXES:CHILD: "
+    # prettyLayout(child)
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
+    prettyLayout(child)
+  debugPrint "COMPUTE POST: "
+  prettyLayout(parent)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
@@ -407,3 +467,76 @@ proc computeNodeLayout*(
                 max(box.w.float, gridTemplate.lines[dcol][^1].start.float),
                 max(box.h.float, gridTemplate.lines[drow][^1].start.float),
               ))
+
+proc computeLayout*(node: GridNode, depth: int) =
+  ## Computes constraints and auto-layout.
+  debugPrint "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
+
+  # # simple constraints
+  calcBasicConstraint(node, dcol, isXY = true)
+  calcBasicConstraint(node, drow, isXY = true)
+  calcBasicConstraint(node, dcol, isXY = false)
+  calcBasicConstraint(node, drow, isXY = false)
+
+  # css grid impl
+  if not node.gridTemplate.isNil:
+    debugPrint "computeLayout:gridTemplate", " name = ", node.name, " box = ", node.box.repr
+    # compute children first, then lay them out in grid
+    for n in node.children:
+      computeLayout(n, depth + 1)
+
+    var box = node.box
+    # adjust box to not include offset in wh
+    # box.w = box.w - box.x
+    # box.h = box.h - box.y
+    let res = node.gridTemplate.computeNodeLayout(node).UiBox
+    node.box = res
+
+    for n in node.children:
+      for c in n.children:
+        calcBasicConstraint(c, dcol, isXY = false)
+        calcBasicConstraint(c, drow, isXY = false)
+    debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
+  else:
+    for n in node.children:
+      computeLayout(n, depth + 1)
+
+    # update childrens
+    for n in node.children:
+      calcBasicConstraintPost(n, dcol, isXY = true)
+      calcBasicConstraintPost(n, drow, isXY = true)
+      calcBasicConstraintPost(n, dcol, isXY = false)
+      calcBasicConstraintPost(n, drow, isXY = false)
+      debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
+
+  # debugPrint "computeLayout:post: ",
+  #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
+
+proc printLayoutShort*(node: GridNode, depth = 0) =
+  stdout.styledWriteLine(
+    " ".repeat(depth),
+    {styleDim},
+    fgWhite,
+    "node: ",
+    resetStyle,
+    fgWhite,
+    $node.name,
+    " [xy: ",
+    fgGreen,
+    $node.box.x.float.round(2),
+    "x",
+    $node.box.y.float.round(2),
+    fgWhite,
+    "; wh:",
+    fgYellow,
+    $node.box.w.float.round(2),
+    "x",
+    $node.box.h.float.round(2),
+    fgWhite,
+    "]",
+  )
+  for c in node.children:
+    printLayoutShort(c, depth + 2)
+
+  debugPrint "computeLayout:post: ",
+    " name = ", node.name, " wh = ", node.box.wh

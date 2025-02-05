@@ -182,7 +182,6 @@ suite "Compute Layout Tests":
     child2.cxSize[drow] = csPerc(40)  # 40% of parent
     
     computeLayout(parent, 0)
-    printLayout(parent)
     
     check child1.box.w == 200  # 50% of 400
     check child1.box.h == 90   # 30% of 300
@@ -197,11 +196,6 @@ suite "Compute Layout Tests":
     parent.addChild(child1)
     parent.addChild(child2)
     
-    printLayout(parent)
-    echo "parent: frame: ", repr parent.frame
-    echo "parent: cxSize: ", repr parent.cxSize
-    echo "parent: cxOffset: ", repr parent.cxOffset
-
     # Setup grid template
     parent.cxSize[dcol] = csFixed(400)  # set fixed parent
     parent.cxSize[drow] = csFixed(300)  # set fixed parent
@@ -244,8 +238,6 @@ suite "Compute Layout Tests":
     parent.addChild(child3)
     child3.addChild(child31)
     
-    printLayout(parent)
-
     # Setup grid with fixed, fractional and auto tracks
     parent.cxSize[dcol] = csFixed(400)  # set fixed parent
     parent.cxSize[drow] = csFixed(300)  # set fixed parent
@@ -278,12 +270,8 @@ suite "Compute Layout Tests":
     
     # Set minimum content size for auto child
     # child3.box.w = 100  # This should be respected as minimum width
-    printLayout(parent)
-
     computeLayout(parent, 0)
     
-    printLayout(parent)
-
     check child1.box.w == 100  # Fixed width
     check child2.box.w > 100   # Should get remaining space
     check child3.box.w > 0     # Should get minimum required space
@@ -404,6 +392,8 @@ suite "Compute Layout Tests":
     
     computeLayout(parent, 0)
     
+    printLayout(parent)
+
     # Child should be centered in its 100x100 grid cell
     check child.box.x == 25  # (100 - 50) / 2
     check child.box.y == 25  # (100 - 50) / 2

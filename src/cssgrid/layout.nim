@@ -26,13 +26,16 @@ proc computeLineOverflow*(
             UiContentMin(cmin):
               if cmin.float32 != float32.high():
                 result += cmin
-            UiFrac(fmin): 
+            UiFrac(fr, fmin): 
+              debugPrint "computeLineOverflow: ", "fmin=", fmin
               if fmin.float32 != float32.high():
                 result += fmin
             UiAuto(amin):
+              debugPrint "computeLineOverflow: ", "amin=", amin
               if amin.float32 != float32.high():
                 result += amin
         _: discard
+  debugPrint "computeLineOverflow: ", result
 
 proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
   ## Recursively calculates the content size for a node by examining its children
@@ -179,7 +182,7 @@ proc computeLineLayout*(
     totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
     totalFracMin = fracSizes.foldl(a + b, 0.UiScalar)
   var
-    freeSpace = max(length - fixed - totalAutoMin, 0.0.UiScalar)
+    freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
     remSpace = freeSpace
 
   debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
@@ -210,7 +213,8 @@ proc computeLineLayout*(
         if totalFracs > 0:
           debugPrint "UI FRACE: ", "totalFracs=", totalFracs,
                         "grdVal.frac=", grdVal.frac, "grdVal.fmin=", grdVal.fmin
-          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
+          # grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
+          grdLn.width = freeSpace * grdVal.frac/totalFracs
           remSpace -= grdLn.width
 
       of UiAuto:
@@ -332,7 +336,7 @@ proc computeBox*(
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
     let cvw = min(contentSize.`f`, rvw)
-    # debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
+    debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
     case `axis`:
     of CxStretch:
       result.`v` = rvw

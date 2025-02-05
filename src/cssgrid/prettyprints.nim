@@ -24,7 +24,7 @@ template withStyle(fg: ForegroundColor, style: set[Style] = {}, text: string) =
 
 template debugPrint*(args: varargs[string, `$`]) =
   for arg in args:
-    withStyle(fgGreen, text = " " & arg)
+    withStyle(fgGreen, text = arg & " ")
   withStyle(fgGreen, text = "\n")
 
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "") =
@@ -151,6 +151,21 @@ proc prettyLayout*(node: GridNode, indent = "") =
   withStyle(fgWhite, {styleBright}, text = indent & "  box: ")
   withStyle(fgYellow, text = &"[x: {node.box.x.float:.2f}, y: {node.box.y.float:.2f}, w: {node.box.w.float:.2f}, h: {node.box.h.float:.2f}]\n")
   
+  # Constraints
+  for i, constraint in node.cxSize:
+    if constraint.kind != UiNone:
+      let dir = if i == dcol: "width" else: "height"
+      withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+      prettyConstraint(constraint, "")
+  withStyle(fgWhite, text = "\n")
+  
+  for i, constraint in node.cxOffset:
+    if constraint.kind != UiNone:
+      let dir = if i == dcol: "x" else: "y"
+      withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+      prettyConstraint(constraint, "")
+  withStyle(fgWhite, text = "\n")
+  
   # Grid template
   if not node.gridTemplate.isNil:
     prettyGridTemplate(node.gridTemplate, indent & "  ")
@@ -169,21 +184,6 @@ proc prettyLayout*(node: GridNode, indent = "") =
     if node.gridItem.align.isSome:
       withStyle(fgWhite, {styleBright}, text = indent & "    align: ")
       withStyle(fgCyan, text = $node.gridItem.align.get & "\n")
-  
-  # Constraints
-  for i, constraint in node.cxSize:
-    if constraint.kind != UiNone:
-      let dir = if i == dcol: "width" else: "height"
-      withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "")
-      withStyle(fgWhite, text = "\n")
-  
-  for i, constraint in node.cxOffset:
-    if constraint.kind != UiNone:
-      let dir = if i == dcol: "x" else: "y"
-      withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "")
-      withStyle(fgWhite, text = "\n")
   
   # Process children
   for child in node.children:

@@ -695,6 +695,9 @@ suite "grids":
     checks nodes[7].box == uiBox(0, 450, 50, 50)
 
   test "compute layout manual overflow rows second":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -711,7 +714,7 @@ suite "grids":
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i),
-                          box: uiBox(0,0,200,200),
+                          box: uiBox(0,0,50,50),
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)

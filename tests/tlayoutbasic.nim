@@ -237,16 +237,21 @@ suite "Compute Layout Tests":
     let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
     let child2 = newTestNode("frac-child", 0, 0, 100, 100)
     let child3 = newTestNode("auto-child", 0, 0, 100, 100)
+    let child31 = newTestNode("auto-grandchild", 0, 0, 50, 50)
     
     parent.addChild(child1)
     parent.addChild(child2)
     parent.addChild(child3)
+    child3.addChild(child31)
     
     printLayout(parent)
 
     # Setup grid with fixed, fractional and auto tracks
     parent.cxSize[dcol] = csFixed(400)  # set fixed parent
     parent.cxSize[drow] = csFixed(300)  # set fixed parent
+
+    child31.cxSize[dcol] = csFixed(50)  # set fixed parent
+    child31.cxSize[drow] = csFixed(50)  # set fixed parent
 
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
@@ -272,7 +277,7 @@ suite "Compute Layout Tests":
     child3.gridItem.row = 1
     
     # Set minimum content size for auto child
-    child3.box.w = 100  # This should be respected as minimum width
+    # child3.box.w = 100  # This should be respected as minimum width
     printLayout(parent)
 
     computeLayout(parent, 0)

@@ -30,32 +30,75 @@ proc computeLineOverflow*(
                 result += amin
         _: discard
 
-proc computeContentSizes*(grid: GridTemplate,
-                          children: seq[GridNode]) =
-  ## computes content min / max for each grid track based on children
-  ## 
-  ## only includes children which only span a single track
-  ## for the current dimension
-  ## 
+proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
+  ## Recursively calculates the content size for a node by examining its children
+  var maxSize = 0.UiScalar
+  
+  # First check the node's own size constraints
+  if dir == dcol:
+    match node.cxSize[dcol]:
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            maxSize = max(maxSize, coord)
+          UiContentMin(cmin):
+            if cmin.float32 != float32.high():
+              maxSize = max(maxSize, cmin)
+          UiAuto(_):
+            maxSize = max(maxSize, node.box.w)
+          _: discard
+      _: discard
+  else:
+    match node.cxSize[drow]:
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            maxSize = max(maxSize, coord)
+          UiContentMin(cmin):
+            if cmin.float32 != float32.high():
+              maxSize = max(maxSize, cmin)
+          UiAuto(_):
+            maxSize = max(maxSize, node.box.h)
+          _: discard
+      _: discard
+
+  # Then recursively check all children
+  for child in node.children:
+    let childSize = calculateContentSize(child, dir)
+    maxSize = max(maxSize, childSize)
+    
+    # Add any additional space needed for grid gaps if parent has grid
+    if not node.gridTemplate.isNil and node.children.len > 1:
+      maxSize += node.gridTemplate.gaps[dir]
+
+  return maxSize
+
+proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
+  ## Computes content min/max for each grid track based on children
+  ## including nested children for auto tracks
   var contentSized: array[GridDir, set[int16]]
   for dir in [dcol, drow]:
     for i in 0 ..< grid.lines[dir].len():
       if isContentSized(grid.lines[dir][i].track):
         contentSized[dir].incl(i.int16)
 
+  # Process each child and track
   for child in children:
     let cspan = child.gridItem.span
     for dir in [dcol, drow]:
       if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
         template track(): auto = grid.lines[dir][cspan[dir].a-1].track
-        let csize = if dir == dcol: UiBox(child.box).w
-                    else: UiBox(child.box).h
+        
+        # Calculate size recursively including all nested children
+        let contentSize = calculateContentSize(child, dir)
+        
+        # Update track size based on content
         if track().value.kind == UiAuto:
-          track().value.amin = min(csize, track().value.amin)
+          track().value.amin = contentSize
         elif track().value.kind == UiContentMin:
-          track().value.cmin = min(csize, track().value.cmin)
+          track().value.cmin = min(contentSize, track().value.cmin)
         elif track().value.kind == UiContentMax:
-          track().value.cmax = max(csize, track().value.cmax)
+          track().value.cmax = max(contentSize, track().value.cmax)
         else:
           assert false, "shouldn't reach here " & $track().value.kind
 
@@ -95,10 +138,11 @@ proc computeLineLayout*(
               fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
-          UiAuto(_):
+          UiAuto(amin):
             # Store the auto track's content size
-            if value.amin.float32 != float32.high():
-              autoSizes.add(value.amin)
+            echo "GRID FIND AMIN: ", amin
+            if amin.float32 != float32.high():
+              autoSizes.add(amin)
             else:
               autoSizes.add(0.UiScalar)
       UiEnd():
@@ -147,7 +191,9 @@ proc computeLineLayout*(
           grdLn.width = grdVal.cmin
       of UiAuto:
         # First ensure minimum content width
+        echo "UI AUTO: ", autoSizes
         let autoIndex = autoSizes.find(grdVal.amin)
+        echo "UI AUTO: autoIndex: ", autoIndex
         if autoIndex >= 0:
           let minWidth = autoSizes[autoIndex]
           # Distribute remaining space equally among auto tracks

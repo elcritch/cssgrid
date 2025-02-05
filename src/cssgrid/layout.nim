@@ -27,11 +27,9 @@ proc computeLineOverflow*(
               if cmin.float32 != float32.high():
                 result += cmin
             UiFrac(fr, fmin): 
-              debugPrint "computeLineOverflow: ", "fmin=", fmin
               if fmin.float32 != float32.high():
                 result += fmin
             UiAuto(amin):
-              debugPrint "computeLineOverflow: ", "amin=", amin
               if amin.float32 != float32.high():
                 result += amin
         _: discard
@@ -53,6 +51,8 @@ proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
               maxSize = max(maxSize, cmin)
           UiAuto(_):
             maxSize = max(maxSize, node.box.w)
+          UiFrac(_, _):
+            maxSize = max(maxSize, node.box.w)
           _: discard
       _: discard
   else:
@@ -65,6 +65,8 @@ proc calculateContentSize(node: GridNode, dir: GridDir): UiScalar =
             if cmin.float32 != float32.high():
               maxSize = max(maxSize, cmin)
           UiAuto(_):
+            maxSize = max(maxSize, node.box.h)
+          UiFrac(_, _):
             maxSize = max(maxSize, node.box.h)
           _: discard
       _: discard
@@ -147,6 +149,7 @@ proc computeLineLayout*(
           UiContentMax(cmax):
             fixed += cmax
           UiFrac(frac, fmin):
+            debugPrint "GRID FIND FMIN: ", $fmin
             totalFracs += frac
             if fmin.float32 != float32.high():
               fracSizes.add(fmin)
@@ -187,6 +190,7 @@ proc computeLineLayout*(
 
   debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
   debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
+  debugPrint "computeLineLayout:autoSizes", "fracSizes=", fracSizes, "totalFracMin=", totalFracMin
   debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
 
   # Second pass: handle fractions and auto tracks
@@ -211,10 +215,10 @@ proc computeLineLayout*(
         let fracIndex = fracSizes.find(grdVal.fmin)
         # Allocate remaining space proportionally to fractions
         if totalFracs > 0:
-          debugPrint "UI FRACE: ", "totalFracs=", totalFracs,
+          debugPrint "UI FRAC: ", "totalFracs=", totalFracs,
                         "grdVal.frac=", grdVal.frac, "grdVal.fmin=", grdVal.fmin
-          # grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
-          grdLn.width = freeSpace * grdVal.frac/totalFracs
+          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
+          # grdLn.width = freeSpace * grdVal.frac/totalFracs
           remSpace -= grdLn.width
 
       of UiAuto:

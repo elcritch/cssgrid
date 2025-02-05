@@ -695,8 +695,8 @@ suite "grids":
     checks nodes[7].box == uiBox(0, 450, 50, 50)
 
   test "compute layout manual overflow rows second":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 

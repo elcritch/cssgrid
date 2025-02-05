@@ -234,11 +234,13 @@ suite "Compute Layout Tests":
     let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
     let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
     let child2 = newTestNode("frac-child", 0, 0, 100, 100)
+    let child21 = newTestNode("frac-grandchild", 0, 0, 50, 50)
     let child3 = newTestNode("auto-child", 0, 0, 100, 100)
     let child31 = newTestNode("auto-grandchild", 0, 0, 50, 50)
     
     parent.addChild(child1)
     parent.addChild(child2)
+    child2.addChild(child21)
     parent.addChild(child3)
     child3.addChild(child31)
     
@@ -246,6 +248,8 @@ suite "Compute Layout Tests":
     parent.cxSize[dcol] = csFixed(400)  # set fixed parent
     parent.cxSize[drow] = csFixed(300)  # set fixed parent
 
+    child21.cxSize[dcol] = csFixed(50)  # set fixed parent
+    child21.cxSize[drow] = csFixed(50)  # set fixed parent
     child31.cxSize[dcol] = csFixed(50)  # set fixed parent
     child31.cxSize[drow] = csFixed(50)  # set fixed parent
 

@@ -466,25 +466,31 @@ suite "Post Layout Constraint Tests":
     check child.box.h == 250
 
   test "Post-process MinMax constraints":
-    let node = newTestNode("test", 0, 0, 300, 200)
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 50, 50, 200, 150)
+    parent.addChild(child)
+    
+    # Setup grid
+    parent.gridTemplate = newGridTemplate()
+    child.cxSize = [csAuto(), csAuto()]
     
     # Set min/max constraints
-    node.cxSize[dcol] = csMinMax(csFixed(100), csFixed(250))
+    child.cxSize[dcol] = csMinMax(csFixed(100), csFixed(250))
     
     # Initial layout might set a size outside bounds
-    node.box.w = 400  # Intentionally set larger than max
+    child.box.w = 400  # Intentionally set larger than max
     
     # Post processing should clamp to max
     prettyPrintWriteMode = cmTerminal
-    calcBasicConstraintPost(node, dcol, isXY = false)
-    printLayout(node, cmTerminal)
+    calcBasicConstraintPost(child, dcol, isXY = false)
+    printLayout(child, cmTerminal)
 
-    check node.box.w == 250
+    check child.box.w == 250
     
     # Test min bound
-    node.box.w = 50  # Intentionally set smaller than min
-    calcBasicConstraintPost(node, dcol, isXY = false)
-    check node.box.w == 100
+    child.box.w = 50  # Intentionally set smaller than min
+    calcBasicConstraintPost(child, dcol, isXY = false)
+    check child.box.w == 100
 
   test "Post-process fractional sizing":
     let parent = newTestNode("parent", 0, 0, 400, 300)

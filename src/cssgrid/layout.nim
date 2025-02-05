@@ -1,6 +1,7 @@
 import patty
 
 import numberTypes, constraints, gridtypes, parser
+import basiclayout
 
 export constraints, gridtypes
 
@@ -407,3 +408,50 @@ proc computeNodeLayout*(
                 max(box.w.float, gridTemplate.lines[dcol][^1].start.float),
                 max(box.h.float, gridTemplate.lines[drow][^1].start.float),
               ))
+
+proc computeLayout*(node: GridNode, depth: int) =
+  ## Computes constraints and auto-layout.
+  echo "computeLayout", name = node.name, box = node.box.wh.repr
+
+  # # simple constraints
+  calcBasicConstraint(node, dcol, isXY = true)
+  calcBasicConstraint(node, drow, isXY = true)
+  calcBasicConstraint(node, dcol, isXY = false)
+  calcBasicConstraint(node, drow, isXY = false)
+
+  # css grid impl
+  if not node.gridTemplate.isNil:
+    echo "computeLayout:gridTemplate", name = node.name, box = node.box.repr
+    # compute children first, then lay them out in grid
+    for n in node.children:
+      computeLayout(n, depth + 1)
+
+    var box = node.box
+    # adjust box to not include offset in wh
+    # box.w = box.w - box.x
+    # box.h = box.h - box.y
+    let res = node.gridTemplate.computeNodeLayout(box, node.children).Box
+    node.box = res
+
+    for n in node.children:
+      for c in n.children:
+        calcBasicConstraint(c, dcol, isXY = false)
+        calcBasicConstraint(c, drow, isXY = false)
+    echo "computeLayout:gridTemplate:post", name = node.name, box = node.box.wh.repr
+  else:
+    for n in node.children:
+      computeLayout(n, depth + 1)
+
+    # update childrens
+    for n in node.children:
+      calcBasicConstraintPost(n, dcol, isXY = true)
+      calcBasicConstraintPost(n, drow, isXY = true)
+      calcBasicConstraintPost(n, dcol, isXY = false)
+      calcBasicConstraintPost(n, drow, isXY = false)
+      echo "calcBasicConstraintPost: ", n = n.name, w = n.box.w, h = n.box.h
+
+  # debug "computeLayout:post: ",
+  #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
+
+  echo "computeLayout:post: ",
+    name = node.name, wh = node.box.wh, prevSize = node.prevSize

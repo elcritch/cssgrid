@@ -447,21 +447,27 @@ suite "Post Layout Constraint Tests":
     let child = newTestNode("child", 50, 50, 200, 150)
     parent.addChild(child)
     
+    parent.cxOffset = [csFixed(400), csFixed(300)]
+
     # Setup grid
     parent.gridTemplate = newGridTemplate()
-    child.cxSize[dcol] = csAuto()
-    child.cxSize[drow] = csAuto()
+    child.cxSize = [csAuto(), csAuto()]
     
     # Initial layout
     calcBasicConstraint(child, dcol, isXY = false)
     calcBasicConstraint(child, drow, isXY = false)
+    printLayout(parent, cmTerminal)
     
     # Post processing should preserve grid sizes
     calcBasicConstraintPost(child, dcol, isXY = false)
     calcBasicConstraintPost(child, drow, isXY = false)
     
-    check child.box.w == 200
-    check child.box.h == 150
+    printLayout(parent, cmTerminal)
+
+    check child.box.x == 50
+    check child.box.y == 50
+    check child.box.w == 350
+    check child.box.h == 250
     prettyPrintWriteMode = cmNone
 
   test "Post-process MinMax constraints":

@@ -83,6 +83,60 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       discard
   echo "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
+template calcBasicConstraintPostImpl(node: Figuro, dir: static GridDir, f: untyped) =
+  ## computes basic constraints for box'es when set
+  ## this let's the use do things like set 90'pp (90 percent)
+  ## of the box width post css grid or auto constraints layout
+  trace "calcBasicConstraintPostImpl: ", name = node.name, boxH= node.box.h
+  let parentBox =
+    if node.parent.isNil:
+      node.frame[].windowSize
+    else:
+      node.parent[].box
+  template calcBasic(val: untyped): untyped =
+    block:
+      var res: UICoord
+      match val:
+        UiContentMin(cmins):
+          res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
+        UiContentMax(cmaxs):
+          res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
+          trace "CONTENT MAX: ", node = node.name, res = res, d = repr(dir), children = node.children.mapIt((it.name, it.box.w, it.box.h))
+        _:
+          res = node.box.f
+      res
+
+  let csValue =
+    when astToStr(f) in ["w", "h"]:
+      node.cxSize[dir]
+    else:
+      node.cxOffset[dir]
+  
+  trace "CONTENT csValue: ", node = node.name, d = repr(dir), w = node.box.w, h = node.box.h
+  match csValue:
+    UiNone:
+      discard
+    UiSum(ls, rs):
+      let lv = ls.calcBasic()
+      let rv = rs.calcBasic()
+      node.box.f = lv + rv
+    UiMin(ls, rs):
+      let lv = ls.calcBasic()
+      let rv = rs.calcBasic()
+      node.box.f = min(lv, rv)
+    UiMax(ls, rs):
+      let lv = ls.calcBasic()
+      let rv = rs.calcBasic()
+      node.box.f = max(lv, rv)
+    UiMinMax(ls, rs):
+      discard
+    UiValue(value):
+      node.box.f = calcBasic(value)
+    UiEnd:
+      discard
+  trace "CONTENT csValue:POST ", node = node.name, w = node.box.w, h = node.box.h
+
+
 proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   when isXY == true and dir == dcol:

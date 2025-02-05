@@ -411,7 +411,7 @@ proc computeNodeLayout*(
 
 proc computeLayout*(node: GridNode, depth: int) =
   ## Computes constraints and auto-layout.
-  echo "computeLayout", name = node.name, box = node.box.wh.repr
+  echo "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
   calcBasicConstraint(node, dcol, isXY = true)
@@ -421,7 +421,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 
   # css grid impl
   if not node.gridTemplate.isNil:
-    echo "computeLayout:gridTemplate", name = node.name, box = node.box.repr
+    echo "computeLayout:gridTemplate", " name = ", node.name, " box = ", node.box.repr
     # compute children first, then lay them out in grid
     for n in node.children:
       computeLayout(n, depth + 1)
@@ -430,14 +430,14 @@ proc computeLayout*(node: GridNode, depth: int) =
     # adjust box to not include offset in wh
     # box.w = box.w - box.x
     # box.h = box.h - box.y
-    let res = node.gridTemplate.computeNodeLayout(box, node.children).Box
+    let res = node.gridTemplate.computeNodeLayout(box, node.children).UiBox
     node.box = res
 
     for n in node.children:
       for c in n.children:
         calcBasicConstraint(c, dcol, isXY = false)
         calcBasicConstraint(c, drow, isXY = false)
-    echo "computeLayout:gridTemplate:post", name = node.name, box = node.box.wh.repr
+    echo "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:
       computeLayout(n, depth + 1)

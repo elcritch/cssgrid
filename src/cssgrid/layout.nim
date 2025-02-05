@@ -67,7 +67,7 @@ proc computeLineLayout*(
   var
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
-    totalAutos = 0
+    autoSizes: seq[UiScalar] = @[]
     isUndefined = false
 
   # browser css grids:
@@ -88,69 +88,73 @@ proc computeLineLayout*(
             fixed += coord
           UiFrac(frac):
             totalFracs += frac
-          UiPerc(): discard
+          UiPerc(perc):
+            fixed += length * perc / 100
           UiContentMin(cmin):
             if cmin.float32 != float32.high():
               fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
-          UiAuto():
-            totalAutos += 1
+          UiAuto(_):
+            # Store the auto track's content size
+            if value.amin.float32 != float32.high():
+              autoSizes.add(value.amin)
+            else:
+              autoSizes.add(0.UiScalar)
       UiEnd():
         discard
       UiMin(lmin, rmin):
         if lmin.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
       UiMax(lmax, rmax):
         if lmax.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
       UiSum(lsum, rsum):
         if lsum.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
       UiMinMax(lmm, rmm):
         if lmm.kind == UiFrac:
           isUndefined = true
-        # calc(value)
-        discard
+
+  # Account for spacing between tracks
   fixed += spacing * UiScalar(lines.len() - 1)
 
   var
     freeSpace = max(length - fixed, 0.0.UiScalar)
-    remSpace = max(freeSpace, 0.UiScalar)
+    remSpace = freeSpace
+
+  # Calculate minimum space needed for auto tracks
+  let totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
   
-  # frac's
-  # 1'fr 1'fr min(1'fr, 10em)
-  for grdLn in lines.mitems():
+  # Second pass: handle fractions and auto tracks
+  for i, grdLn in lines.mpairs():
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
-      if grdVal.kind == UiFrac:
-        grdLn.width = freeSpace * grdVal.frac/totalFracs
-        remSpace -= max(grdLn.width, 0.UiScalar)
-      elif grdVal.kind == UiFixed:
+      case grdVal.kind
+      of UiFrac:
+        # Allocate remaining space proportionally to fractions
+        if totalFracs > 0:
+          grdLn.width = freeSpace * grdVal.frac/totalFracs
+          remSpace -= grdLn.width
+      of UiFixed:
         grdLn.width = grdVal.coord
-      elif grdVal.kind == UiPerc:
+      of UiPerc:
         grdLn.width = length * grdVal.perc / 100
-        remSpace -= max(grdLn.width, 0.UiScalar)
-      elif grdVal.kind == UiContentMax:
+      of UiContentMax:
         grdLn.width = grdVal.cmax
-      elif grdVal.kind == UiContentMin:
+      of UiContentMin:
         if grdVal.cmin.float32 != float32.high():
           grdLn.width = grdVal.cmin
-      elif grdVal.kind == UiAuto:
-        if grdVal.amin.float32 != float32.high():
-          grdLn.width = grdVal.amin
-  
-  # auto's
-  for grdLn in lines.mitems():
-    if grdLn.track.isAuto:
-      grdLn.width = remSpace / totalAutos.UiScalar
+      of UiAuto:
+        # First ensure minimum content width
+        let autoIndex = autoSizes.find(grdVal.amin)
+        if autoIndex >= 0:
+          let minWidth = autoSizes[autoIndex]
+          # Distribute remaining space equally among auto tracks
+          let autoShare = if autoSizes.len > 0: remSpace / autoSizes.len.UiScalar else: 0.UiScalar
+          grdLn.width = max(minWidth, autoShare)
 
+  # Final pass: calculate positions
   var cursor = 0.0.UiScalar
   for grdLn in lines.mitems():
     grdLn.start = cursor

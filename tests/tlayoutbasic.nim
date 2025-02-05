@@ -271,6 +271,10 @@ suite "Compute Layout Tests":
     child3.gridItem.column = 3
     child3.gridItem.row = 1
     
+    # Set minimum content size for auto child
+    child3.box.w = 100  # This should be respected as minimum width
+    printLayout(parent)
+
     computeLayout(parent, 0)
     
     printLayout(parent)

@@ -242,6 +242,8 @@ suite "Compute Layout Tests":
     parent.addChild(child2)
     parent.addChild(child3)
     
+    printLayout(parent)
+
     # Setup grid with fixed, fractional and auto tracks
     parent.cxSize[dcol] = csFixed(400)  # set fixed parent
     parent.cxSize[drow] = csFixed(300)  # set fixed parent
@@ -271,6 +273,8 @@ suite "Compute Layout Tests":
     
     computeLayout(parent, 0)
     
+    printLayout(parent)
+
     check child1.box.w == 100  # Fixed width
     check child2.box.w > 100   # Should get remaining space
     check child3.box.w > 0     # Should get minimum required space

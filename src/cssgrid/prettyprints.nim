@@ -51,7 +51,7 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind
   of UiNone:
-    mode.withStyle(fgBlue, text = ":none")
+    mode.withStyle(fgCyan, text = "none")
   of UiValue:
     prettyConstraintSize(c.value, indent, mode)
   of UiMin:

@@ -27,7 +27,7 @@ template debugPrint*(args: varargs[string, `$`]) =
     prettyPrintWriteMode.withStyle(fgGreen, text = arg & " ")
   prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
 
-proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmTerminal) =
+proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =
   case cs.kind
   of UiAuto:
     if cs.amin.float32 == float32.high():
@@ -48,7 +48,7 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
   of UiContentMax:
     mode.withStyle(fgBlue, text = &"cs:max-content({cs.cmax.float:.2f})")
 
-proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmTerminal) =
+proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind
   of UiNone:
     mode.withStyle(fgWhite, text = "none")
@@ -81,7 +81,7 @@ proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmTerminal)
   of UiEnd:
     mode.withStyle(fgRed, text = "end")
 
-proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmTerminal) =
+proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmNone) =
   if line.track.kind != UiEnd:
     mode.withStyle(fgWhite, {styleBright}, text = indent & "track: ")
     prettyConstraint(line.track, "", mode)
@@ -105,7 +105,7 @@ proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmTerminal) 
     mode.withStyle(fgRed, text = &" [end track]\n")
   mode.withStyle(fgWhite, text = "\n")
 
-proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmTerminal) =
+proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNone) =
   if grid.isNil:
     mode.withStyle(fgWhite, {styleBright}, text = indent & "GridTemplate: ")
     mode.withStyle(fgRed, text = "nil\n")
@@ -142,7 +142,7 @@ proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmTe
       text = value & "\n"
     )
 
-proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmTerminal) =
+proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   # Node name
   mode.withStyle(fgWhite, {styleBright}, text = indent & "Node: ")
   mode.withStyle(fgGreen, text = node.name & "\n")
@@ -189,10 +189,10 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmTerminal) =
   for child in node.children:
     prettyLayout(child, indent & "  ", mode)
 
-proc printLayout*(node: GridNode, mode: ColorMode = cmTerminal) =
+proc printLayout*(node: GridNode, mode: ColorMode = cmNone) =
   prettyLayout(node, "", mode)
   stdout.flushFile()
 
-proc printGrid*(grid: GridTemplate, mode: ColorMode = cmTerminal) =
+proc printGrid*(grid: GridTemplate, mode: ColorMode = cmNone) =
   prettyGridTemplate(grid, "", mode)
   stdout.flushFile()

@@ -19,7 +19,7 @@ type
     name*: string
     parent*: TestNode
     children*: seq[TestNode]
-    cxSize*: array[GridDir, Constraint]  # For width/height
+    cxSize*: array[GridDir, Constraint] = [csAuto(), csNone()]  # For width/height
     cxOffset*: array[GridDir, Constraint] # For x/y positions
     gridItem*: GridItem
     gridTemplate*: GridTemplate

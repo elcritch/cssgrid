@@ -228,6 +228,9 @@ suite "Compute Layout Tests":
     check child2.box.h == 100  # Fixed height from grid
 
   test "Grid with mixed units":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
     let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
     let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
     let child2 = newTestNode("frac-child", 0, 0, 100, 100)

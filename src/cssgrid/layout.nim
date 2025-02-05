@@ -97,6 +97,8 @@ proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
         # Update track size based on content
         if track().value.kind == UiAuto:
           track().value.amin = contentSize
+        elif track().value.kind == UiFrac:
+          track().value.fmin = contentSize
         elif track().value.kind == UiContentMin:
           track().value.cmin = min(contentSize, track().value.cmin)
         elif track().value.kind == UiContentMax:
@@ -113,6 +115,7 @@ proc computeLineLayout*(
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
     autoSizes: seq[UiScalar] = @[]
+    fracSizes: seq[UiScalar] = @[]
     isUndefined = false
 
   # browser css grids:
@@ -138,8 +141,12 @@ proc computeLineLayout*(
               fixed += cmin
           UiContentMax(cmax):
             fixed += cmax
-          UiFrac(frac):
+          UiFrac(frac, fmin):
             totalFracs += frac
+            if fmin.float32 != float32.high():
+              fracSizes.add(fmin)
+            else:
+              fracSizes.add(0.UiScalar)
           UiAuto(amin):
             # Store the auto track's content size
             debugPrint "GRID FIND AMIN: ", $amin
@@ -168,13 +175,13 @@ proc computeLineLayout*(
   # Calculate minimum space needed for auto tracks
   let totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
   var
-    freeSpace = max(length - fixed, 0.0.UiScalar) - totalAutoMin
+    freeSpace = max(length - fixed - totalAutoMin, 0.0.UiScalar)
     remSpace = freeSpace
 
-  debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
-  debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
-  debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
-  
+  # debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
+  # debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
+  # debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
+
   # Second pass: handle fractions and auto tracks
   for i, grdLn in lines.mpairs():
     if grdLn.track.kind == UiValue:
@@ -193,7 +200,7 @@ proc computeLineLayout*(
       of UiFrac:
         # Allocate remaining space proportionally to fractions
         if totalFracs > 0:
-          grdLn.width = freeSpace * grdVal.frac/totalFracs
+          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
           remSpace -= grdLn.width
 
       of UiAuto:

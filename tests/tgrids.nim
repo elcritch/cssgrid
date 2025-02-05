@@ -536,8 +536,6 @@ suite "grids":
 
   test "compute layout overflow (columnar)":
     var gridTemplate: GridTemplate
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
 
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, 1'fr

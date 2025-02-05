@@ -23,6 +23,7 @@ type
       amin*: UiScalar ## default, which is parent width/height less the x/y positions of the node and it's parents
     of UiFrac:
       frac*: UiScalar ## set `fr` aka CSS Grid fractions
+      fmin*: UiScalar ## content min size for `fr`
     of UiPerc:
       perc*: UiScalar ## set percentage of parent box or grid
     of UiFixed:

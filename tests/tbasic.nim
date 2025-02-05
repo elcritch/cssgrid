@@ -56,7 +56,3 @@ suite "grids":
 
     doThing url"hello"
     doThing url"world"
-
-  test "format":
-
-    

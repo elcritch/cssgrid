@@ -474,10 +474,7 @@ suite "Post Layout Constraint Tests":
     let node = newTestNode("test", 0, 0, 300, 200)
     
     # Set min/max constraints
-    node.cxSize[dcol] = csMinMax(
-      csFixed(100),  # min
-      csFixed(250)   # max
-    )
+    node.cxSize[dcol] = csMinMax(csFixed(100), csFixed(250))
     
     # Initial layout might set a size outside bounds
     node.box.w = 400  # Intentionally set larger than max

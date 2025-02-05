@@ -442,7 +442,6 @@ suite "Compute Layout Tests":
 
 suite "Post Layout Constraint Tests":
   test "Post-process auto sizing with grid":
-    prettyPrintWriteMode = cmTerminal
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child = newTestNode("child", 50, 50, 200, 150)
     parent.addChild(child)
@@ -456,19 +455,15 @@ suite "Post Layout Constraint Tests":
     # Initial layout
     calcBasicConstraint(child, dcol, isXY = false)
     calcBasicConstraint(child, drow, isXY = false)
-    printLayout(parent, cmTerminal)
     
     # Post processing should preserve grid sizes
     calcBasicConstraintPost(child, dcol, isXY = false)
     calcBasicConstraintPost(child, drow, isXY = false)
-    
-    printLayout(parent, cmTerminal)
 
     check child.box.x == 50
     check child.box.y == 50
     check child.box.w == 350
     check child.box.h == 250
-    prettyPrintWriteMode = cmNone
 
   test "Post-process MinMax constraints":
     let node = newTestNode("test", 0, 0, 300, 200)
@@ -480,7 +475,10 @@ suite "Post Layout Constraint Tests":
     node.box.w = 400  # Intentionally set larger than max
     
     # Post processing should clamp to max
+    prettyPrintWriteMode = cmTerminal
     calcBasicConstraintPost(node, dcol, isXY = false)
+    printLayout(node, cmTerminal)
+
     check node.box.w == 250
     
     # Test min bound

@@ -440,7 +440,6 @@ suite "Compute Layout Tests":
       check child.box.x == 25  # (100 - 50) / 2
       check child.box.y == 25  # (100 - 50) / 2
 
-suite "Post Layout Constraint Tests":
   test "Post-process auto sizing with grid":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child = newTestNode("child", 50, 50, 200, 150)

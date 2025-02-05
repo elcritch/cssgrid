@@ -77,7 +77,7 @@ proc csContentMax*(): Constraint =
 proc isContentSized*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiAuto, UiFrac] 
 proc isAuto*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiAuto]
+  cx.kind == UiValue and cx.value.kind in [UiAuto, UiFrac]
 
 proc csEnd*(): Constraint =
   Constraint(kind: UiEnd)

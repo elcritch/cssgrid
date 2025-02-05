@@ -190,8 +190,8 @@ suite "Compute Layout Tests":
     check child2.box.h == 120  # 40% of 300
 
   test "Simple grid layout":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
     let child1 = newTestNode("grid-child1", 0, 0, 100, 100)
     let child2 = newTestNode("grid-child2", 0, 0, 100, 100)
@@ -230,8 +230,8 @@ suite "Compute Layout Tests":
     check child2.box.h == 100  # Fixed height from grid
 
   test "Grid with mixed units":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
 
     let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
     let child1 = newTestNode("fixed-child", 0, 0, 100, 100)

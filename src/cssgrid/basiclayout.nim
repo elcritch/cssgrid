@@ -92,7 +92,7 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
 
   template calcBasicPost(val: untyped): untyped =
     block:
-      var res: UiSize
+      var res: UiScalar
       match val:
         UiAuto(_):
           when astToStr(f) in ["w"]:
@@ -111,16 +111,16 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
               res = parentBox.f - node.box.y
         UiFixed(coord):
           # Fixed values remain unchanged
-          res = coord.UiSize
+          res = coord.UiScalar
         UiFrac(frac):
           # Fraction of remaining space
           if not node.parent.isNil:
             when astToStr(f) in ["w"]:
               let availableSpace = parentBox.f - node.box.x
-              res = frac.UiSize * availableSpace
+              res = frac.UiScalar * availableSpace
             elif astToStr(f) in ["h"]:
               let availableSpace = parentBox.f - node.box.y
-              res = frac.UiSize * availableSpace
+              res = frac.UiScalar * availableSpace
         UiPerc(perc):
           # Percentage calculations based on parent size
           let ppval =
@@ -130,7 +130,7 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
               parentBox.h
             else:
               parentBox.f
-          res = perc.UiSize / 100.0.UiSize * ppval
+          res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin(cmins):
           # Keep existing size if it's content-based
           res = node.box.f

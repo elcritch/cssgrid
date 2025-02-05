@@ -448,10 +448,10 @@ proc computeLayout*(node: GridNode, depth: int) =
       calcBasicConstraintPost(n, drow, isXY = true)
       calcBasicConstraintPost(n, dcol, isXY = false)
       calcBasicConstraintPost(n, drow, isXY = false)
-      echo "calcBasicConstraintPost: ", n = n.name, w = n.box.w, h = n.box.h
+      echo "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
   # debug "computeLayout:post: ",
   #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
 
   echo "computeLayout:post: ",
-    name = node.name, wh = node.box.wh, prevSize = node.prevSize
+    " name = ", node.name, " wh = ", node.box.wh

@@ -170,6 +170,10 @@ suite "Compute Layout Tests":
     parent.addChild(child1)
     parent.addChild(child2)
     
+    # Set fixed-parent constraint
+    parent.cxSize[dcol] = csFixed(400)  # 50% of parent
+    parent.cxSize[drow] = csFixed(300)  # 50% of parent
+
     # Set percentage-based constraints for children
     child1.cxSize[dcol] = csPerc(50)  # 50% of parent
     child1.cxSize[drow] = csPerc(30)  # 30% of parent
@@ -178,6 +182,7 @@ suite "Compute Layout Tests":
     child2.cxSize[drow] = csPerc(40)  # 40% of parent
     
     computeLayout(parent, 0)
+    printLayout(parent)
     
     check child1.box.w == 200  # 50% of 400
     check child1.box.h == 90   # 30% of 300
@@ -192,7 +197,15 @@ suite "Compute Layout Tests":
     parent.addChild(child1)
     parent.addChild(child2)
     
+    printLayout(parent)
+    echo "parent: frame: ", repr parent.frame
+    echo "parent: cxSize: ", repr parent.cxSize
+    echo "parent: cxOffset: ", repr parent.cxOffset
+
     # Setup grid template
+    parent.cxSize[dcol] = csFixed(400)  # 50% of parent
+    parent.cxSize[drow] = csFixed(300)  # 50% of parent
+
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
       initGridLine(csFrac(1)),
@@ -230,6 +243,9 @@ suite "Compute Layout Tests":
     parent.addChild(child3)
     
     # Setup grid with fixed, fractional and auto tracks
+    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
+    parent.cxSize[drow] = csFixed(300)  # set fixed parent
+
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
       initGridLine(csFixed(100)),  # Fixed width column

@@ -7,6 +7,7 @@ import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/layout
 import cssgrid/parser
+import cssgrid/prettyprints
 
 import pretty
 import pixie
@@ -59,6 +60,9 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   # ==== process grid ====
   discard gridTemplate.computeNodeLayout(parent, nodes)
   result = (nodes, parent.box)
+
+  printGrid(gridTemplate)
+
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =
   # echo "grid template post: ", repr gridTemplate

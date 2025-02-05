@@ -48,13 +48,13 @@ type
     of UiValue:
       value*: ConstraintSize ## used for `ConstraintSize` above
     of UiMin:
-      lmin, rmin*: ConstraintSize ## minimum of lhs and rhs (partially supported)
+      lmin*, rmin*: ConstraintSize ## minimum of lhs and rhs (partially supported)
     of UiMax:
-      lmax, rmax*: ConstraintSize ## maximum of lhs and rhs (partially supported)
+      lmax*, rmax*: ConstraintSize ## maximum of lhs and rhs (partially supported)
     of UiSum:
-      lsum, rsum*: ConstraintSize ## sum of lhs and rhs (partially supported)
+      lsum*, rsum*: ConstraintSize ## sum of lhs and rhs (partially supported)
     of UiMinMax:
-      lmm, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
+      lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
 
 proc csValue*(size: ConstraintSize): Constraint =

@@ -124,7 +124,7 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = csContentMax()
     calcBasicConstraint(child, dcol, isXY = false)
     
-    check child.box.w >= grandchild.UiBox.w # Should be at least as wide as content
+    check child.box.w >= grandchild.box.w # Should be at least as wide as content
 
   test "Position constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)

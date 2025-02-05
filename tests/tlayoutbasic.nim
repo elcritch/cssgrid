@@ -521,6 +521,3 @@ suite "Compute Layout Tests":
   #   calcBasicConstraintPost(child2, dcol, isXY = false)
   #   check child2.box.w == 100  # 50% of child1's 200
 
-
-when isMainModule:
-  echo "Running basic layout tests..."

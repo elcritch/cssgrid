@@ -15,7 +15,7 @@ import pixie
 
 type
   GridNode* = ref object
-    id: string
+    name: string
     box: UiBox
     gridItem: GridItem
     gridTemplate: GridTemplate
@@ -45,20 +45,21 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   var itema = newGridItem()
   itema.column = 1 // 2
   itema.row = 1 // 3
-  nodes[0] = GridNode(id: "a", gridItem: itema)
+  nodes[0] = GridNode(name: "a", gridItem: itema)
 
   # ==== item e ====
   var iteme = newGridItem()
   iteme.column = 5 // 6
   iteme.row = 1 // 3
-  nodes[1] = GridNode(id: "e", gridItem: iteme)
+  nodes[1] = GridNode(name: "e", gridItem: iteme)
 
   # ==== item b's ====
   for i in 2 ..< nodes.len():
-    nodes[i] = GridNode(id: "b" & $(i-2))
+    nodes[i] = GridNode(name: "b" & $(i-2))
 
   # ==== process grid ====
-  discard gridTemplate.computeNodeLayout(parent, nodes)
+  parent.children = nodes
+  discard gridTemplate.computeNodeLayout(parent)
   result = (nodes, parent.box)
 
   printGrid(gridTemplate)

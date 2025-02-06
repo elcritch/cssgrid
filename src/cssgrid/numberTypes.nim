@@ -15,7 +15,8 @@ template borrowMaths*(typ, base: typedesc) =
   proc `+` *(x, y: typ): typ = typ(`+`(base(x), base(y)))
   proc `-` *(x, y: typ): typ = typ(`-`(base(x), base(y)))
   
-  proc `-` *(x: typ): typ = typ(`-`(base(x)))
+  when base isnot uint and base isnot uint64 and base isnot uint32:
+    proc `-` *(x: typ): typ = typ(`-`(base(x)))
 
   proc `*` *(x, y: typ): typ = typ(`*`(base(x), base(y)))
   proc `/` *(x, y: typ): typ = typ(`/`(base(x), base(y)))
@@ -75,7 +76,7 @@ macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
 ## Distinct percentages
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
-const CssScalar {.strdefine: "cssgrid.scalar".}: string = ""
+const CssScalar {.strdefine: "cssgrid.scalar".}: string = "float32"
 
 when CssScalar == "float":
   type UiScalar* = distinct float
@@ -89,14 +90,8 @@ elif CssScalar == "int32":
   type UiScalar* = distinct int32
 elif CssScalar == "int64":
   type UiScalar* = distinct int64
-elif CssScalar == "uint":
-  type UiScalar* = distinct uint
-elif CssScalar == "uint32":
-  type UiScalar* = distinct uint32
-elif CssScalar == "uint64":
-  type UiScalar* = distinct uint64
 else:
-  type UiScalar* = distinct float32
+  {.error: "unhandled UiScalar type: " & CssScalar.}
 
 borrowMaths(UiScalar, distinctBase(UiScalar))
 

@@ -5,6 +5,7 @@ task test, "test all":
     if test.endsWith(".nim"):
       echo "test: ", test
       exec "nim c -r " & test
+  exec "nim -d:cssgrid.scalar=int c -r " & "tests/tgrids.nim"
 
 # begin Nimble config (version 2)
 when withDir(thisDir(), system.fileExists("nimble.paths")):

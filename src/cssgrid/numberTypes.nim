@@ -3,8 +3,8 @@ import std/[strformat, sequtils, strutils, hashes, sets, tables]
 import patty
 export patty
 
-import vmath, math
-export math, vmath
+import vmath, bumpy, math
+export math, bumpy, vmath
 
 import macros, macroutils
 import typetraits
@@ -60,6 +60,9 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result = rect
   result.x -= xy.x
   result.y -= xy.y
+
+proc toRect*(box: UiBox): Rect =
+  rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
 
 # proc `$`*(a: UiSize): string =
 #   fmt"UiSize<{a.x:.2f}, {a.y:.2f}>"

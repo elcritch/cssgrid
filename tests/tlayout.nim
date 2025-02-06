@@ -78,7 +78,7 @@ proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], pre
 
   for i in 0 ..< nodes.len():
     ctx.fillStyle = rgba(0, 55, 244, 255).asColor().spin(-15.3*i.float)
-    ctx.fillRoundedRect(nodes[i].box.Rect, 12.0)
+    ctx.fillRoundedRect(nodes[i].box.toRect(), 12.0)
 
   image.writeFile(fmt"tests/tlayout-{prefix}{gridTemplate.autoFlow}.png")
 

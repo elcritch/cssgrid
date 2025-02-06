@@ -27,11 +27,13 @@ template borrowMaths*(typ, base: typedesc) =
   proc `<` * (x, y: typ): bool {.borrow.}
   proc `<=` * (x, y: typ): bool {.borrow.}
   proc `==` * (x, y: typ): bool {.borrow.}
-  proc `~=` * (x, y: typ): bool {.borrow.}
+  when base is SomeFloat:
+    proc `~=` * (x, y: typ): bool {.borrow.}
 
   proc `+=` * (x: var typ, y: typ) {.borrow.}
   proc `-=` * (x: var typ, y: typ) {.borrow.}
-  proc `/=` * (x: var typ, y: typ) {.borrow.}
+  when base is SomeFloat:
+    proc `/=` * (x: var typ, y: typ) {.borrow.}
   proc `*=` * (x: var typ, y: typ) {.borrow.}
   proc `$` * (x: typ): string {.borrow.}
   proc `hash` * (x: typ): Hash {.borrow.}
@@ -111,11 +113,14 @@ proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
 
 genBoolOp[UiSize, GVec2[UiScalar]](`==`)
 genBoolOp[UiSize, GVec2[UiScalar]](`!=`)
-genBoolOp[UiSize, GVec2[UiScalar]](`~=`)
+when UiScalar is SomeFloat:
+  genBoolOp[UiSize, GVec2[UiScalar]](`~=`)
 
 applyOps(UiSize, GVec2[UiScalar], genOp, `+`, `-`, `/`, `*`)
 applyOps(UiSize, GVec2[UiScalar], genOp, `mod`)
-applyOps(UiSize, GVec2[UiScalar], genEqOp, `+=`, `-=`, `*=`, `/=`)
+applyOps(UiSize, GVec2[UiScalar], genEqOp, `+=`, `-=`, `*=`)
+when UiScalar is SomeFloat:
+  applyOps(UiSize, GVec2[UiScalar], genEqOp, `/=`)
 applyOps(UiSize, GVec2[UiScalar], genFloatOp, `*`, `/`)
 applyOps(UiSize, GVec2[UiScalar], genMathFn, `-`)
 # applyOps(UiSize, GVec2[UiScalar], genMathFn, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)

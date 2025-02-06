@@ -22,7 +22,8 @@ suite "grids":
     echo "x / c: ", repr(x / c)
     echo "x * y: ", repr(x * y)
     echo "x == y: ", repr(x == y)
-    echo "x ~= y: ", repr(x ~= y)
+    when UiScalar is SomeFloat:
+      echo "x ~= y: ", repr(x ~= y)
     # echo "min(x, y): ", repr(min(x, y))
 
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize

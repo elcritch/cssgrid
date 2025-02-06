@@ -12,6 +12,12 @@ import pretty
 import macros
 
 
+proc toVal*[T](v: T): float =
+  when distinctBase(UiScalar) is SomeFloat:
+    v
+  else:
+    trunc(v)
+
 type
   GridNode* = ref object
     name: string
@@ -88,11 +94,11 @@ suite "grids":
     # print "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 33.3333
-    checks gt.lines[dcol][2].start.float == 66.6666
+    checks gt.lines[dcol][1].start.float == 33.3333.toVal
+    checks gt.lines[dcol][2].start.float == 66.6666.toVal
     checks gt.lines[drow][0].start.float == 0.0
-    checks gt.lines[drow][1].start.float == 33.3333
-    checks gt.lines[drow][2].start.float == 66.6666
+    checks gt.lines[drow][1].start.float == 33.3333.toVal
+    checks gt.lines[drow][2].start.float == 66.6666.toVal
 
   test "4x1 grid test":
     var gt = newGridTemplate(
@@ -103,9 +109,10 @@ suite "grids":
     # echo "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 31.6666
-    checks gt.lines[dcol][2].start.float == 36.6666
-    checks gt.lines[dcol][3].start.float == 68.3333
+    checks gt.lines[dcol][1].start.float == 31.6666.toVal
+    checks gt.lines[dcol][2].start.float == 36.6666.toVal
+    when distinctBase(UiScalar) is SomeFloat:
+      checks gt.lines[dcol][3].start.float == 68.3333.toVal
     checks gt.lines[drow][0].start.float == 0.0
 
   test "initial macros":

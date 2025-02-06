@@ -137,7 +137,7 @@ applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)
 genBoolOp[UiBox, GVec4[UiScalar]](`==`)
 genEqOpC[UiBox, GVec4[UiScalar], GVec2[UiScalar]](`xy=`)
 
-template x*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
+template x*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[0]
 template y*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
 template w*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[2]
 template h*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[3]

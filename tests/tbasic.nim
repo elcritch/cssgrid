@@ -40,7 +40,17 @@ suite "grids":
     var z = uiBox(10.0, 10.0, 5.0, 5.0)
     let v = uiSize(10.0, 10.0)
 
+    check x.x == 1.0.UiScalar
+    check x.y == 2.0.UiScalar
+    check x.w == 3.0.UiScalar
+    check x.h == 4.0.UiScalar
+    echo "x:x: ", x.x
+    echo "x:y: ", x.y
+    echo "x:w: ", x.w
+    echo "x:h: ", x.h
+
     echo "x.w: ", repr(x.w)
+
     echo "x + y: ", repr(x + y)
     echo "x / y: ", repr(x / c)
     echo "x * y: ", repr(x * c)
@@ -57,7 +67,7 @@ suite "grids":
 
     z = x + y
     echo "z = x+y ", repr(z)
-    check z.x == x.x + y.y
+    check z.x == x.x + y.x
     check z.y == x.y + y.y
     check z.w == x.w
     check z.h == x.h

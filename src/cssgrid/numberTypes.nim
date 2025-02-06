@@ -43,7 +43,7 @@ type
   UiBox* = GVec4[UiScalar]
 
 proc uiSize*(x, y: float32): UiSize = UiSize(vec2(x, y))
-proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(gvec4[US()](x.float32, y.float32, w.float32, h.float32))
+proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(gvec4[UiScalar](x.float32, y.float32, w.float32, h.float32))
 
 template w*(r: UiBox): UiScalar = r[2]
 template h*(r: UiBox): UiScalar = r[3]
@@ -69,7 +69,7 @@ proc `$`*(a: UiSize): string =
   fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
 
 proc `$`*(b: UiBox): string =
-  let a = GVec4[US()](b)
+  let a = GVec4[UiScalar](b)
   # &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
   fmt"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
 

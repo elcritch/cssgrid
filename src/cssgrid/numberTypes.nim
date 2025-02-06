@@ -46,8 +46,8 @@ template h*(r: UiBox): UiScalar = r[3]
 template `w=`*(r: UiBox, v: UiScalar) = r[2] = v
 template `h=`*(r: UiBox, v: UiScalar) = r[3] = v
 
-template xy*(r: UiBox): UiSize = UiSize r.xy
-template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
+template xy*(r: UiBox): UiSize = uiSize(r[0], r[1])
+template wh*(r: UiBox): UiSize = uiSize(r[2], r[3])
 
 proc `+`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
@@ -61,12 +61,12 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.x -= xy.x
   result.y -= xy.y
 
-proc `$`*(a: UiSize): string =
-  fmt"UiSize<{a.x:.2f}, {a.y:.2f}>"
+# proc `$`*(a: UiSize): string =
+#   fmt"UiSize<{a.x:.2f}, {a.y:.2f}>"
 
-proc `$`*(b: UiBox): string =
-  let a = GVec4[UiScalar](b)
-  fmt"UiBox<{a.x:.2f}, {a.y:.2f}; [{a.w:.2f} x {a.h:.2f}]>"
+# proc `$`*(b: UiBox): string =
+#   let a = GVec4[UiScalar](b)
+#   fmt"UiBox<{a.x:.2f}, {a.y:.2f}; [{a.w:.2f} x {a.h:.2f}]>"
 
 # proc `<=`*(a,b: UiScalar): bool {.borrow.}
 

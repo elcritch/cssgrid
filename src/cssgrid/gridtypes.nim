@@ -16,10 +16,10 @@ type
   LineName* = Atom
 
   GridNode* = concept node
-    distinctBase(typeof(node.box)) is Rect
+    typeof(node.box) is UiBox
     typeof(node.gridItem) is GridItem
   GridBox* = concept box
-    distinctBase(typeof(box)) is Rect
+    typeof(box) is UiBox
 
   GridDir* = enum
     dcol

@@ -439,7 +439,7 @@ proc computeNodeLayout*(
   prettyLayout(parent)
 
   gridTemplate.computeContentSizes(parent.children)
-  debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
+  debugPrint "GRID:CS: ", "box=", $box, "extendOnOverflow=", extendOnOverflow
   printGrid(gridTemplate)
   gridTemplate.computeTracks(box, extendOnOverflow)
   debugPrint "GRID:ComputedTracks: "

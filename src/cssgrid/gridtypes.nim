@@ -9,7 +9,7 @@ import numberTypes, constraints
 export numberTypes, constraints, stack_strings
 export options
 
-const CssGridAtomSize {.intdefine.} = 16
+const CssGridAtomSize {.intdefine.} = 32
 
 type
   Atom* = StackString[CssGridAtomSize]

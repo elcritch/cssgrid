@@ -90,7 +90,7 @@ elif CssScalar == "uint32":
 elif CssScalar == "uint64":
   type UiScalar* = distinct uint64
 else:
-  type UiScalar* = distinct float
+  type UiScalar* = distinct float32
 
 borrowMaths(UiScalar, distinctBase(UiScalar))
 
@@ -132,7 +132,7 @@ proc `[]=`*(a: var UiBox, i: int, v: UiScalar) =
 proc `[]`*(a: UiBox, i: int): UiScalar =
   GVec4[UiScalar](a)[i]
 
-applyOps(UiBox, GVec4[UiScalar], genOp, `+`)
+# applyOps(UiBox, GVec4[UiScalar], genOp, `+`)
 applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)
 genBoolOp[UiBox, GVec4[UiScalar]](`==`)
 genEqOpC[UiBox, GVec4[UiScalar], GVec2[UiScalar]](`xy=`)
@@ -166,6 +166,13 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result = rect
   result.x -= xy.x
   result.y -= xy.y
+
+proc `+`*(a, b: UiBox): UiBox =
+  ## Add two boxes together.
+  result.x = a.x + b.x
+  result.y = a.y + b.y
+  result.w = a.w
+  result.h = a.h
 
 proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h

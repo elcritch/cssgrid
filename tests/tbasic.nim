@@ -34,8 +34,8 @@ suite "grids":
     # echo "z: ", repr(sin(z))
   
   test "box ":
-    let x = uiBox(10.0, 10.0, 2.0, 2.0)
-    let y = uiBox(10.0, 10.0, 5.0, 5.0)
+    let x = uiBox(1.0, 2.0, 3.0, 4.0)
+    let y = uiBox(10.0, 20.0, 5.0, 6.0)
     let c = 10.0.UiScalar
     var z = uiBox(10.0, 10.0, 5.0, 5.0)
     let v = uiSize(10.0, 10.0)
@@ -54,7 +54,13 @@ suite "grids":
     echo "z: ", repr(z)
     echo "z.xy: ", repr(z.xy)
     echo "z.wh: ", repr(z.wh)
-    z = uiBox(10.0, 10.0, 5.0, 5.0)
+
+    z = x + y
+    echo "z = x+y ", repr(z)
+    check z.x == x.x + y.y
+    check z.y == x.y + y.y
+    check z.w == x.w
+    check z.h == x.h
 
   test "example static dispatch":
     type Url[T: static string] = distinct void

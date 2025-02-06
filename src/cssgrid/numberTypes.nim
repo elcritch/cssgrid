@@ -17,19 +17,8 @@ template borrowMaths*(typ, base: typedesc) =
   
   proc `-` *(x: typ): typ = typ(`-`(base(x)))
 
-  ## allow NewType(3.2) + 3.2 ... 
-  # proc `+` *(x: typ, y: static[float32|float64|int]): typ = typ(`+`(base x, base y))
-  # proc `-` *(x: typ, y: static[float32|float64|int]): typ = typ(`-`(base x, base y))
-  # proc `+` *(x: static[float32|float64|int], y: typ): typ = typ(`+`(base x, base y))
-  # proc `-` *(x: static[float32|float64|int], y: typ): typ = typ(`-`(base x, base y))
-
   proc `*` *(x, y: typ): typ = typ(`*`(base(x), base(y)))
   proc `/` *(x, y: typ): typ = typ(`/`(base(x), base(y)))
-
-  # proc `*` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`*`(base(x), base(y)))
-  # proc `/` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`/`(base(x), base(y)))
-  # proc `*` *(x: static[base], y: typ): typ = typ(`*`(base(x), base(y)))
-  # proc `/` *(x: static[base], y: typ): typ = typ(`/`(base(x), base(y)))
 
   proc `min` *(x: typ, y: typ): typ {.borrow.}
   proc `max` *(x: typ, y: typ): typ {.borrow.}
@@ -61,7 +50,7 @@ template genFloatOp[T, B](op: untyped) =
   proc `op`*(a: T, b: UiScalar): T = T(`op`(B(a), b))
 
 template genEqOp[T, B](op: untyped) =
-  proc `op`*(a: var T, b: float32) = `op`(B(a), b)
+  # proc `op`*(a: var T, b: float32) = `op`(B(a), b.T)
   proc `op`*(a: var T, b: T) = `op`(B(a), B(b))
 
 template genEqOpC[T, B, C](op: untyped) =
@@ -118,6 +107,7 @@ type
   UiSize* = distinct GVec2[UiScalar]
 
 proc uiSize*(x, y: UiScalar): UiSize = UiSize(gvec2(x, y))
+proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
 
 genBoolOp[UiSize, GVec2[UiScalar]](`==`)
 genBoolOp[UiSize, GVec2[UiScalar]](`!=`)
@@ -126,14 +116,16 @@ genBoolOp[UiSize, GVec2[UiScalar]](`~=`)
 applyOps(UiSize, GVec2[UiScalar], genOp, `+`, `-`, `/`, `*`)
 applyOps(UiSize, GVec2[UiScalar], genOp, `mod`)
 applyOps(UiSize, GVec2[UiScalar], genEqOp, `+=`, `-=`, `*=`, `/=`)
-applyOps(UiSize, GVec2[UiScalar], genMathFn, `-`, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
-applyOps(UiSize, GVec2[UiScalar], genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
 applyOps(UiSize, GVec2[UiScalar], genFloatOp, `*`, `/`)
+applyOps(UiSize, GVec2[UiScalar], genMathFn, `-`)
+# applyOps(UiSize, GVec2[UiScalar], genMathFn, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
+# applyOps(UiSize, GVec2[UiScalar], genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
 
 type
   UiBox* = distinct GVec4[UiScalar]
 
 proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(gvec4[UiScalar](x, y, w, h))
+proc uiBox*(x, y, w, h: float): UiBox = UiBox(gvec4[UiScalar](x.UiScalar, y.UiScalar, w.UiScalar, h.UiScalar))
 
 applyOps(UiBox, GVec4[UiScalar], genOp, `+`)
 applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)
@@ -150,7 +142,7 @@ proc `y=`*(r: UiBox, v: UiScalar) = r.y = v
 proc `w=`*(r: UiBox, v: UiScalar) = r.w = v
 proc `h=`*(r: UiBox, v: UiScalar) = r.h = v
 
-template xy*(r: UiBox): UiSize = r.xy
+template xy*(r: UiBox): UiSize = uiSize(r.x, r.y)
 template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
 
 template x*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]

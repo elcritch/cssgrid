@@ -25,13 +25,13 @@ suite "grids":
     echo "x ~= y: ", repr(x ~= y)
     # echo "min(x, y): ", repr(min(x, y))
 
-    z = gvec2[UiScalar](1.0, 1.0).UiSize
+    z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     z += y
-    z += 3.1'f32
+    z.x += 3.1.UiScalar
     echo "z: ", repr(z)
-    z = gvec2[UiScalar](1.0, 1.0).UiSize
+    z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     echo "z: ", repr(-z)
-    echo "z: ", repr(sin(z))
+    # echo "z: ", repr(sin(z))
   
   test "box ":
     let x = uiBox(10.0, 10.0, 2.0, 2.0)
@@ -50,6 +50,8 @@ suite "grids":
     z.xy= v
     # z += 3.1'f32
     echo "z: ", repr(z)
+    echo "z.xy: ", repr(z.xy)
+    echo "z.wh: ", repr(z.wh)
     z = uiBox(10.0, 10.0, 5.0, 5.0)
 
   test "example static dispatch":

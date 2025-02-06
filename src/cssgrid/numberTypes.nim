@@ -29,8 +29,6 @@ template genMathFn[T, B](op: untyped) =
     T(`op`(B(a)))
 
 template genOp[T, B](op: untyped) =
-  static:
-    echo "GEN OP: ", $T, " B: ", $B, " op: ", astToStr(op)
   proc `op`*(a, b: T): T = T(`op`(B(a), B(b)))
 
 macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
@@ -104,10 +102,10 @@ template y*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
 template w*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[2]
 template h*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[3]
 
-template `x=`*(r: UiBox, v: UiScalar) = r.x = v
-template `y=`*(r: UiBox, v: UiScalar) = r.y = v
-template `w=`*(r: UiBox, v: UiScalar) = r.w = v
-template `h=`*(r: UiBox, v: UiScalar) = r.h = v
+proc `x=`*(r: UiBox, v: UiScalar) = r.x = v
+proc `y=`*(r: UiBox, v: UiScalar) = r.y = v
+proc `w=`*(r: UiBox, v: UiScalar) = r.w = v
+proc `h=`*(r: UiBox, v: UiScalar) = r.h = v
 
 template xy*(r: UiBox): UiSize = r.xy
 template wh*(r: UiBox): UiSize = uiSize(r.w.float32, r.h.float32)
@@ -137,6 +135,8 @@ proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
+
+proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
 
 proc `$`*(a: UiSize): string =
   fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"

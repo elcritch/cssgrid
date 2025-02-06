@@ -58,7 +58,7 @@ template genBoolOp[T, B](op: untyped) =
   proc `op`*(a, b: T): bool = `op`(B(a), B(b))
 
 template genFloatOp[T, B](op: untyped) =
-  proc `op`*(a: T, b: UiScalar): T = T(`op`(B(a), b.float32))
+  proc `op`*(a: T, b: UiScalar): T = T(`op`(B(a), b))
 
 template genEqOp[T, B](op: untyped) =
   proc `op`*(a: var T, b: float32) = `op`(B(a), b)
@@ -151,7 +151,7 @@ proc `w=`*(r: UiBox, v: UiScalar) = r.w = v
 proc `h=`*(r: UiBox, v: UiScalar) = r.h = v
 
 template xy*(r: UiBox): UiSize = r.xy
-template wh*(r: UiBox): UiSize = uiSize(r.w.float32, r.h.float32)
+template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
 
 template x*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
 template y*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
@@ -170,10 +170,6 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.x -= xy.x
   result.y -= xy.y
 
-proc sum*(rect: Rect): float32 =
-  result = rect.x + rect.y + rect.w + rect.h
-proc sum*(rect: (float32, float32, float32, float32)): float32 =
-  result = rect[0] + rect[1] + rect[2] + rect[3]
 proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
@@ -182,8 +178,14 @@ proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
 proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
 
 proc `$`*(a: UiSize): string =
-  fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+  when typeof(UiScalar) is SomeFloat:
+    fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+  else:
+    fmt"UiSize<{$a.x}, {$a.y}>"
 
 proc `$`*(a: UiBox): string =
-  fmt"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
+  when typeof(UiScalar) is SomeFloat:
+    fmt"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
+  else:
+    fmt"UiBox<{$a.x}, {$a.y}; [{$a.w} x {$a.h}]>"
 

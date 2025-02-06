@@ -1,10 +1,16 @@
 import unittest
 
 import cssgrid/numberTypes
+import vmath
 
 suite "grids":
 
   test "UiSize":
+    type FF = float64
+    let f1: FF = 1.1
+    let f2: FF = 10.1
+    echo "test: ", f1 <= f2
+
     let x = uiSize(12.1, 13.4)
     let y = uiSize(10.0, 10.0)
     var z = uiSize(0.0, 0.0)
@@ -17,13 +23,13 @@ suite "grids":
     echo "x * y: ", repr(x * y)
     echo "x == y: ", repr(x == y)
     echo "x ~= y: ", repr(x ~= y)
-    echo "min(x, y): ", repr(min(x, y))
+    # echo "min(x, y): ", repr(min(x, y))
 
-    z = vec2(1.0, 1.0).UiSize
+    z = gvec2[UiScalar](1.0, 1.0).UiSize
     z += y
     z += 3.1'f32
     echo "z: ", repr(z)
-    z = vec2(1.0, 1.0).UiSize
+    z = gvec2[UiScalar](1.0, 1.0).UiSize
     echo "z: ", repr(-z)
     echo "z: ", repr(sin(z))
   

@@ -127,6 +127,11 @@ type
 proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(gvec4[UiScalar](x, y, w, h))
 proc uiBox*(x, y, w, h: float): UiBox = UiBox(gvec4[UiScalar](x.UiScalar, y.UiScalar, w.UiScalar, h.UiScalar))
 
+proc `[]=`*(a: var UiBox, i: int, v: UiScalar) =
+  GVec4[UiScalar](a)[i] = v
+proc `[]`*(a: UiBox, i: int): UiScalar =
+  GVec4[UiScalar](a)[i]
+
 applyOps(UiBox, GVec4[UiScalar], genOp, `+`)
 applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)
 genBoolOp[UiBox, GVec4[UiScalar]](`==`)
@@ -137,10 +142,10 @@ template y*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
 template w*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[2]
 template h*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[3]
 
-proc `x=`*(r: UiBox, v: UiScalar) = r.x = v
-proc `y=`*(r: UiBox, v: UiScalar) = r.y = v
-proc `w=`*(r: UiBox, v: UiScalar) = r.w = v
-proc `h=`*(r: UiBox, v: UiScalar) = r.h = v
+proc `x=`*(r: var UiBox, v: UiScalar) = r[0] = v
+proc `y=`*(r: var UiBox, v: UiScalar) = r[1] = v
+proc `w=`*(r: var UiBox, v: UiScalar) = r[2] = v
+proc `h=`*(r: var UiBox, v: UiScalar) = r[3] = v
 
 template xy*(r: UiBox): UiSize = uiSize(r.x, r.y)
 template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)

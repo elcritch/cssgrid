@@ -44,10 +44,12 @@ suite "grids":
     echo "x + y: ", repr(x + y)
     echo "x / y: ", repr(x / c)
     echo "x * y: ", repr(x * c)
-    echo "x == y: ", repr(x == y)
+    echo "x == y: ", repr(x = y)
 
     z = uiBox(10.0, 10.0, 5.0, 5.0)
     z.xy= v
+    z.x = 3.1.UiScalar
+
     # z += 3.1'f32
     echo "z: ", repr(z)
     echo "z.xy: ", repr(z.xy)

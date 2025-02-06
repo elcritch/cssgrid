@@ -85,9 +85,9 @@ macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
 type
   UiScalar* = distinct float32
 
-borrowMaths(UiScalar, float32)
+# borrowMaths(UiScalar, float32)
 
-converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
+# converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
 # proc `'ux`*(n: string): UiScalar =
 #   ## numeric literal UI Coordinate unit

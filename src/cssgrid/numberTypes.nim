@@ -83,10 +83,14 @@ elif CssScalar == "float32":
   type UiScalar* = distinct float32
 elif CssScalar == "float64":
   type UiScalar* = distinct float64
+elif CssScalar == "int":
+  type UiScalar* = distinct int
 elif CssScalar == "int32":
   type UiScalar* = distinct int32
 elif CssScalar == "int64":
   type UiScalar* = distinct int64
+elif CssScalar == "uint":
+  type UiScalar* = distinct uint
 elif CssScalar == "uint32":
   type UiScalar* = distinct uint32
 elif CssScalar == "uint64":

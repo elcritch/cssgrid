@@ -11,6 +11,49 @@ import typetraits
 
 export sequtils, strutils, hashes, sets, tables, strformat
 
+template borrowMaths*(typ, base: typedesc) =
+  proc `+` *(x, y: typ): typ = typ(`+`(base(x), base(y)))
+  proc `-` *(x, y: typ): typ = typ(`-`(base(x), base(y)))
+  
+  proc `-` *(x: typ): typ = typ(`-`(base(x)))
+
+  ## allow NewType(3.2) + 3.2 ... 
+  # proc `+` *(x: typ, y: static[float32|float64|int]): typ = typ(`+`(base x, base y))
+  # proc `-` *(x: typ, y: static[float32|float64|int]): typ = typ(`-`(base x, base y))
+  # proc `+` *(x: static[float32|float64|int], y: typ): typ = typ(`+`(base x, base y))
+  # proc `-` *(x: static[float32|float64|int], y: typ): typ = typ(`-`(base x, base y))
+
+  proc `*` *(x, y: typ): typ = typ(`*`(base(x), base(y)))
+  proc `/` *(x, y: typ): typ = typ(`/`(base(x), base(y)))
+
+  # proc `*` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`*`(base(x), base(y)))
+  # proc `/` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`/`(base(x), base(y)))
+  # proc `*` *(x: static[base], y: typ): typ = typ(`*`(base(x), base(y)))
+  # proc `/` *(x: static[base], y: typ): typ = typ(`/`(base(x), base(y)))
+
+  proc `min` *(x: typ, y: typ): typ {.borrow.}
+  proc `max` *(x: typ, y: typ): typ {.borrow.}
+  proc `mod` *(x: typ, y: typ): typ {.borrow.}
+
+  proc `<` * (x, y: typ): bool {.borrow.}
+  proc `<=` * (x, y: typ): bool {.borrow.}
+  proc `==` * (x, y: typ): bool {.borrow.}
+  proc `~=` * (x, y: typ): bool {.borrow.}
+
+  proc `+=` * (x: var typ, y: typ) {.borrow.}
+  proc `-=` * (x: var typ, y: typ) {.borrow.}
+  proc `/=` * (x: var typ, y: typ) {.borrow.}
+  proc `*=` * (x: var typ, y: typ) {.borrow.}
+  proc `$` * (x: typ): string {.borrow.}
+  proc `hash` * (x: typ): Hash {.borrow.}
+
+template borrowMathsMixed*(typ: typedesc) =
+  proc `*` *(x: typ, y: distinctBase(typ)): typ {.borrow.}
+  proc `*` *(x: distinctBase(typ), y: typ): typ {.borrow.}
+  proc `/` *(x: typ, y: distinctBase(typ)): typ {.borrow.}
+  proc `/` *(x: distinctBase(typ), y: typ): typ {.borrow.}
+
+
 template genBoolOp[T, B](op: untyped) =
   proc `op`*(a, b: T): bool = `op`(B(a), B(b))
 
@@ -44,23 +87,23 @@ macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
 const CssScalar {.strdefine: "cssgrid.scalar".}: string = ""
 
 when CssScalar == "float":
-  type UiScalar* = float
+  type UiScalar* = distinct float
 elif CssScalar == "float32":
-  type UiScalar* = float32
+  type UiScalar* = distinct float32
 elif CssScalar == "float64":
-  type UiScalar* = float64
+  type UiScalar* = distinct float64
 elif CssScalar == "int32":
-  type UiScalar* = int32
+  type UiScalar* = distinct int32
 elif CssScalar == "int64":
-  type UiScalar* = int64
+  type UiScalar* = distinct int64
 elif CssScalar == "uint32":
-  type UiScalar* = uint32
+  type UiScalar* = distinct uint32
 elif CssScalar == "uint64":
-  type UiScalar* = uint64
+  type UiScalar* = distinct uint64
 else:
-  type UiScalar* = float
+  type UiScalar* = distinct float
 
-# borrowMaths(UiScalar, float32)
+borrowMaths(UiScalar, distinctBase(UiScalar))
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
@@ -81,7 +124,7 @@ genBoolOp[UiSize, GVec2[UiScalar]](`!=`)
 genBoolOp[UiSize, GVec2[UiScalar]](`~=`)
 
 applyOps(UiSize, GVec2[UiScalar], genOp, `+`, `-`, `/`, `*`)
-applyOps(UiSize, GVec2[UiScalar], genOp, `mod`, `zmod`, `zmod`)
+applyOps(UiSize, GVec2[UiScalar], genOp, `mod`)
 applyOps(UiSize, GVec2[UiScalar], genEqOp, `+=`, `-=`, `*=`, `/=`)
 applyOps(UiSize, GVec2[UiScalar], genMathFn, `-`, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
 applyOps(UiSize, GVec2[UiScalar], genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 

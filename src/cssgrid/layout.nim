@@ -11,6 +11,7 @@ import prettyprints
 proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
+  debugPrint "computeLineOverflow:pre: ", result
   for grdLn in lines:
     if grdLn.isAuto:
       match grdLn.track:
@@ -35,7 +36,7 @@ proc computeLineOverflow*(
               if amin.float32 != float32.high():
                 result += amin
         _: discard
-  debugPrint "computeLineOverflow: ", result
+  debugPrint "computeLineOverflow:post: ", result
 
 proc computeLineLayout*(
     lines: var seq[GridLine],
@@ -176,7 +177,7 @@ proc createEndTracks*(grid: GridTemplate) =
 
 proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
   # The free space is calculated after any non-flexible items. In 
-  printGrid(grid, cmTerminal)
+  printGrid(grid)
   grid.overflowSizes[dcol] = grid.lines[dcol].computeLineOverflow()
   grid.overflowSizes[drow] = grid.lines[drow].computeLineOverflow()
   var

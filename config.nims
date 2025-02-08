@@ -7,6 +7,8 @@ task test, "test all":
     if test.endsWith(".nim"):
       echo "test: ", test
       exec "nim c -r " & test
+  
+  echo "======= Run Int Test ======="
   exec "nim -d:cssgrid.scalar=int64 c -r " & "tests/tgrids.nim"
 
 # begin Nimble config (version 2)

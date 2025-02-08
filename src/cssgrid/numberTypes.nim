@@ -185,23 +185,25 @@ proc `+`*(a, b: UiBox): UiBox =
 template xy*(r: UiBox): UiPos = uiPos(r.x, r.y)
 template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
 
-template x*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
-template y*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
-template `x=`*(r: UiSize, v: UiScalar) = r.x = v
-template `y=`*(r: UiSize, v: UiScalar) = r.y = v
+## Setup 2D UiBox
+template w*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
+template h*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
+template `w=`*(r: UiSize, v: UiScalar) = r.x = v
+template `h=`*(r: UiSize, v: UiScalar) = r.y = v
 
 proc `+`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
   result = rect
-  result.x += xy.x
-  result.y += xy.y
+  result.w += xy.w
+  result.h += xy.h
 
 proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
   result = rect
-  result.x -= xy.x
-  result.y -= xy.y
+  result.w -= xy.w
+  result.h -= xy.h
 
+## Setup 2D UiPos
 template x*(r: UiPos): UiScalar = GVec2[UiScalar](r)[0]
 template y*(r: UiPos): UiScalar = GVec2[UiScalar](r)[1]
 template `x=`*(r: UiPos, v: UiScalar) = r.x = v
@@ -225,12 +227,20 @@ proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
 proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
+proc toVec*(p: UiPos): Vec2 = vec2(p.x.float32, p.y.float32)
+proc toVec*(p: UiSize): Vec2 = vec2(p.w.float32, p.h.float32)
+
+proc `$`*(a: UiPos): string =
+  when typeof(UiScalar) is SomeFloat:
+    fmt"UiPox<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+  else:
+    fmt"UiPos<{$a.x}, {$a.y}>"
 
 proc `$`*(a: UiSize): string =
   when typeof(UiScalar) is SomeFloat:
-    fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+    fmt"UiSize<{a.w.float32:2.2f}, {a.h.float32:2.2f}>"
   else:
-    fmt"UiSize<{$a.x}, {$a.y}>"
+    fmt"UiSize<{$a.w}, {$a.h}>"
 
 proc `$`*(a: UiBox): string =
   when typeof(UiScalar) is SomeFloat:

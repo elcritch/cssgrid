@@ -28,7 +28,7 @@ suite "grids":
 
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     z += y
-    z.x += 3.1.UiScalar
+    z.w += 3.1.UiScalar
     echo "z: ", repr(z)
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     echo "z: ", repr(-z)

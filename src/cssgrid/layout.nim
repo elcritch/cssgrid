@@ -265,7 +265,7 @@ proc computeBox*(
     result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
-    let cvw = min(contentSize.`f`, rvw)
+    let cvw = min(contentSize.`v`, rvw)
     debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
     case `axis`:
     of CxStretch:

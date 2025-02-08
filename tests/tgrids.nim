@@ -680,9 +680,10 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
+    parent.children = nodes
+    echo "\nLAYOUT::"
     printLayout(parent)
 
-    parent.children = nodes
     let box1 = gridTemplate.computeNodeLayout(parent)
     let box = gridTemplate.computeNodeLayout(parent)
     # echo "grid template:post: ", gridTemplate

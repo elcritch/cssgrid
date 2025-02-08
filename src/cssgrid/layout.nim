@@ -26,7 +26,8 @@ proc computeLineOverflow*(
             UiContentMin(cmin):
               if cmin.float32 != float32.high():
                 result += cmin
-            UiFrac(fr, fmin): 
+            UiFrac(_, fmin): 
+              echo "computeLineOverflow: ", fmin, " res: ", result
               if fmin.float32 != float32.high():
                 result += fmin
             UiAuto(amin):

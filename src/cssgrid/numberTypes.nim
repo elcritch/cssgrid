@@ -15,32 +15,26 @@ template borrowMaths*(typ, base: typedesc) =
   proc `+` *(x, y: typ): typ = typ(`+`(base(x), base(y)))
   proc `-` *(x, y: typ): typ = typ(`-`(base(x), base(y)))
   
-  proc `-` *(x: typ): typ = typ(`-`(base(x)))
-
-  ## allow NewType(3.2) + 3.2 ... 
-  # proc `+` *(x: typ, y: static[float32|float64|int]): typ = typ(`+`(base x, base y))
-  # proc `-` *(x: typ, y: static[float32|float64|int]): typ = typ(`-`(base x, base y))
-  # proc `+` *(x: static[float32|float64|int], y: typ): typ = typ(`+`(base x, base y))
-  # proc `-` *(x: static[float32|float64|int], y: typ): typ = typ(`-`(base x, base y))
+  when base isnot uint and base isnot uint64 and base isnot uint32:
+    proc `-` *(x: typ): typ = typ(`-`(base(x)))
 
   proc `*` *(x, y: typ): typ = typ(`*`(base(x), base(y)))
   proc `/` *(x, y: typ): typ = typ(`/`(base(x), base(y)))
 
-  # proc `*` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`*`(base(x), base(y)))
-  # proc `/` *(x: typ, y: static[distinctBase(typ)]): typ = typ(`/`(base(x), base(y)))
-  # proc `*` *(x: static[base], y: typ): typ = typ(`*`(base(x), base(y)))
-  # proc `/` *(x: static[base], y: typ): typ = typ(`/`(base(x), base(y)))
-
   proc `min` *(x: typ, y: typ): typ {.borrow.}
   proc `max` *(x: typ, y: typ): typ {.borrow.}
+  proc `mod` *(x: typ, y: typ): typ {.borrow.}
 
   proc `<` * (x, y: typ): bool {.borrow.}
   proc `<=` * (x, y: typ): bool {.borrow.}
   proc `==` * (x, y: typ): bool {.borrow.}
+  when base is SomeFloat:
+    proc `~=` * (x, y: typ): bool {.borrow.}
 
   proc `+=` * (x: var typ, y: typ) {.borrow.}
   proc `-=` * (x: var typ, y: typ) {.borrow.}
-  proc `/=` * (x: var typ, y: typ) {.borrow.}
+  when base is SomeFloat:
+    proc `/=` * (x: var typ, y: typ) {.borrow.}
   proc `*=` * (x: var typ, y: typ) {.borrow.}
   proc `$` * (x: typ): string {.borrow.}
   proc `hash` * (x: typ): Hash {.borrow.}
@@ -56,10 +50,10 @@ template genBoolOp[T, B](op: untyped) =
   proc `op`*(a, b: T): bool = `op`(B(a), B(b))
 
 template genFloatOp[T, B](op: untyped) =
-  proc `op`*(a: T, b: UiScalar): T = T(`op`(B(a), b.float32))
+  proc `op`*(a: T, b: UiScalar): T = T(`op`(B(a), b))
 
 template genEqOp[T, B](op: untyped) =
-  proc `op`*(a: var T, b: float32) = `op`(B(a), b)
+  # proc `op`*(a: var T, b: float32) = `op`(B(a), b.T)
   proc `op`*(a: var T, b: T) = `op`(B(a), B(b))
 
 template genEqOpC[T, B, C](op: untyped) =
@@ -82,13 +76,33 @@ macro applyOps(a, b: typed, fn: untyped, ops: varargs[untyped]) =
 ## Distinct percentages
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
-type
-  UiScalar* = distinct float32
+const CssScalar {.strdefine: "cssgrid.scalar".}: string = "float32"
 
-borrowMaths(UiScalar, float32)
+when CssScalar == "float":
+  type UiScalar* = distinct float
+elif CssScalar == "float32":
+  type UiScalar* = distinct float32
+elif CssScalar == "float64":
+  type UiScalar* = distinct float64
+elif CssScalar == "int":
+  type UiScalar* = distinct int
+elif CssScalar == "int32":
+  type UiScalar* = distinct int32
+elif CssScalar == "int64":
+  type UiScalar* = distinct int64
+else:
+  {.error: "unhandled UiScalar type: " & CssScalar.}
+
+borrowMaths(UiScalar, distinctBase(UiScalar))
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
+proc high*(_: typedesc[UiScalar]): UiScalar =
+  distinctBase(UiScalar).high().UiScalar
+proc low*(_: typedesc[UiScalar]): UiScalar =
+  distinctBase(UiScalar).low().UiScalar
+
+{.push hint[ConvFromXtoItselfNotNeeded]: on.}
 # proc `'ux`*(n: string): UiScalar =
 #   ## numeric literal UI Coordinate unit
 #   result = UiScalar(parseFloat(n))
@@ -97,46 +111,61 @@ converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 ## Distinct vec types
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 type
-  UiSize* = distinct Vec2
+  UiSize* = distinct GVec2[UiScalar]
 
-proc uiSize*(x, y: float32): UiSize = UiSize(vec2(x, y))
-genBoolOp[UiSize, Vec2](`==`)
-genBoolOp[UiSize, Vec2](`!=`)
-genBoolOp[UiSize, Vec2](`~=`)
+proc uiSize*(x, y: UiScalar): UiSize = UiSize(gvec2(x, y))
+proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
 
-applyOps(UiSize, Vec2, genOp, `+`, `-`, `/`, `*`, `mod`, `zmod`, `min`, `zmod`)
-applyOps(UiSize, Vec2, genEqOp, `+=`, `-=`, `*=`, `/=`)
-applyOps(UiSize, Vec2, genMathFn, `-`, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
-applyOps(UiSize, Vec2, genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
-applyOps(UiSize, Vec2, genFloatOp, `*`, `/`)
+genBoolOp[UiSize, GVec2[UiScalar]](`==`)
+genBoolOp[UiSize, GVec2[UiScalar]](`!=`)
+when UiScalar is SomeFloat:
+  genBoolOp[UiSize, GVec2[UiScalar]](`~=`)
+
+applyOps(UiSize, GVec2[UiScalar], genOp, `+`, `-`, `/`, `*`)
+applyOps(UiSize, GVec2[UiScalar], genOp, `mod`)
+applyOps(UiSize, GVec2[UiScalar], genEqOp, `+=`, `-=`, `*=`)
+when UiScalar is SomeFloat:
+  applyOps(UiSize, GVec2[UiScalar], genEqOp, `/=`)
+applyOps(UiSize, GVec2[UiScalar], genFloatOp, `*`, `/`)
+applyOps(UiSize, GVec2[UiScalar], genMathFn, `-`)
+# applyOps(UiSize, GVec2[UiScalar], genMathFn, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
+# applyOps(UiSize, GVec2[UiScalar], genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
 
 type
-  UiBox* = distinct Rect
+  UiBox* = distinct GVec4[UiScalar]
 
-proc uiBox*(x, y, w, h: float32): UiBox = UiBox(rect(x, y, w, h))
-proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(rect(x.float32, y.float32, w.float32, h.float32))
+proc uiBox*(x, y, w, h: UiScalar): UiBox = UiBox(gvec4[UiScalar](x, y, w, h))
+proc uiBox*(x, y, w, h: float): UiBox = UiBox(gvec4[UiScalar](x.UiScalar, y.UiScalar, w.UiScalar, h.UiScalar))
 
-applyOps(UiBox, Rect, genOp, `+`)
-applyOps(UiBox, Rect, genFloatOp, `*`, `/`)
-genBoolOp[UiBox, Rect](`==`)
-genEqOpC[UiBox, Rect, Vec2](`xy=`)
+proc `[]=`*(a: var UiBox, i: int, v: UiScalar) =
+  GVec4[UiScalar](a)[i] = v
+proc `[]`*(a: UiBox, i: int): UiScalar =
+  GVec4[UiScalar](a)[i]
 
-template x*(r: UiBox): UiScalar = r.Rect.x.UiScalar
-template y*(r: UiBox): UiScalar = r.Rect.y.UiScalar
-template w*(r: UiBox): UiScalar = r.Rect.w.UiScalar
-template h*(r: UiBox): UiScalar = r.Rect.h.UiScalar
-template `x=`*(r: UiBox, v: UiScalar) = r.Rect.x = v.float32
-template `y=`*(r: UiBox, v: UiScalar) = r.Rect.y = v.float32
-template `w=`*(r: UiBox, v: UiScalar) = r.Rect.w = v.float32
-template `h=`*(r: UiBox, v: UiScalar) = r.Rect.h = v.float32
+{.push hint[ConvFromXtoItselfNotNeeded]: on.}
 
-template xy*(r: UiBox): UiSize = UiSize r.Rect.xy
-template wh*(r: UiBox): UiSize = uiSize(r.w.float32, r.h.float32)
+# applyOps(UiBox, GVec4[UiScalar], genOp, `+`)
+applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)
+genBoolOp[UiBox, GVec4[UiScalar]](`==`)
+genEqOpC[UiBox, GVec4[UiScalar], GVec2[UiScalar]](`xy=`)
 
-template x*(r: UiSize): UiScalar = r.Vec2.x.UiScalar
-template y*(r: UiSize): UiScalar = r.Vec2.y.UiScalar
-template `x=`*(r: UiSize, v: UiScalar) = r.Vec2.x = v.float32
-template `y=`*(r: UiSize, v: UiScalar) = r.Vec2.y = v.float32
+template x*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[0]
+template y*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
+template w*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[2]
+template h*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[3]
+
+proc `x=`*(r: var UiBox, v: UiScalar) = r[0] = v
+proc `y=`*(r: var UiBox, v: UiScalar) = r[1] = v
+proc `w=`*(r: var UiBox, v: UiScalar) = r[2] = v
+proc `h=`*(r: var UiBox, v: UiScalar) = r[3] = v
+
+template xy*(r: UiBox): UiSize = uiSize(r.x, r.y)
+template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
+
+template x*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
+template y*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
+template `x=`*(r: UiSize, v: UiScalar) = r.x = v
+template `y=`*(r: UiSize, v: UiScalar) = r.y = v
 
 proc `+`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
@@ -150,22 +179,29 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.x -= xy.x
   result.y -= xy.y
 
-proc sum*(rect: Rect): float32 =
-  result = rect.x + rect.y + rect.w + rect.h
-proc sum*(rect: (float32, float32, float32, float32)): float32 =
-  result = rect[0] + rect[1] + rect[2] + rect[3]
+proc `+`*(a, b: UiBox): UiBox =
+  ## Add two boxes together.
+  result.x = a.x + b.x
+  result.y = a.y + b.y
+  result.w = a.w
+  result.h = a.h
+
 proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
+proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
+
 proc `$`*(a: UiSize): string =
-  fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+  when typeof(UiScalar) is SomeFloat:
+    fmt"UiSize<{a.x.float32:2.2f}, {a.y.float32:2.2f}>"
+  else:
+    fmt"UiSize<{$a.x}, {$a.y}>"
 
-proc `$`*(b: UiBox): string =
-  let a = b.Rect
-  # &"UiBox<{a.x:2.2f}, {a.y:2.2f}; {a.x+a.w:2.2f}, {a.y+a.h:2.2f} [{a.w:2.2f} x {a.h:2.2f}]>"
-  fmt"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
+proc `$`*(a: UiBox): string =
+  when typeof(UiScalar) is SomeFloat:
+    fmt"UiBox<{a.x:2.2f}, {a.y:2.2f}; [{a.w:2.2f} x {a.h:2.2f}]>"
+  else:
+    fmt"UiBox<{$a.x}, {$a.y}; [{$a.w} x {$a.h}]>"
 
-# const
-#   uiScale* = 1.0

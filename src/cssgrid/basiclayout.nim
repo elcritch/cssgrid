@@ -164,11 +164,7 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
   debugPrint "calcBasicConstraintPostImpl: ", "name =", node.name, "boxH=", node.box.h
-  let parentBox =
-    if node.parent.isNil:
-      node.frame[].windowSize
-    else:
-      node.parent[].box
+  let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar

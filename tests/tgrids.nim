@@ -12,6 +12,12 @@ import pretty
 import macros
 
 
+proc toVal*[T](v: T): float =
+  when distinctBase(UiScalar) is SomeFloat:
+    v
+  else:
+    trunc(v)
+
 type
   GridNode* = ref object
     name: string
@@ -88,11 +94,11 @@ suite "grids":
     # print "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 33.3333
-    checks gt.lines[dcol][2].start.float == 66.6666
+    checks gt.lines[dcol][1].start.float == 33.3333.toVal
+    checks gt.lines[dcol][2].start.float == 66.6666.toVal
     checks gt.lines[drow][0].start.float == 0.0
-    checks gt.lines[drow][1].start.float == 33.3333
-    checks gt.lines[drow][2].start.float == 66.6666
+    checks gt.lines[drow][1].start.float == 33.3333.toVal
+    checks gt.lines[drow][2].start.float == 66.6666.toVal
 
   test "4x1 grid test":
     var gt = newGridTemplate(
@@ -103,9 +109,10 @@ suite "grids":
     # echo "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 31.6666
-    checks gt.lines[dcol][2].start.float == 36.6666
-    checks gt.lines[dcol][3].start.float == 68.3333
+    checks gt.lines[dcol][1].start.float == 31.6666.toVal
+    checks gt.lines[dcol][2].start.float == 36.6666.toVal
+    when distinctBase(UiScalar) is SomeFloat:
+      checks gt.lines[dcol][3].start.float == 68.3333.toVal
     checks gt.lines[drow][0].start.float == 0.0
 
   test "initial macros":
@@ -270,7 +277,7 @@ suite "grids":
     gridTemplate.alignItems = CxStretch
     itemBox = node.computeBox(gridTemplate)
     echo ""
-    print itemBox
+    # print itemBox
     checks itemBox == uiBox(40, 0, 500, 350)
 
     ## test stretch / start
@@ -278,7 +285,7 @@ suite "grids":
     gridTemplate.alignItems = CxStart
     itemBox = node.computeBox(gridTemplate)
     echo ""
-    print itemBox
+    # print itemBox
     checks itemBox == uiBox(40, 0, 920, 200)
     
     ## test stretch / start
@@ -286,7 +293,7 @@ suite "grids":
     gridTemplate.alignItems = CxCenter
     itemBox = node.computeBox(gridTemplate)
     echo ""
-    print itemBox
+    # print itemBox
     # 920/2-500/2+40
     # 350/2-200/2+0
     checks itemBox == uiBox(250, 75, 500, 200)
@@ -573,7 +580,7 @@ suite "grids":
     # printChildrens(0)
 
     # echo "grid template:post: ", gridTemplate
-    print gridTemplate.overflowSizes
+    # print gridTemplate.overflowSizes
 
     echo "LAYOUT:"
     prettyLayout(parent)
@@ -594,8 +601,6 @@ suite "grids":
     checks nodes[7].box == uiBox(350, 0, 150, 50)
 
   test "compute layout overflow (rows)":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 
@@ -648,6 +653,8 @@ suite "grids":
     checks nodes[7].box == uiBox(0, 350, 50, 50)
 
   test "compute layout manual overflow (rows)":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -674,6 +681,9 @@ suite "grids":
 
     # ==== process grid ====
     parent.children = nodes
+    echo "\nLAYOUT::"
+    printLayout(parent, cmTerminal)
+
     let box1 = gridTemplate.computeNodeLayout(parent)
     let box = gridTemplate.computeNodeLayout(parent)
     # echo "grid template:post: ", gridTemplate
@@ -730,8 +740,8 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent)
     echo "grid template:post: ", gridTemplate
     echo ""
-    printChildrens()
-    print gridTemplate.overflowSizes
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
     check box.w == 50
     check box.h == 500
@@ -782,8 +792,8 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent)
     echo "grid template:post: ", gridTemplate
     echo ""
-    printChildrens()
-    print gridTemplate.overflowSizes
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
     check gridTemplate.lines[drow].len() == 9
 

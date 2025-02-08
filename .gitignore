@@ -3,3 +3,5 @@
 !*.*
 vendor/
 .tool-versions
+nimble.develop
+nimble.paths

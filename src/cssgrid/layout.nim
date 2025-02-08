@@ -11,6 +11,7 @@ import prettyprints
 proc computeLineOverflow*(
     lines: var seq[GridLine],
 ): UiScalar =
+  debugPrint "computeLineOverflow:pre: ", result
   for grdLn in lines:
     if grdLn.isAuto:
       match grdLn.track:
@@ -24,16 +25,18 @@ proc computeLineOverflow*(
             UiContentMax(cmax):
               result += cmax
             UiContentMin(cmin):
+              echo "computeLineOverflow:content-min: ", cmin, " res: ", result
               if cmin.float32 != float32.high():
                 result += cmin
-            UiFrac(fr, fmin): 
+            UiFrac(_, fmin): 
+              echo "computeLineOverflow:uifrace: ", fmin, " res: ", result
               if fmin.float32 != float32.high():
                 result += fmin
             UiAuto(amin):
               if amin.float32 != float32.high():
                 result += amin
         _: discard
-  debugPrint "computeLineOverflow: ", result
+  debugPrint "computeLineOverflow:post: ", result
 
 proc computeLineLayout*(
     lines: var seq[GridLine],
@@ -174,6 +177,7 @@ proc createEndTracks*(grid: GridTemplate) =
 
 proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
   # The free space is calculated after any non-flexible items. In 
+  prettyGridTemplate(grid)
   grid.overflowSizes[dcol] = grid.lines[dcol].computeLineOverflow()
   grid.overflowSizes[drow] = grid.lines[drow].computeLineOverflow()
   var
@@ -439,7 +443,7 @@ proc computeNodeLayout*(
   prettyLayout(parent)
 
   gridTemplate.computeContentSizes(parent.children)
-  debugPrint "GRID:CS: ", "box=", box, "extendOnOverflow=", extendOnOverflow
+  debugPrint "GRID:CS: ", "box=", $box, "extendOnOverflow=", extendOnOverflow
   printGrid(gridTemplate)
   gridTemplate.computeTracks(box, extendOnOverflow)
   debugPrint "GRID:ComputedTracks: "

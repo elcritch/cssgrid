@@ -1,10 +1,16 @@
-
 import unittest
+
 import cssgrid/numberTypes
+import vmath
 
 suite "grids":
 
   test "UiSize":
+    type FF = float64
+    let f1: FF = 1.1
+    let f2: FF = 10.1
+    echo "test: ", f1 <= f2
+
     let x = uiSize(12.1, 13.4)
     let y = uiSize(10.0, 10.0)
     var z = uiSize(0.0, 0.0)
@@ -16,35 +22,56 @@ suite "grids":
     echo "x / c: ", repr(x / c)
     echo "x * y: ", repr(x * y)
     echo "x == y: ", repr(x == y)
-    echo "x ~= y: ", repr(x ~= y)
-    echo "min(x, y): ", repr(min(x, y))
+    when UiScalar is SomeFloat:
+      echo "x ~= y: ", repr(x ~= y)
+    # echo "min(x, y): ", repr(min(x, y))
 
-    z = vec2(1.0, 1.0).UiSize
+    z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     z += y
-    z += 3.1'f32
+    z.x += 3.1.UiScalar
     echo "z: ", repr(z)
-    z = vec2(1.0, 1.0).UiSize
+    z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     echo "z: ", repr(-z)
-    echo "z: ", repr(sin(z))
+    # echo "z: ", repr(sin(z))
   
   test "box ":
-    let x = uiBox(10.0, 10.0, 2.0, 2.0)
-    let y = uiBox(10.0, 10.0, 5.0, 5.0)
+    let x = uiBox(1.0, 2.0, 3.0, 4.0)
+    let y = uiBox(10.0, 20.0, 5.0, 6.0)
     let c = 10.0.UiScalar
     var z = uiBox(10.0, 10.0, 5.0, 5.0)
     let v = uiSize(10.0, 10.0)
 
+    check x.x == 1.0.UiScalar
+    check x.y == 2.0.UiScalar
+    check x.w == 3.0.UiScalar
+    check x.h == 4.0.UiScalar
+    echo "x:x: ", x.x
+    echo "x:y: ", x.y
+    echo "x:w: ", x.w
+    echo "x:h: ", x.h
+
     echo "x.w: ", repr(x.w)
+
     echo "x + y: ", repr(x + y)
     echo "x / y: ", repr(x / c)
     echo "x * y: ", repr(x * c)
-    echo "x == y: ", repr(x == y)
+    echo "x == y: ", repr(x = y)
 
     z = uiBox(10.0, 10.0, 5.0, 5.0)
     z.xy= v
+    z.x = 3.1.UiScalar
+
     # z += 3.1'f32
     echo "z: ", repr(z)
-    z = uiBox(10.0, 10.0, 5.0, 5.0)
+    echo "z.xy: ", repr(z.xy)
+    echo "z.wh: ", repr(z.wh)
+
+    z = x + y
+    echo "z = x+y ", repr(z)
+    check z.x == x.x + y.x
+    check z.y == x.y + y.y
+    check z.w == x.w
+    check z.h == x.h
 
   test "example static dispatch":
     type Url[T: static string] = distinct void

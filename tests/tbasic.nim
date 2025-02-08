@@ -98,6 +98,7 @@ suite "grids":
     z = uiBox(10.0, 10.0, 5.0, 5.0)
     z.xy= v
     z.x = 3.1.UiScalar
+    z.x += 3.1.UiScalar
 
     # z += 3.1'f32
     echo "z: ", repr(z)

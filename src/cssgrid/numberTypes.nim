@@ -171,10 +171,14 @@ applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)
 genBoolOp[UiBox, GVec4[UiScalar]](`==`)
 genEqOpC[UiBox, GVec4[UiScalar], GVec2[UiScalar]](`xy=`)
 
-template x*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[0]
-template y*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
-template w*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[2]
-template h*(r: UiBox): var UiScalar = Gvec4[UiScalar](r)[3]
+proc x*(r: UiBox): UiScalar = Gvec4[UiScalar](r)[0]
+proc y*(r: UiBox): UiScalar = Gvec4[UiScalar](r)[1]
+proc w*(r: UiBox): UiScalar = Gvec4[UiScalar](r)[2]
+proc h*(r: UiBox): UiScalar = Gvec4[UiScalar](r)[3]
+proc x*(r: var UiBox): var UiScalar = Gvec4[UiScalar](r)[0]
+proc y*(r: var UiBox): var UiScalar = Gvec4[UiScalar](r)[1]
+proc w*(r: var UiBox): var UiScalar = Gvec4[UiScalar](r)[2]
+proc h*(r: var UiBox): var UiScalar = Gvec4[UiScalar](r)[3]
 
 proc `x=`*(r: var UiBox, v: UiScalar) = r[0] = v
 proc `y=`*(r: var UiBox, v: UiScalar) = r[1] = v
@@ -189,14 +193,16 @@ proc `+`*(a, b: UiBox): UiBox =
   result.h = a.h
 
 ## Setup 2D Points
-template xy*(r: UiBox): UiPos = uiPos(r.x, r.y)
-template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
+proc xy*(r: UiBox): UiPos = uiPos(r.x, r.y)
+proc wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
 
 ## Setup 2D UiBox
-template w*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
-template h*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
-template `w=`*(r: UiSize, v: UiScalar) = r[0] = v
-template `h=`*(r: UiSize, v: UiScalar) = r[1] = v
+proc w*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
+proc h*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
+proc w*(r: var UiSize): var UiScalar = GVec2[UiScalar](r)[0]
+proc h*(r: var UiSize): var UiScalar = GVec2[UiScalar](r)[1]
+proc `w=`*(r: var UiSize, v: UiScalar) = r[0] = v
+proc `h=`*(r: var UiSize, v: UiScalar) = r[1] = v
 
 proc `+`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
@@ -211,10 +217,12 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.h -= xy.h
 
 ## Setup 2D UiPos
-template x*(r: UiPos): UiScalar = GVec2[UiScalar](r)[0]
-template y*(r: UiPos): UiScalar = GVec2[UiScalar](r)[1]
-template `x=`*(r: UiPos, v: UiScalar) = r[0] = v
-template `y=`*(r: UiPos, v: UiScalar) = r[1] = v
+proc x*(r: UiPos): UiScalar = GVec2[UiScalar](r)[0]
+proc y*(r: UiPos): UiScalar = GVec2[UiScalar](r)[1]
+proc x*(r: var UiPos): var UiScalar = GVec2[UiScalar](r)[0]
+proc y*(r: var UiPos): var UiScalar = GVec2[UiScalar](r)[1]
+proc `x=`*(r: var UiPos, v: UiScalar) = r[0] = v
+proc `y=`*(r: var UiPos, v: UiScalar) = r[1] = v
 
 proc `+`*(rect: UiBox, xy: UiPos): UiBox =
   ## offset rect with xy vec2 

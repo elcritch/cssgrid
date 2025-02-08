@@ -112,9 +112,13 @@ proc low*(_: typedesc[UiScalar]): UiScalar =
 ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 type
   UiSize* = distinct GVec2[UiScalar]
+  UiPos* = distinct GVec2[UiScalar]
 
 proc uiSize*(x, y: UiScalar): UiSize = UiSize(gvec2(x, y))
 proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
+
+proc uiPos*(x, y: UiScalar): UiPos = UiPos(gvec2(x, y))
+proc uiPos*(x, y: float): UiPos = uiPos(x.UiScalar, y.UiScalar)
 
 genBoolOp[UiSize, GVec2[UiScalar]](`==`)
 genBoolOp[UiSize, GVec2[UiScalar]](`!=`)
@@ -128,8 +132,19 @@ when UiScalar is SomeFloat:
   applyOps(UiSize, GVec2[UiScalar], genEqOp, `/=`)
 applyOps(UiSize, GVec2[UiScalar], genFloatOp, `*`, `/`)
 applyOps(UiSize, GVec2[UiScalar], genMathFn, `-`)
-# applyOps(UiSize, GVec2[UiScalar], genMathFn, sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh)
-# applyOps(UiSize, GVec2[UiScalar], genMathFn, exp, ln, log2, sqrt, floor, ceil, abs) 
+
+genBoolOp[UiPos, GVec2[UiScalar]](`==`)
+genBoolOp[UiPos, GVec2[UiScalar]](`!=`)
+when UiScalar is SomeFloat:
+  genBoolOp[UiPos, GVec2[UiScalar]](`~=`)
+
+applyOps(UiPos, GVec2[UiScalar], genOp, `+`, `-`, `/`, `*`)
+applyOps(UiPos, GVec2[UiScalar], genOp, `mod`)
+applyOps(UiPos, GVec2[UiScalar], genEqOp, `+=`, `-=`, `*=`)
+when UiScalar is SomeFloat:
+  applyOps(UiPos, GVec2[UiScalar], genEqOp, `/=`)
+applyOps(UiPos, GVec2[UiScalar], genFloatOp, `*`, `/`)
+applyOps(UiPos, GVec2[UiScalar], genMathFn, `-`)
 
 type
   UiBox* = distinct GVec4[UiScalar]
@@ -159,7 +174,15 @@ proc `y=`*(r: var UiBox, v: UiScalar) = r[1] = v
 proc `w=`*(r: var UiBox, v: UiScalar) = r[2] = v
 proc `h=`*(r: var UiBox, v: UiScalar) = r[3] = v
 
-template xy*(r: UiBox): UiSize = uiSize(r.x, r.y)
+proc `+`*(a, b: UiBox): UiBox =
+  ## Add two boxes together.
+  result.x = a.x + b.x
+  result.y = a.y + b.y
+  result.w = a.w
+  result.h = a.h
+
+## Setup 2D Points
+template xy*(r: UiBox): UiPos = uiPos(r.x, r.y)
 template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
 
 template x*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
@@ -179,12 +202,22 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
   result.x -= xy.x
   result.y -= xy.y
 
-proc `+`*(a, b: UiBox): UiBox =
-  ## Add two boxes together.
-  result.x = a.x + b.x
-  result.y = a.y + b.y
-  result.w = a.w
-  result.h = a.h
+template x*(r: UiPos): UiScalar = GVec2[UiScalar](r)[0]
+template y*(r: UiPos): UiScalar = GVec2[UiScalar](r)[1]
+template `x=`*(r: UiPos, v: UiScalar) = r.x = v
+template `y=`*(r: UiPos, v: UiScalar) = r.y = v
+
+proc `+`*(rect: UiBox, xy: UiPos): UiBox =
+  ## offset rect with xy vec2 
+  result = rect
+  result.x += xy.x
+  result.y += xy.y
+
+proc `-`*(rect: UiBox, xy: UiPos): UiBox =
+  ## offset rect with xy vec2 
+  result = rect
+  result.x -= xy.x
+  result.y -= xy.y
 
 proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h

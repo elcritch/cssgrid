@@ -33,6 +33,35 @@ suite "grids":
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     echo "z: ", repr(-z)
     # echo "z: ", repr(sin(z))
+
+  test "UiPos":
+    type FF = float64
+    let f1: FF = 1.1
+    let f2: FF = 10.1
+    echo "test: ", f1 <= f2
+
+    let x = uiPos(12.1, 13.4)
+    let y = uiPos(10.0, 10.0)
+    var z = uiPos(0.0, 0.0)
+    let c = 1.0.UiScalar
+
+    echo "x + y: ", repr(x + y)
+    echo "x - y: ", repr(x - y)
+    echo "x / y: ", repr(x / y)
+    echo "x / c: ", repr(x / c)
+    echo "x * y: ", repr(x * y)
+    echo "x == y: ", repr(x == y)
+    when UiScalar is SomeFloat:
+      echo "x ~= y: ", repr(x ~= y)
+    # echo "min(x, y): ", repr(min(x, y))
+
+    z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiPos
+    z += y
+    z.x += 3.1.UiScalar
+    echo "z: ", repr(z)
+    z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiPos
+    echo "z: ", repr(-z)
+    # echo "z: ", repr(sin(z))
   
   test "box ":
     let x = uiBox(1.0, 2.0, 3.0, 4.0)

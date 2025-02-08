@@ -120,6 +120,9 @@ proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
 proc uiPos*(x, y: UiScalar): UiPos = UiPos(gvec2(x, y))
 proc uiPos*(x, y: float): UiPos = uiPos(x.UiScalar, y.UiScalar)
 
+proc toPos*(r: UiSize): UiPos = GVec2[UiScalar](r).UiPos
+proc toSize*(r: UiPos): UiSize = GVec2[UiScalar](r).UiSize
+
 proc `[]=`*(a: var UiSize, i: int, v: UiScalar) =
   GVec2[UiScalar](a)[i] = v
 proc `[]=`*(a: var UiPos, i: int, v: UiScalar) =

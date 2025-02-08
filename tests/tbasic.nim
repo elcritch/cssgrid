@@ -38,6 +38,7 @@ suite "grids":
     echo "z: ", repr(-z)
     echo "x:hash: ", hash(x)
     # echo "z: ", repr(sin(z))
+    echo "x:toPos: ", x.toPos()
 
   test "UiPos":
     type FF = float64

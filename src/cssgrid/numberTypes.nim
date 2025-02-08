@@ -120,7 +120,9 @@ proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
 proc uiPos*(x, y: UiScalar): UiPos = UiPos(gvec2(x, y))
 proc uiPos*(x, y: float): UiPos = uiPos(x.UiScalar, y.UiScalar)
 
-proc `[]=`*(a: var UiPos | UiSize, i: int, v: UiScalar) =
+proc `[]=`*(a: var UiSize, i: int, v: UiScalar) =
+  GVec2[UiScalar](a)[i] = v
+proc `[]=`*(a: var UiPos, i: int, v: UiScalar) =
   GVec2[UiScalar](a)[i] = v
 proc `[]`*(a: UiPos | UiSize, i: int): UiScalar =
   GVec2[UiScalar](a)[i]
@@ -193,8 +195,8 @@ template wh*(r: UiBox): UiSize = uiSize(r.w, r.h)
 ## Setup 2D UiBox
 template w*(r: UiSize): UiScalar = GVec2[UiScalar](r)[0]
 template h*(r: UiSize): UiScalar = GVec2[UiScalar](r)[1]
-template `w=`*(r: UiSize, v: UiScalar) = r.x = v
-template `h=`*(r: UiSize, v: UiScalar) = r.y = v
+template `w=`*(r: UiSize, v: UiScalar) = r[0] = v
+template `h=`*(r: UiSize, v: UiScalar) = r[1] = v
 
 proc `+`*(rect: UiBox, xy: UiSize): UiBox =
   ## offset rect with xy vec2 
@@ -211,8 +213,8 @@ proc `-`*(rect: UiBox, xy: UiSize): UiBox =
 ## Setup 2D UiPos
 template x*(r: UiPos): UiScalar = GVec2[UiScalar](r)[0]
 template y*(r: UiPos): UiScalar = GVec2[UiScalar](r)[1]
-template `x=`*(r: UiPos, v: UiScalar) = r.x = v
-template `y=`*(r: UiPos, v: UiScalar) = r.y = v
+template `x=`*(r: UiPos, v: UiScalar) = r[0] = v
+template `y=`*(r: UiPos, v: UiScalar) = r[1] = v
 
 proc `+`*(rect: UiBox, xy: UiPos): UiBox =
   ## offset rect with xy vec2 

@@ -29,6 +29,10 @@ suite "grids":
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     z += y
     z.w += 3.1.UiScalar
+    z.w = 3.1.UiScalar
+    check z.w == 3.1.UiScalar
+    z.h = 13.1.UiScalar
+    check z.h == 13.1.UiScalar
     echo "z: ", repr(z)
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     echo "z: ", repr(-z)
@@ -59,6 +63,10 @@ suite "grids":
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiPos
     z += y
     z.x += 3.1.UiScalar
+    z.x = 3.1.UiScalar
+    check z.x == 3.1.UiScalar
+    z.y = 13.1.UiScalar
+    check z.y == 13.1.UiScalar
     echo "z: ", repr(z)
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiPos
     echo "z: ", repr(-z)

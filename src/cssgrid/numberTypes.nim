@@ -120,6 +120,11 @@ proc uiSize*(x, y: float): UiSize = uiSize(x.UiScalar, y.UiScalar)
 proc uiPos*(x, y: UiScalar): UiPos = UiPos(gvec2(x, y))
 proc uiPos*(x, y: float): UiPos = uiPos(x.UiScalar, y.UiScalar)
 
+proc `[]=`*(a: var UiPos | UiSize, i: int, v: UiScalar) =
+  GVec2[UiScalar](a)[i] = v
+proc `[]`*(a: UiPos | UiSize, i: int): UiScalar =
+  GVec2[UiScalar](a)[i]
+
 genBoolOp[UiSize, GVec2[UiScalar]](`==`)
 genBoolOp[UiSize, GVec2[UiScalar]](`!=`)
 when UiScalar is SomeFloat:
@@ -229,6 +234,20 @@ proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
 proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
 proc toVec*(p: UiPos): Vec2 = vec2(p.x.float32, p.y.float32)
 proc toVec*(p: UiSize): Vec2 = vec2(p.w.float32, p.h.float32)
+
+proc hash*(p: UiBox): Hash =
+  result = Hash(0)
+  result = result !& hash(p[0])
+  result = result !& hash(p[1])
+  result = result !& hash(p[2])
+  result = result !& hash(p[3])
+  result = !$result
+
+proc hash*(p: UiPos | UiSize): Hash =
+  result = Hash(0)
+  result = result !& hash(p[0])
+  result = result !& hash(p[1])
+  result = !$result
 
 proc `$`*(a: UiPos): string =
   when typeof(UiScalar) is SomeFloat:

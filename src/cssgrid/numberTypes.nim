@@ -97,6 +97,9 @@ borrowMaths(UiScalar, distinctBase(UiScalar))
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
+proc high*(x: UiScalar): UiScalar =
+  distinctBase(UiScalar).high().UiScalar
+
 {.push hint[ConvFromXtoItselfNotNeeded]: on.}
 # proc `'ux`*(n: string): UiScalar =
 #   ## numeric literal UI Coordinate unit

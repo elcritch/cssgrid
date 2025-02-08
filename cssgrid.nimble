@@ -1,5 +1,5 @@
 # Package
-version       = "0.8.5"
+version       = "0.8.6"
 author        = "Jaremy Creechley"
 description   = "pure Nim CSS Grid layout engine"
 license       = "MIT"

@@ -37,7 +37,6 @@ suite "grids":
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiSize
     echo "z: ", repr(-z)
     echo "x:hash: ", hash(x)
-    # echo "z: ", repr(sin(z))
     echo "x:toPos: ", x.toPos()
 
   test "UiPos":

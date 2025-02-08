@@ -97,9 +97,9 @@ borrowMaths(UiScalar, distinctBase(UiScalar))
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
-proc high*(x: UiScalar): UiScalar =
+proc high*(_: typedesc[UiScalar]): UiScalar =
   distinctBase(UiScalar).high().UiScalar
-proc low*(x: UiScalar): UiScalar =
+proc low*(_: typedesc[UiScalar]): UiScalar =
   distinctBase(UiScalar).low().UiScalar
 
 {.push hint[ConvFromXtoItselfNotNeeded]: on.}

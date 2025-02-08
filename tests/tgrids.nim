@@ -277,7 +277,7 @@ suite "grids":
     gridTemplate.alignItems = CxStretch
     itemBox = node.computeBox(gridTemplate)
     echo ""
-    print itemBox
+    # print itemBox
     checks itemBox == uiBox(40, 0, 500, 350)
 
     ## test stretch / start
@@ -285,7 +285,7 @@ suite "grids":
     gridTemplate.alignItems = CxStart
     itemBox = node.computeBox(gridTemplate)
     echo ""
-    print itemBox
+    # print itemBox
     checks itemBox == uiBox(40, 0, 920, 200)
     
     ## test stretch / start
@@ -293,7 +293,7 @@ suite "grids":
     gridTemplate.alignItems = CxCenter
     itemBox = node.computeBox(gridTemplate)
     echo ""
-    print itemBox
+    # print itemBox
     # 920/2-500/2+40
     # 350/2-200/2+0
     checks itemBox == uiBox(250, 75, 500, 200)
@@ -580,7 +580,7 @@ suite "grids":
     # printChildrens(0)
 
     # echo "grid template:post: ", gridTemplate
-    print gridTemplate.overflowSizes
+    # print gridTemplate.overflowSizes
 
     echo "LAYOUT:"
     prettyLayout(parent)
@@ -680,6 +680,8 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
+    printLayout(parent)
+
     parent.children = nodes
     let box1 = gridTemplate.computeNodeLayout(parent)
     let box = gridTemplate.computeNodeLayout(parent)
@@ -737,8 +739,8 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent)
     echo "grid template:post: ", gridTemplate
     echo ""
-    printChildrens()
-    print gridTemplate.overflowSizes
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
     check box.w == 50
     check box.h == 500
@@ -789,8 +791,8 @@ suite "grids":
     let box = gridTemplate.computeNodeLayout(parent)
     echo "grid template:post: ", gridTemplate
     echo ""
-    printChildrens()
-    print gridTemplate.overflowSizes
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
     check gridTemplate.lines[drow].len() == 9
 

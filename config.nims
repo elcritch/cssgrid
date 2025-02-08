@@ -1,5 +1,7 @@
 import std/[os, strutils]
 
+--"hint":"ConvFromXtoItselfNotNeeded=off" # Disable single warning
+
 task test, "test all":
   for test in walkDirRec("tests/", skipSpecial=true):
     if test.endsWith(".nim"):

@@ -97,6 +97,7 @@ borrowMaths(UiScalar, distinctBase(UiScalar))
 
 converter toUI*[F: float|int|float32](x: static[F]): UiScalar = UiScalar x
 
+{.push hint[ConvFromXtoItselfNotNeeded]: on.}
 # proc `'ux`*(n: string): UiScalar =
 #   ## numeric literal UI Coordinate unit
 #   result = UiScalar(parseFloat(n))
@@ -135,6 +136,8 @@ proc `[]=`*(a: var UiBox, i: int, v: UiScalar) =
   GVec4[UiScalar](a)[i] = v
 proc `[]`*(a: UiBox, i: int): UiScalar =
   GVec4[UiScalar](a)[i]
+
+{.push hint[ConvFromXtoItselfNotNeeded]: on.}
 
 # applyOps(UiBox, GVec4[UiScalar], genOp, `+`)
 applyOps(UiBox, GVec4[UiScalar], genFloatOp, `*`, `/`)

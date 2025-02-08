@@ -682,7 +682,7 @@ suite "grids":
     # ==== process grid ====
     parent.children = nodes
     echo "\nLAYOUT::"
-    printLayout(parent)
+    printLayout(parent, cmTerminal)
 
     let box1 = gridTemplate.computeNodeLayout(parent)
     let box = gridTemplate.computeNodeLayout(parent)

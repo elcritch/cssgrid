@@ -9,7 +9,7 @@ task test, "test all":
       exec "nim c -r " & test
   
   echo "======= Run Int Test ======="
-  exec "nim -d:cssgrid.scalar=int64 c -r " & "tests/tgrids.nim"
+  exec "nim -d:cssgrid.scalar=int c -r " & "tests/tgrids.nim"
 
 # begin Nimble config (version 2)
 when withDir(thisDir(), system.fileExists("nimble.paths")):

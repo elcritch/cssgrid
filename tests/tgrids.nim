@@ -58,8 +58,8 @@ macro checks(args: untyped{nkInfix}) =
       checkUiFloats(`a`.w,`b`.w, `ln`, `ls`)
       checkUiFloats(`a`.h,`b`.h, `ln`, `ls`)
     when `a` is UiSize:
-      checkUiFloats(`a`.x,`b`.x, `ln`, `ls`)
-      checkUiFloats(`a`.y,`b`.y, `ln`, `ls`)
+      checkUiFloats(`a`.w,`b`.w, `ln`, `ls`)
+      checkUiFloats(`a`.h,`b`.h, `ln`, `ls`)
   result.copyLineInfo(args)
 
 suite "grids":
@@ -247,7 +247,7 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     gridItem.setGridSpans(gridTemplate, contentSize)
-    let node = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: gridItem)
+    let node = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: gridItem)
     echo gridTemplate
 
     ## test stretch
@@ -329,9 +329,9 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
     ## computes
     ## 
-    let nodea = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float),
+    let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
                          gridItem: itema)
-    let nodeb = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float),
+    let nodeb = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
                          gridItem: itemb)
 
     echo "BOXA: ", nodea.gridItem
@@ -364,7 +364,7 @@ suite "grids":
 
     itema.setGridSpans(gridTemplate, contentSize)
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    let nodea = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: itema)
+    let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
     let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 0, 60, 90)
     
@@ -396,8 +396,8 @@ suite "grids":
     itemb.setGridSpans(gridTemplate, contentSize)
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    let nodea = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: itema)
-    let nodeb = GridNode(box: uiBox(0, 0, contentSize.x.float, contentSize.y.float), gridItem: itemb)
+    let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
+    let nodeb = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itemb)
     let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 90, 60, 90)
 

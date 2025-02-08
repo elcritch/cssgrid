@@ -177,7 +177,7 @@ proc createEndTracks*(grid: GridTemplate) =
 
 proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
   # The free space is calculated after any non-flexible items. In 
-  printGrid(grid)
+  prettyGridTemplate(grid)
   grid.overflowSizes[dcol] = grid.lines[dcol].computeLineOverflow()
   grid.overflowSizes[drow] = grid.lines[drow].computeLineOverflow()
   var

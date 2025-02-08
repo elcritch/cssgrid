@@ -243,12 +243,12 @@ proc setGridSpans*(
   if item.span[dcol].a == 0 or item.span[dcol].a notin 0..lcol:
     item.span[dcol].a = grid.setSpan(item.index[dcol].a, dcol, 0)
   if item.span[dcol].b == 0 or item.span[dcol].b notin 0..lcol:
-    item.span[dcol].b = grid.setSpan(item.index[dcol].b, dcol, contentSize.x)
+    item.span[dcol].b = grid.setSpan(item.index[dcol].b, dcol, contentSize.w)
 
   if item.span[drow].a == 0 or item.span[drow].a notin 0..lrow:
     item.span[drow].a = grid.setSpan(item.index[drow].a, drow, 0)
   if item.span[drow].b == 0 or item.span[drow].b notin 0..lrow:
-    item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.x)
+    item.span[drow].b = grid.setSpan(item.index[drow].b, drow, contentSize.h)
 
 proc computeBox*(
     node: GridNode,

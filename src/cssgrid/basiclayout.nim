@@ -69,9 +69,9 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
               parentBox.f
           res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin():
-          discard
+          return # run as post
         UiContentMax():
-          discard
+          return # run as post
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -103,9 +103,9 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
     UiValue(value):
       node.box.f = calcBasic(value)
     UiMinMax(ls, rs):
-      discard # handled in grid layout
+      return
     UiEnd:
-      discard
+      return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
 proc calculateMinOrMaxes(node: GridNode, fs: static string, doMax: static bool): UiScalar =
@@ -151,25 +151,29 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
     UiNone:
       discard
     UiAdd(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = lv + rv
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        node.box.f = lv + rv
     UiSub(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = lv - rv
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        node.box.f = lv - rv
     UiMin(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = min(lv, rv)
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        node.box.f = min(lv, rv)
     UiMax(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = max(lv, rv)
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        node.box.f = max(lv, rv)
     UiMinMax(ls, rs):
-      discard
+      return # doesn't make sense here
     UiValue(value):
-      node.box.f = calcBasic(value)
+      return # doesn't make sense here
     UiEnd:
       discard
 

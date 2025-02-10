@@ -38,7 +38,7 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped) =
+proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var UiScalar, pf: UiScalar) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -51,22 +51,19 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       var res: UiScalar
       match val:
         UiAuto():
-          when astToStr(f) in ["w"]:
-            res = parentBox.f - node.box.x
-          elif astToStr(f) in ["h"]:
-            res = parentBox.f - node.box.y
+          if not isXY:
+            res = pf
+          # when astToStr(f) in ["w"]:
+          #   res = parentBox.f - node.box.x
+          # elif astToStr(f) in ["h"]:
+          #   res = parentBox.f - node.box.y
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
-          res = frac.UiScalar * node.parent[].box.f
+          res = frac.UiScalar * pf
         UiPerc(perc):
           let ppval =
-            when astToStr(f) == "x":
-              parentBox.w
-            elif astToStr(f) == "y":
-              parentBox.h
-            else:
-              parentBox.f
+              pf
           res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin():
           return # run as post
@@ -76,10 +73,10 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
-    when astToStr(f) in ["w", "h"]:
-      node.cxSize[dir]
-    else:
+    if isXY:
       node.cxOffset[dir]
+    else:
+      node.cxSize[dir]
   debugPrint "csValue: ", csValue, "f: ", astToStr(f)
   match csValue:
     UiNone:
@@ -87,21 +84,21 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
     UiAdd(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = lv + rv
+      f = lv + rv
     UiSub(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = lv - rv
+      f = lv - rv
     UiMin(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = min(lv, rv)
+      f = min(lv, rv)
     UiMax(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = max(lv, rv)
+      f = max(lv, rv)
     UiValue(value):
-      node.box.f = calcBasic(value)
+      f = calcBasic(value)
     UiMinMax(ls, rs):
       return
     UiEnd:
@@ -182,15 +179,16 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, isXY: bool, f: va
 
 proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
+  let parentBox = node.getParentBoxOrWindows()
   when isXY == true and dir == dcol:
-    calcBasicConstraintImpl(node, dir, x)
+    calcBasicConstraintImpl(node, dir, isXY, node.box.x, parentBox.w)
   elif isXY == true and dir == drow:
-    calcBasicConstraintImpl(node, dir, y)
+    calcBasicConstraintImpl(node, dir, isXY, node.box.y, parentBox.h)
   # w & h need to run after x & y
   elif isXY == false and dir == dcol:
-    calcBasicConstraintImpl(node, dir, w)
+    calcBasicConstraintImpl(node, dir, isXY, node.box.w, parentBox.w)
   elif isXY == false and dir == drow:
-    calcBasicConstraintImpl(node, dir, h)
+    calcBasicConstraintImpl(node, dir, isXY, node.box.h, parentBox.h)
 
 proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node

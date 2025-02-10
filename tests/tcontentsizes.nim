@@ -22,6 +22,8 @@ type
     children*: seq[TestNode]
     cxSize*: array[GridDir, Constraint]  # For width/height
     cxOffset*: array[GridDir, Constraint] # For x/y positions
+    cxMin*: array[GridDir, Constraint] # For x/y positions
+    cxMax*: array[GridDir, Constraint] # For x/y positions
     gridItem*: GridItem
     gridTemplate*: GridTemplate
     frame*: Frame

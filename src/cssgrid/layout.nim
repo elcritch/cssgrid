@@ -537,10 +537,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 
     # update childrens
     for n in node.children:
-      calcBasicConstraintPost(n, dcol, isXY = true)
-      calcBasicConstraintPost(n, drow, isXY = true)
-      calcBasicConstraintPost(n, dcol, isXY = false)
-      calcBasicConstraintPost(n, drow, isXY = false)
+      calcBasicConstraintPost(n)
       debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
   # debugPrint "computeLayout:post: ",

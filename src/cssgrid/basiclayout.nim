@@ -118,7 +118,7 @@ proc calculateMinOrMaxes(node: GridNode, fs: static string, doMax: static bool):
       else:
         result = min(n.box.y + n.box.h, result)
 
-proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, isXY: bool, f: var UiScalar) =
+proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
@@ -138,10 +138,15 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, isXY: bool, f: va
       res
 
   let csValue =
-    if isXY:
+    case calc
+    of XY:
       node.cxOffset[dir]
-    else:
+    of WH:
       node.cxSize[dir]
+    of MINSZ:
+      node.cxMin[dir]
+    of MAXSZ:
+      node.cxMax[dir]
   
   debugPrint "CONTENT csValue: ", "node =", node.name, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:
@@ -189,14 +194,10 @@ proc calcBasicConstraint*(node: GridNode) =
   calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
 
-proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
+proc calcBasicConstraintPost*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
-  when isXY == true and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, isXY, node.box.w)
-  elif isXY == true and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, isXY, node.box.h)
+  calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
+  calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
   # w & h need to run after x & y
-  elif isXY == false and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, isXY, node.box.w)
-  elif isXY == false and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, isXY, node.box.h)
+  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
+  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)

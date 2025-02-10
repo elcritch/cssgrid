@@ -547,6 +547,9 @@ proc computeLayout*(node: GridNode, depth: int) =
   # debugPrint "computeLayout:post: ",
   #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
 
+proc computeLayout*(node: GridNode) =
+  computeLayout(node, 0)
+
 proc printLayoutShort*(node: GridNode, depth = 0) =
   stdout.styledWriteLine(
     " ".repeat(depth),

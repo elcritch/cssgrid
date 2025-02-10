@@ -131,7 +131,7 @@ suite "Basic CSS Layout Tests":
     # Set child width to fit content
     child.cxSize[dcol] = csContentMax()
     # calcBasicConstraint(child, dcol, isXY = false)
-    computeLayout(parent, 0)
+    computeLayout(parent)
     
     echo "BOX: ", parent.cxOffset.repr
     echo "BOX: ", parent.cxSize.repr

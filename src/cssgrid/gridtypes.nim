@@ -27,8 +27,8 @@ type
     typeof(node.bmax) is UiBox
     typeof(node.cxSize) is array[GridDir, Constraint]
     typeof(node.cxOffset) is array[GridDir, Constraint]
-    typeof(node.cxMin) is array[GridDir, Constraint]
-    typeof(node.cxMax) is array[GridDir, Constraint]
+    # typeof(node.cxMin) is array[GridDir, Constraint]
+    # typeof(node.cxMax) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem
   GridBox* = concept box
     typeof(box) is UiBox

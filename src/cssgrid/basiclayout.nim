@@ -47,10 +47,6 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var Ui
         UiAuto():
           if not isXY:
             res = pf - f0
-          # when astToStr(f) in ["w"]:
-          #   res = parentBox.f - node.box.x
-          # elif astToStr(f) in ["h"]:
-          #   res = parentBox.f - node.box.y
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):

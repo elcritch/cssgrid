@@ -74,7 +74,7 @@ suite "Basic CSS Layout Tests":
     # calcBasicConstraint(child, dcol, isXY = false)
     # calcBasicConstraint(child, drow, isXY = false)
     
-    prettyLayout(parent, mode=cmTerminal)
+    # prettyLayout(parent, mode=cmTerminal)
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
 
@@ -133,6 +133,9 @@ suite "Basic CSS Layout Tests":
     let child = newTestNode("child", 0, 0, 100, 100)
     let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
     
+    grandchild.bmin.w = 100
+    grandchild.bmin.h = 40
+
     parent.children.add(child)
     child.parent = parent
     child.children.add(grandchild)

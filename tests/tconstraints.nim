@@ -26,6 +26,17 @@ suite "constraints":
     check cx"min-content" == csContentMin()
     check cx"max-content" == csContentMax()
 
+  test "constraint algebras":
+    let minSize = min(100'ux, 100'pp)
+    let maxSize = max(200'pp, cx"auto")
+    let addSize = 200'pp + 10'ux
+    let subSize = 200'pp - 10'ux
+
+    check minSize == csMin(100'ux, 100'pp)
+    check maxSize == csMax(200'pp, csAuto())
+    check addSize == csAdd(200.0'pp, 10'ux)
+    check subSize == csSub(200.0'pp, 10'ux)
+
   test "constraint operations":
     let fixed1 = csFixed(100)
     let fixed2 = csFixed(200)
@@ -33,9 +44,9 @@ suite "constraints":
     let frac2 = csFrac(2)
 
     # Test sum operation
-    check (fixed1 + fixed2) == csSum(fixed1, fixed2)
-    check (frac1 + frac2) == csSum(frac1, frac2)
-    check (fixed1 + frac1) == csSum(fixed1, frac1)
+    check (fixed1 + fixed2) == csAdd(fixed1, fixed2)
+    check (frac1 + frac2) == csAdd(frac1, frac2)
+    check (fixed1 + frac1) == csAdd(fixed1, frac1)
 
     # Test min/max operations
     check csMin(fixed1, fixed2) == Constraint(
@@ -76,9 +87,9 @@ suite "constraints":
 
     # Test combining fractions with fixed sizes
     let complexSum = fracSize + 50'ux
-    check complexSum.kind == UiSum
-    check complexSum.lsum == fracSize.value
-    check complexSum.rsum == csFixed(50).value
+    check complexSum.kind == UiAdd
+    check complexSum.ladd == fracSize.value
+    check complexSum.radd == csFixed(50).value
 
   test "string representation":
     check $ConstraintSize(kind: UiFrac, frac: 1.UiScalar) == "1.0'fr"

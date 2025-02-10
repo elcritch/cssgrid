@@ -37,7 +37,8 @@ type
     UiValue
     UiMin
     UiMax
-    UiSum
+    UiAdd
+    UiSub
     UiMinMax
     UiNone
     UiEnd
@@ -52,8 +53,10 @@ type
       lmin*, rmin*: ConstraintSize ## minimum of lhs and rhs (partially supported)
     of UiMax:
       lmax*, rmax*: ConstraintSize ## maximum of lhs and rhs (partially supported)
-    of UiSum:
-      lsum*, rsum*: ConstraintSize ## sum of lhs and rhs (partially supported)
+    of UiAdd:
+      ladd*, radd*: ConstraintSize ## sum of lhs and rhs (partially supported)
+    of UiSub:
+      lsub*, rsub*: ConstraintSize ## sum of lhs and rhs (partially supported)
     of UiMinMax:
       lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
@@ -84,7 +87,7 @@ proc csEnd*(): Constraint =
 proc csNone*(): Constraint =
   Constraint(kind: UiNone)
 
-proc csSum*[U, T](a: U, b: T): Constraint =
+proc csAdd*[U, T](a: U, b: T): Constraint =
   ## create sum op
   let a = when a is ConstraintSize: a
           elif a is Constraint: a.value
@@ -92,7 +95,17 @@ proc csSum*[U, T](a: U, b: T): Constraint =
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
-  Constraint(kind: UiSum, lsum: a, rsum: b)
+  Constraint(kind: UiAdd, ladd: a, radd: b)
+
+proc csSub*[U, T](a: U, b: T): Constraint =
+  ## create sum op
+  let a = when a is ConstraintSize: a
+          elif a is Constraint: a.value
+          else: csFixed(a).value
+  let b = when b is ConstraintSize: b
+          elif b is Constraint: b.value
+          else: csFixed(b).value
+  Constraint(kind: UiSub, lsub: a, rsub: b)
 
 proc csMax*[U, T](a: U, b: T): Constraint =
   ## create max op
@@ -125,9 +138,15 @@ proc csMinMax*[U, T](a: U, b: T): Constraint =
   Constraint(kind: UiMinMax, lmm: a, rmm: b)
 
 proc `+`*[U: Constraint, T](a: U, b: T): Constraint =
-  csSum(a, b)
+  csAdd(a, b)
 proc `-`*[U: Constraint, T](a: U, b: T): Constraint =
-  csSum(a, b)
+  csSub(a, b)
+
+proc max*[U, T: Constraint](a: U, b: T): Constraint =
+  csMax(a, b)
+
+proc min*[U, T: Constraint](a: U, b: T): Constraint =
+  csMin(a, b)
 
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:
@@ -146,7 +165,8 @@ proc `==`*(a, b: Constraint): bool =
       UiValue(value): return value == b.value
       UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin
       UiMax(lmax, rmax): return lmax == b.lmax and rmax == b.rmax
-      UiSum(lsum, rsum): return lsum == b.lsum and rsum == b.rsum
+      UiAdd(ladd, radd): return ladd == b.ladd and radd == b.radd
+      UiSub(lsub, rsub): return lsub == b.lsub and rsub == b.rsub
       UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
       UiEnd(): return true
 

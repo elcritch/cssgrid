@@ -488,7 +488,8 @@ suite "grids":
     parseGridTemplateRows gridTemplate, 100'ux
     gridTemplate.autos[drow] = csFixed 100.0
     gridTemplate.justifyItems = CxStretch
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     var parent = GridNode()
 
     var nodes = newSeq[GridNode](4)

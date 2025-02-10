@@ -1,6 +1,7 @@
 
 import typetraits
 import sequtils
+import os
 
 import unittest
 import cssgrid/numberTypes
@@ -64,6 +65,7 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
 
   printGrid(gridTemplate)
 
+var imageFiles: seq[string]
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =
   # echo "grid template post: ", repr gridTemplate
@@ -80,7 +82,9 @@ proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], pre
     ctx.fillStyle = rgba(0, 55, 244, 255).asColor().spin(-15.3*i.float)
     ctx.fillRoundedRect(nodes[i].box.toRect(), 12.0)
 
-  image.writeFile(fmt"tests/tlayout-{prefix}{gridTemplate.autoFlow}.png")
+  let file = fmt"tlayout-{prefix}{gridTemplate.autoFlow}.png"
+  imageFiles.add(file)
+  image.writeFile("tests" / file)
 
 suite "grids":
 
@@ -118,7 +122,25 @@ suite "grids":
     saveImage(gt2, b2, n2, "extra-")
 
   var md = ""
-  md.add &""
+  md.add &"<html>\n"
+  md.add &"  <body>\n"
+  for file in imageFiles:
+    let exfile = file.replace(".png", "-expected.png")
+    md.add &"    <h2>{file}</h2>\n"
+    md.add &"    <table style='border: 1px solid black;'>\n"
+    md.add &"      <tr>\n"
+    md.add &"        <th>{file}</th>\n"
+    md.add &"        <th>{exfile}</th>\n"
+    md.add &"      </tr>\n"
+    md.add &"      <tr>\n"
+    md.add &"        <td><img src='{file}'/></td>\n"
+    md.add &"        <td><img src='{exfile}'/></td>\n"
+    md.add &"      </tr>\n"
+    md.add &"    </table>\n"
+    md.add &"    <br>\n"
+    md.add &"    <br>\n"
+  md.add &"  </body>\n"
+  md.add &"</html>\n"
   writeFile("tests/tlayout.html", md)
 
 

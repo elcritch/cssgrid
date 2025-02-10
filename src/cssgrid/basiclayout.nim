@@ -134,9 +134,11 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       var res: UiScalar
       match val:
         UiContentMin():
+          echo "CS-MIN: ", node.name
           res = UiScalar.high()
           for child in node.children:
             res = min(res, child.bmin[dir])
+          echo "CS-MIN:res: ", res
         UiContentMax():
           res = UiScalar.low()
           for child in node.children:
@@ -211,3 +213,8 @@ proc calcBasicConstraintPost*(node: GridNode) =
   # w & h need to run after x & y
   calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
   calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
+
+  calcBasicConstraintPostImpl(node, dcol, MINSZ, node.bmin.w)
+  calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h)
+  calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w)
+  calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h)

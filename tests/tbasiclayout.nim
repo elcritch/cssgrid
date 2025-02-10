@@ -207,7 +207,7 @@ suite "Basic CSS Layout Tests":
 
   test "Post-process auto sizing with grid":
     let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child = newTestNode("child", 50, 50, 200, 150)
+    let child = newTestNode("child", 50, 50, 0, 0)
     parent.addChild(child)
     
     parent.cxSize = [csFixed(400), csFixed(300)]

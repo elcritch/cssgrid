@@ -35,10 +35,12 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
   else:
     node.parent.box
 
-proc newTestNode(name: string): TestNode =
+proc newTestNode(name: string, x, y, w, h: float32): TestNode =
   result = TestNode(
     name: name,
     box: uiBox(0, 0, 0, 0),
+    cxOffset: [csFixed(x), csFixed(y)],
+    cxSize: [csFixed(w), csFixed(h)],
     children: @[],
     frame: Frame(windowSize: uiBox(0, 0, 800, 600))
   )
@@ -49,7 +51,7 @@ proc addChild(parent, child: TestNode) =
 
 suite "Basic CSS Layout Tests":
   test "Fixed size constraints":
-    let node = newTestNode("test")
+    let node = newTestNode("test", 0, 0, 100, 100)
     node.cxSize[dcol] = csFixed(200)
     node.cxSize[drow] = csFixed(150)
     
@@ -60,8 +62,8 @@ suite "Basic CSS Layout Tests":
     check node.box.h == 150
 
   test "Percentage constraints":
-    let parent = newTestNode("parent")
-    let child = newTestNode("child")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100)
     child.parent = parent
     parent.children.add(child)
     
@@ -75,8 +77,8 @@ suite "Basic CSS Layout Tests":
     check child.box.h == 75  # 25% of 300
 
   test "Auto constraints":
-    let parent = newTestNode("parent")
-    let child = newTestNode("child")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 10, 10, 100, 100)
     child.parent = parent
     parent.children.add(child)
     
@@ -91,7 +93,7 @@ suite "Basic CSS Layout Tests":
     check child.box.h == 290 # 300 - 10
 
   test "Min/Max constraints":
-    let node = newTestNode("test")
+    let node = newTestNode("test", 0, 0, 100, 100)
     
     # Test min constraint
     node.cxSize[dcol] = csMin(csFixed(150), csFixed(200))
@@ -104,9 +106,9 @@ suite "Basic CSS Layout Tests":
     check node.box.h == 200
 
   test "Complex nested constraints":
-    let parent = newTestNode("parent")
-    let child1 = newTestNode("child1")
-    let child2 = newTestNode("child2")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child1 = newTestNode("child1", 10, 10, 100, 100)
+    let child2 = newTestNode("child2", 10, 120, 100, 100)
     
     parent.children = @[child1, child2]
     child1.parent = parent
@@ -125,9 +127,9 @@ suite "Basic CSS Layout Tests":
     check child2.box.w == 150 # (25% of 400) + 50
 
   test "Content based constraints":
-    let parent = newTestNode("parent")
-    let child = newTestNode("child")
-    let grandchild = newTestNode("grandchild")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100)
+    let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
     
     parent.children.add(child)
     child.parent = parent
@@ -146,8 +148,8 @@ suite "Basic CSS Layout Tests":
     check child.box.w >= grandchild.box.w # Should be at least as wide as content
 
   test "Position constraints":
-    let parent = newTestNode("parent")
-    let child = newTestNode("child")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100)
     
     parent.children.add(child)
     child.parent = parent
@@ -163,8 +165,8 @@ suite "Basic CSS Layout Tests":
     check child.box.y == 30 # 10% of 300
 
   test "Post-process auto sizing with grid":
-    let parent = newTestNode("parent")
-    let child = newTestNode("child")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 50, 50, 200, 150)
     parent.addChild(child)
     
     parent.cxOffset = [csFixed(400), csFixed(300)]
@@ -187,8 +189,8 @@ suite "Basic CSS Layout Tests":
     check child.box.h == 250
 
   test "Post-process auto sizing with grid":
-    let parent = newTestNode("parent")
-    let child = newTestNode("child")
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 50, 50, 200, 150)
     parent.addChild(child)
     
     parent.cxOffset = [csFixed(400), csFixed(300)]

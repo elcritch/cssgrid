@@ -123,11 +123,25 @@ suite "grids":
 
   var md = ""
   md.add &"<html>\n"
+  md.add &"  <head>\n"
+  md.add """
+  <style>
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 15px;
+    }
+  </style>
+  """
+  md.add &"    </head>\n"
+  md.add &"  </head>\n"
   md.add &"  <body>\n"
   for file in imageFiles:
     let exfile = file.replace(".png", "-expected.png")
     md.add &"    <h2>{file}</h2>\n"
-    md.add &"    <table style='border: 1px solid black;'>\n"
+    md.add &"    <table style='border-spacing: 10px; border: 1px solid black;'>\n"
     md.add &"      <tr>\n"
     md.add &"        <th>{file}</th>\n"
     md.add &"        <th>{exfile}</th>\n"

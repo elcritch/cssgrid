@@ -244,6 +244,9 @@ proc sum*(rect: UiBox): UiScalar =
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
+# proc totalWH*(rect: UiBox): UiScalar =
+#   result = rect.x + rect.y + rect.w + rect.h
+
 proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
 proc toVec*(p: UiPos): Vec2 = vec2(p.x.float32, p.y.float32)
 proc toVec*(p: UiSize): Vec2 = vec2(p.w.float32, p.h.float32)

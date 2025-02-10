@@ -105,18 +105,23 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
       return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
-proc calculateMinOrMaxes(node: GridNode, fs: static string, doMax: static bool): UiScalar =
+proc calculateMin(node: GridNode, calc: CalcKind): UiScalar =
   for n in node.children:
-    when fs == "w":
-      when doMax:
-        result = max(n.box.x + n.box.w, result)
-      else:
-        result = min(n.box.x + n.box.w, result)
-    elif fs == "h":
-      when doMax:
-        result = max(n.box.y + n.box.h, result)
-      else:
-        result = min(n.box.y + n.box.h, result)
+    case calc:
+    of WH:
+      result = max(n.box.x + n.box.w, result)
+      result = min(n.box.y + n.box.h, result)
+    of XY:
+      result = max(n.box.x + n.box.w, result)
+      result = min(n.box.y + n.box.h, result)
+
+    #   else:
+    #     result = min(n.box.x + n.box.w, result)
+    # elif fs == "h":
+    #   when doMax:
+    #     result = max(n.box.y + n.box.h, result)
+    #   else:
+    #     result = min(n.box.y + n.box.h, result)
 
 proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set
@@ -129,10 +134,14 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       var res: UiScalar
       match val:
         UiContentMin():
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
-        UiContentMax():
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
-          debugPrint "CONTENT MAX: ", "node =", node.name, "res =", res, "d =", repr(dir), "children =", node.children.mapIt((it.name, it.box.w, it.box.h))
+          res = 0.0.UiScalar
+          for child in node.children:
+            res = min(res, child.bmin[dir])
+
+          # res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
+        # UiContentMax():
+        #   res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
+        #   debugPrint "CONTENT MAX: ", "node =", node.name, "res =", res, "d =", repr(dir), "children =", node.children.mapIt((it.name, it.box.w, it.box.h))
         _:
           res = f
       res

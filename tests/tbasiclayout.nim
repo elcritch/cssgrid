@@ -22,7 +22,7 @@ type
     cxSize*: array[GridDir, Constraint] = [csAuto(), csNone()]  # For width/height
     cxOffset*: array[GridDir, Constraint] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csContentMin(), csContentMin()] # For x/y positions
-    cxMax*: array[GridDir, Constraint] = [csContentMax(), csContentMax()] # For x/y positions
+    cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     gridItem*: GridItem
     gridTemplate*: GridTemplate
     frame*: Frame

@@ -36,6 +36,14 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
   else:
     node.parent.box
 
+proc newTestNode(name: string): TestNode =
+  result = TestNode(
+    name: name,
+    box: uiBox(0, 0, 0, 0),
+    children: @[],
+    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
+  )
+
 proc newTestNode(name: string, x, y, w, h: float32): TestNode =
   result = TestNode(
     name: name,
@@ -155,8 +163,11 @@ suite "Basic CSS Layout Tests":
     check child.bmax == uiSize(UiScalar.low, 100)
 
   test "Position constraints":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+
     let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child = newTestNode("child", 0, 0, 100, 100)
+    let child = newTestNode("child")
     
     parent.children.add(child)
     child.parent = parent
@@ -165,7 +176,11 @@ suite "Basic CSS Layout Tests":
     child.cxOffset[dcol] = 20'ux
     child.cxOffset[drow] = 10'pp
     
+    calcBasicConstraint(parent)
+    calcBasicConstraintPost(parent)
+
     calcBasicConstraint(child)
+    calcBasicConstraintPost(child)
     
     printLayout(parent, cmTerminal)
 
@@ -184,13 +199,6 @@ suite "Basic CSS Layout Tests":
     child.cxSize = [csAuto(), csAuto()]
     
     computeLayout(parent)
-    # # Initial layout
-    # calcBasicConstraint(child, dcol, isXY = false)
-    # calcBasicConstraint(child, drow, isXY = false)
-    
-    # # Post processing should preserve grid sizes
-    # calcBasicConstraintPost(child, dcol, isXY = false)
-    # calcBasicConstraintPost(child, drow, isXY = false)
 
     check child.box.x == 50
     check child.box.y == 50
@@ -209,13 +217,6 @@ suite "Basic CSS Layout Tests":
     child.cxSize = [csAuto(), csAuto()]
     
     computeLayout(parent)
-    # # Initial layout
-    # calcBasicConstraint(child, dcol, isXY = false)
-    # calcBasicConstraint(child, drow, isXY = false)
-    
-    # # Post processing should preserve grid sizes
-    # calcBasicConstraintPost(child, dcol, isXY = false)
-    # calcBasicConstraintPost(child, drow, isXY = false)
 
     check child.box.x == 50
     check child.box.y == 50

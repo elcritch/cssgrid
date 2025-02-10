@@ -45,24 +45,23 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
-      debugPrint "calcBasic: ", val
       var res: UiScalar
       match val:
         UiAuto():
           if calc == WH:
-            res = pf - f0
+            res = max(pf - f0, 0)
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
           res = frac.UiScalar * pf
         UiPerc(perc):
-          let ppval =
-              pf
+          let ppval = pf
           res = perc.UiScalar / 100.0.UiScalar * ppval
         UiContentMin():
           return # run as post
         UiContentMax():
           return # run as post
+      debugPrint "calcBasic: ", node.name, " val: ", val, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h

@@ -134,6 +134,7 @@ suite "Basic CSS Layout Tests":
     let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
     
     grandchild.cxMin = [100'ux, 40'ux]
+    grandchild.cxMax = [200'ux, 100'ux]
 
     parent.children.add(child)
     child.parent = parent

@@ -56,8 +56,7 @@ suite "Basic CSS Layout Tests":
     node.cxSize[dcol] = csFixed(200)
     node.cxSize[drow] = csFixed(150)
     
-    calcBasicConstraint(node, dcol, isXY = false)
-    calcBasicConstraint(node, drow, isXY = false)
+    calcBasicConstraint(node)
     
     check node.box.w == 200
     check node.box.h == 150
@@ -99,12 +98,12 @@ suite "Basic CSS Layout Tests":
     
     # Test min constraint
     node.cxSize[dcol] = csMin(csFixed(150), csFixed(200))
-    calcBasicConstraint(node, dcol, isXY = false)
+    calcBasicConstraint(node)
     check node.box.w == 150
     
     # Test max constraint
     node.cxSize[drow] = csMax(csFixed(150), csFixed(200))
-    calcBasicConstraint(node, drow, isXY = false)
+    calcBasicConstraint(node)
     check node.box.h == 200
 
   test "Complex nested constraints":
@@ -152,7 +151,7 @@ suite "Basic CSS Layout Tests":
 
     check grandchild.bmin == uiSize(100, 40)
     check child.bmin == uiSize(100, 40)
-    check child.box.w >= grandchild.box.w # Should be at least as wide as content
+    check child.box.w == grandchild.box.w # Should be at least as wide as content
 
   test "Position constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -165,8 +164,8 @@ suite "Basic CSS Layout Tests":
     child.cxOffset[dcol] = csFixed(20)
     child.cxOffset[drow] = csPerc(10)
     
-    calcBasicConstraint(child, dcol, isXY = true)
-    calcBasicConstraint(child, drow, isXY = true)
+    calcBasicConstraint(child)
+    calcBasicConstraint(child)
     
     check child.box.x == 20
     check child.box.y == 30 # 10% of 300

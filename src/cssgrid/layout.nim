@@ -374,9 +374,11 @@ proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
           # if cmin.float32 != float32.high():
           #   maxSize = cmin
         UiAuto():
-          maxSize = node.WH(dir)
+          discard
+          # maxSize = node.WH(dir)
         UiFrac(_):
-          maxSize = node.WH(dir)
+          discard
+          # maxSize = node.WH(dir)
         _: discard
     _: discard
   debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir].kind
@@ -508,10 +510,7 @@ proc computeLayout*(node: GridNode, depth: int) =
   debugPrint "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
-  calcBasicConstraint(node, dcol, isXY = true)
-  calcBasicConstraint(node, drow, isXY = true)
-  calcBasicConstraint(node, dcol, isXY = false)
-  calcBasicConstraint(node, drow, isXY = false)
+  calcBasicConstraint(node)
 
   # css grid impl
   if not node.gridTemplate.isNil:
@@ -527,10 +526,10 @@ proc computeLayout*(node: GridNode, depth: int) =
     let res = node.gridTemplate.computeNodeLayout(node).UiBox
     node.box = res
 
-    for n in node.children:
-      for c in n.children:
-        calcBasicConstraint(c, dcol, isXY = false)
-        calcBasicConstraint(c, drow, isXY = false)
+    # for n in node.children:
+    #   for c in n.children:
+    #     calcBasicConstraint(c, dcol, isXY = false)
+    #     calcBasicConstraint(c, drow, isXY = false)
     debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:

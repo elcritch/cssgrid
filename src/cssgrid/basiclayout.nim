@@ -2,20 +2,24 @@ import numberTypes, constraints, gridtypes
 
 import prettyprints
 
-template XY*(node: GridNode, fs: static string): UiScalar =
-  when fs == "x": node.box.x
-  elif fs == "y": node.box.y
-  else: {.error: "invalid field".}
+type
+  CalcKind* {.pure.} = enum
+    XY, WH, MINSZ, MAXSZ
 
-template WH*(node: GridNode, fs: static string): UiScalar =
-  when fs == "w": node.box.w
-  elif fs == "h": node.box.h
-  else: {.error: "invalid field".}
+# template XY*(node: GridNode, fs: static string): UiScalar =
+#   when fs == "x": node.box.x
+#   elif fs == "y": node.box.y
+#   else: {.error: "invalid field".}
 
-template WH*(node: GridNode, dir: GridDir): UiScalar =
-  case dir
-  of dcol: WH(node, "w")
-  of drow: WH(node, "h")
+# template WH*(node: GridNode, fs: static string): UiScalar =
+#   when fs == "w": node.box.w
+#   elif fs == "h": node.box.h
+#   else: {.error: "invalid field".}
+
+# template WH*(node: GridNode, dir: GridDir): UiScalar =
+#   case dir
+#   of dcol: WH(node, "w")
+#   of drow: WH(node, "h")
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
@@ -32,7 +36,7 @@ template WH*(node: GridNode, dir: GridDir): UiScalar =
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
+proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -45,7 +49,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var Ui
       var res: UiScalar
       match val:
         UiAuto():
-          if not isXY:
+          if calc == WH:
             res = pf - f0
         UiFixed(coord):
           res = coord.UiScalar
@@ -63,10 +67,16 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var Ui
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
-    if isXY:
+    case calc
+    of XY:
       node.cxOffset[dir]
-    else:
+    of WH:
       node.cxSize[dir]
+    of MINSZ:
+      node.cxMin[dir]
+    of MAXSZ:
+      node.cxMax[dir]
+
   debugPrint "csValue: ", csValue, "f: ", astToStr(f)
   match csValue:
     UiNone:
@@ -167,18 +177,13 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, isXY: bool, f: va
   debugPrint "calcBasicConstraintPostImpl:done: ", " name = ", node.name, " boxH = ", node.box.h
 
 
-proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =
+proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   let parentBox = node.getParentBoxOrWindows()
-  when isXY == true and dir == dcol:
-    calcBasicConstraintImpl(node, dir, isXY, node.box.x, parentBox.w)
-  elif isXY == true and dir == drow:
-    calcBasicConstraintImpl(node, dir, isXY, node.box.y, parentBox.h)
-  # w & h need to run after x & y
-  elif isXY == false and dir == dcol:
-    calcBasicConstraintImpl(node, dir, isXY, node.box.w, parentBox.w, node.box.x)
-  elif isXY == false and dir == drow:
-    calcBasicConstraintImpl(node, dir, isXY, node.box.h, parentBox.h, node.box.y)
+  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
+  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y)
 
 proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node

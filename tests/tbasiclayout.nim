@@ -134,8 +134,7 @@ suite "Basic CSS Layout Tests":
     let child = newTestNode("child", 0, 0, 100, 100)
     let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
     
-    grandchild.bmin.w = 100
-    grandchild.bmin.h = 40
+    grandchild.cxMin = [100'ux, 40'ux]
 
     parent.children.add(child)
     child.parent = parent
@@ -151,6 +150,8 @@ suite "Basic CSS Layout Tests":
     echo "BOX: ", parent.cxSize.repr
     printLayout(parent, cmTerminal)
 
+    check grandchild.bmin == uiSize(100, 40)
+    check child.bmin == uiSize(100, 40)
     check child.box.w >= grandchild.box.w # Should be at least as wide as content
 
   test "Position constraints":

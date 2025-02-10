@@ -16,14 +16,16 @@ import pixie
 
 type
   GridNode* = ref object
-    name: string
+    name*: string
     box: UiBox
     parent*: GridNode
-    gridItem: GridItem
-    gridTemplate: GridTemplate
-    cxSize: array[GridDir, Constraint]  # For width/height
-    cxOffset: array[GridDir, Constraint] # For x/y positions
-    children: seq[GridNode]
+    gridItem*: GridItem
+    gridTemplate*: GridTemplate
+    cxSize*: array[GridDir, Constraint]  # For width/height
+    cxOffset*: array[GridDir, Constraint] # For x/y positions
+    cxMin*: array[GridDir, Constraint]  # For width/height
+    cxMax*: array[GridDir, Constraint] # For x/y positions
+    children*: seq[GridNode]
     frame*: Frame
 
   Frame = ref object
@@ -100,6 +102,7 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   var nodes = newSeq[GridNode](cnt)
 
   var parent = GridNode()
+  parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
   assert parent is GridNode
   parent.box = uiBox(0, 0,
                   60*(gridTemplate.columns().len().float-1),
@@ -109,21 +112,22 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   var itema = newGridItem()
   itema.column = 1 // 2
   itema.row = 1 // 3
-  nodes[0] = GridNode(name: "a", gridItem: itema)
+  nodes[0] = GridNode(name: "a", gridItem: itema, frame: parent.frame)
 
   # ==== item e ====
   var iteme = newGridItem()
   iteme.column = 5 // 6
   iteme.row = 1 // 3
-  nodes[1] = GridNode(name: "e", gridItem: iteme)
+  nodes[1] = GridNode(name: "e", gridItem: iteme, frame: parent.frame)
 
   # ==== item b's ====
   for i in 2 ..< nodes.len():
-    nodes[i] = GridNode(name: "b" & $(i-2))
+    nodes[i] = GridNode(name: "b" & $(i-2), frame: parent.frame)
 
   # ==== process grid ====
   parent.children = nodes
-  discard gridTemplate.computeNodeLayout(parent)
+  parent.gridTemplate = gridTemplate
+  computeLayout(parent, 0)
   result = (nodes, parent.box)
 
   printGrid(gridTemplate)

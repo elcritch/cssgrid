@@ -70,8 +70,9 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = csPerc(50) # 50% of parent width
     child.cxSize[drow] = csPerc(25) # 25% of parent height
     
-    calcBasicConstraint(child, dcol, isXY = false)
-    calcBasicConstraint(child, drow, isXY = false)
+    computeLayout(parent)
+    # calcBasicConstraint(child, dcol, isXY = false)
+    # calcBasicConstraint(child, drow, isXY = false)
     
     prettyLayout(parent, mode=cmTerminal)
     check child.box.w == 200 # 50% of 400
@@ -86,8 +87,7 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = csAuto()
     child.cxSize[drow] = csAuto()
     
-    calcBasicConstraint(child, dcol, isXY = false)
-    calcBasicConstraint(child, drow, isXY = false)
+    computeLayout(parent)
     
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10
@@ -121,8 +121,9 @@ suite "Basic CSS Layout Tests":
     # Child2: 25% of parent width + 50px
     child2.cxSize[dcol] = csAdd(csPerc(25), csFixed(50))
     
-    calcBasicConstraint(child1, dcol, isXY = false)
-    calcBasicConstraint(child2, dcol, isXY = false)
+    computeLayout(parent)
+    # calcBasicConstraint(child1, dcol, isXY = false)
+    # calcBasicConstraint(child2, dcol, isXY = false)
     
     check child1.box.w == 200 # max(50% of 400, 100)
     check child2.box.w == 150 # (25% of 400) + 50
@@ -176,13 +177,14 @@ suite "Basic CSS Layout Tests":
     # parent.gridTemplate = newGridTemplate()
     child.cxSize = [csAuto(), csAuto()]
     
-    # Initial layout
-    calcBasicConstraint(child, dcol, isXY = false)
-    calcBasicConstraint(child, drow, isXY = false)
+    computeLayout(parent)
+    # # Initial layout
+    # calcBasicConstraint(child, dcol, isXY = false)
+    # calcBasicConstraint(child, drow, isXY = false)
     
-    # Post processing should preserve grid sizes
-    calcBasicConstraintPost(child, dcol, isXY = false)
-    calcBasicConstraintPost(child, drow, isXY = false)
+    # # Post processing should preserve grid sizes
+    # calcBasicConstraintPost(child, dcol, isXY = false)
+    # calcBasicConstraintPost(child, drow, isXY = false)
 
     check child.box.x == 50
     check child.box.y == 50
@@ -200,13 +202,14 @@ suite "Basic CSS Layout Tests":
     parent.gridTemplate = newGridTemplate()
     child.cxSize = [csAuto(), csAuto()]
     
-    # Initial layout
-    calcBasicConstraint(child, dcol, isXY = false)
-    calcBasicConstraint(child, drow, isXY = false)
+    computeLayout(parent)
+    # # Initial layout
+    # calcBasicConstraint(child, dcol, isXY = false)
+    # calcBasicConstraint(child, drow, isXY = false)
     
-    # Post processing should preserve grid sizes
-    calcBasicConstraintPost(child, dcol, isXY = false)
-    calcBasicConstraintPost(child, drow, isXY = false)
+    # # Post processing should preserve grid sizes
+    # calcBasicConstraintPost(child, dcol, isXY = false)
+    # calcBasicConstraintPost(child, drow, isXY = false)
 
     check child.box.x == 50
     check child.box.y == 50

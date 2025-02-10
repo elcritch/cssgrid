@@ -29,6 +29,12 @@ type
   Frame = ref object
     windowSize*: UiBox
 
+template getParentBoxOrWindows*(node: GridNode): UiBox =
+  if node.parent.isNil:
+    node.frame.windowSize
+  else:
+    node.parent.box
+
 proc newTestNode(name: string, x, y, w, h: float32): TestNode =
   result = TestNode(
     name: name,

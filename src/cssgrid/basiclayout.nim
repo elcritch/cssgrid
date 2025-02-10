@@ -17,12 +17,6 @@ template WH*(node: GridNode, dir: GridDir): UiScalar =
   of dcol: WH(node, "w")
   of drow: WH(node, "h")
 
-template getParentBoxOrWindows*(node: GridNode): UiBox =
-  if node.parent.isNil:
-    node.frame.windowSize
-  else:
-    node.parent.box
-
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
 # For children with fixed heights (like height: 100px), those values are used

@@ -134,11 +134,9 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       var res: UiScalar
       match val:
         UiContentMin():
-          echo "CS-MIN: ", node.name
           res = UiScalar.high()
           for child in node.children:
             res = min(res, child.bmin[dir])
-          echo "CS-MIN:res: ", res
         UiContentMax():
           res = UiScalar.low()
           for child in node.children:

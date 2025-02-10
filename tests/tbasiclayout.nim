@@ -148,10 +148,6 @@ suite "Basic CSS Layout Tests":
     # calcBasicConstraint(child, dcol, isXY = false)
     computeLayout(parent)
     
-    echo "BOX: ", parent.cxOffset.repr
-    echo "BOX: ", parent.cxSize.repr
-    printLayout(parent, cmTerminal)
-
     check grandchild.bmin == uiSize(100, 40)
     check child.box.w == grandchild.bmin.w # 
     check child.box.h == grandchild.bmin.h # 
@@ -166,12 +162,13 @@ suite "Basic CSS Layout Tests":
     child.parent = parent
     
     # Position 20px from left, 10% from top
-    child.cxOffset[dcol] = csFixed(20)
-    child.cxOffset[drow] = csPerc(10)
+    child.cxOffset[dcol] = 20'ux
+    child.cxOffset[drow] = 10'pp
     
     calcBasicConstraint(child)
-    calcBasicConstraint(child)
     
+    printLayout(parent, cmTerminal)
+
     check child.box.x == 20
     check child.box.y == 30 # 10% of 300
 

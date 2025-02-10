@@ -14,7 +14,8 @@ import pretty
 
 type
   TestNode = ref object
-    box*, bmin*, bmax*: UiBox
+    box*: UiBox
+    bmin*, bmax*: UiSize
     name*: string
     parent*: TestNode
     children*: seq[TestNode]

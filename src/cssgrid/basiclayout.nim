@@ -141,11 +141,6 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
           res = UiScalar.low()
           for child in node.children:
             res = max(res, child.bmax[dir])
-
-          # res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
-        # UiContentMax():
-        #   res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
-        #   debugPrint "CONTENT MAX: ", "node =", node.name, "res =", res, "d =", repr(dir), "children =", node.children.mapIt((it.name, it.box.w, it.box.h))
         _:
           res = f
       res
@@ -198,6 +193,8 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   let parentBox = node.getParentBoxOrWindows()
+  node.bmin = uiSize(UiScalar.high,UiScalar.high)
+  node.bmax = uiSize(UiScalar.low,UiScalar.low)
   calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
   calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
   calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)

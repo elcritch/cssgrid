@@ -21,7 +21,7 @@ proc computeLineOverflow*(
     computedSizes: Table[int, ComputedTrackSize]
 ): UiScalar =
   debugPrint "computeLineOverflow:pre: ", result
-  for grdLn in lines:
+  for i, grdLn in lines:
     if grdLn.isAuto:
       match grdLn.track:
         UiValue(value):
@@ -41,29 +41,24 @@ proc computeLineOverflow*(
             UiAuto():
               if i in computedSizes:
                 result += computedSizes[i].autoSize
+        _: discard
+
   debugPrint "computeLineOverflow:post: ", result
 
 proc computeLineLayout*(
     lines: var seq[GridLine],
+    computedSizes: Table[int, ComputedTrackSize],  # New parameter for computed sizes
     length: UiScalar,
     spacing: UiScalar,
 ) =
   var
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
-    autoSizes: seq[UiScalar] = @[]
-    fracSizes: seq[UiScalar] = @[]
-    isUndefined = false
+    autoTrackIndices: seq[int] = @[]  # Store indices instead of sizes
+    fracTrackIndices: seq[int] = @[]  # Store indices instead of sizes
 
-  # browser css grids:
-  # works: grid-template-columns: 1fr minmax(100px,1fr) minmax(200px,1fr);
-  # doesn't work: grid-template-columns: 1fr minmax(1fr,100px) minmax(1fr,200px);
-  # neither work:
-  # grid-template-columns: 1fr min(100px,1fr) min(100px,13%);
-  # grid-template-columns: 1fr max(1fr,300px) max(1fr,100px);
-
-  # compute total fixed sizes and fracs
-  for grdLn in lines:
+  # First pass: calculate fixed sizes and identify auto/frac tracks
+  for i, grdLn in lines:
     match grdLn.track:
       UiNone():
         discard
@@ -73,60 +68,47 @@ proc computeLineLayout*(
             fixed += coord
           UiPerc(perc):
             fixed += length * perc / 100
-          UiContentMin(cmin):
-            if cmin.float32 != float32.high():
-              fixed += cmin
-          UiContentMax(cmax):
-            fixed += cmax
-          UiFrac(frac, fmin):
-            debugPrint "GRID FIND FMIN: ", $fmin
+          UiContentMin():
+            if i in computedSizes:
+              fixed += computedSizes[i].minContent
+          UiContentMax():
+            if i in computedSizes:
+              fixed += computedSizes[i].maxContent
+          UiFrac(frac):
             totalFracs += frac
-            if fmin.float32 != float32.high():
-              fracSizes.add(fmin)
-            else:
-              fracSizes.add(0.UiScalar)
-          UiAuto(amin):
-            # Store the auto track's content size
-            debugPrint "GRID FIND AMIN: ", $amin
-            if amin.float32 != float32.high():
-              autoSizes.add(amin)
-            else:
-              autoSizes.add(0.UiScalar)
+            fracTrackIndices.add(i)
+          UiAuto():
+            autoTrackIndices.add(i)
       UiEnd():
         discard
-      UiMin(lmin, rmin):
-        if lmin.kind == UiFrac:
-          isUndefined = true
-      UiMax(lmax, rmax):
-        if lmax.kind == UiFrac:
-          isUndefined = true
-      UiSum(lsum, rsum):
-        if lsum.kind == UiFrac:
-          isUndefined = true
-      UiMinMax(lmm, rmm):
-        if lmm.kind == UiFrac:
-          isUndefined = true
+      _: discard  # Handle other cases
 
   # Account for spacing between tracks
   fixed += spacing * UiScalar(lines.len() - 1)
 
-  # Calculate minimum space needed for auto tracks
+  # Calculate minimum space needed for auto and frac tracks
   let
-    totalAutoMin = autoSizes.foldl(a + b, 0.UiScalar)
-    totalFracMin = fracSizes.foldl(a + b, 0.UiScalar)
+    totalAutoMin = autoTrackIndices.mapIt(
+      if it in computedSizes: computedSizes[it].autoSize else: 0.UiScalar
+    ).foldl(a + b, 0.UiScalar)
+    totalFracMin = fracTrackIndices.mapIt(
+      if it in computedSizes: computedSizes[it].fracMinSize else: 0.UiScalar
+    ).foldl(a + b, 0.UiScalar)
+
+  # Calculate available free space
   var
     freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
     remSpace = freeSpace
 
-  debugPrint "computeLineLayout:autoSizes", "length=", length, "fixed=", fixed
-  debugPrint "computeLineLayout:autoSizes", "freeSpace=", freeSpace, "remSpace=", remSpace
-  debugPrint "computeLineLayout:autoSizes", "fracSizes=", fracSizes, "totalFracMin=", totalFracMin
-  debugPrint "computeLineLayout:autoSizes", "autoSizes=", autoSizes, "totalAutoMin=", totalAutoMin
+  debugPrint "computeLineLayout:metrics",
+    "length=", length,
+    "fixed=", fixed,
+    "freeSpace=", freeSpace,
+    "remSpace=", remSpace,
+    "totalFracMin=", totalFracMin,
+    "totalAutoMin=", totalAutoMin
 
-  # Second pass: handle fractions and auto tracks
-  debugPrint "UI AUTO: ", autoSizes
-  debugPrint "UI FRAC: ", fracSizes
-
+  # Second pass: distribute space and set track widths
   for i, grdLn in lines.mpairs():
     if grdLn.track.kind == UiValue:
       let grdVal = grdLn.track.value
@@ -136,34 +118,25 @@ proc computeLineLayout*(
       of UiPerc:
         grdLn.width = length * grdVal.perc / 100
       of UiContentMax:
-        grdLn.width = grdVal.cmax
+        if i in computedSizes:
+          grdLn.width = computedSizes[i].maxContent
       of UiContentMin:
-        if grdVal.cmin.float32 != float32.high():
-          grdLn.width = grdVal.cmin
-
+        if i in computedSizes:
+          grdLn.width = computedSizes[i].minContent
       of UiFrac:
-        let fracIndex = fracSizes.find(grdVal.fmin)
-        # Allocate remaining space proportionally to fractions
         if totalFracs > 0:
-          debugPrint "UI FRAC: ", "totalFracs=", totalFracs,
-                        "grdVal.frac=", grdVal.frac, "grdVal.fmin=", grdVal.fmin
-          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, grdVal.fmin)
-          # grdLn.width = freeSpace * grdVal.frac/totalFracs
+          let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
+          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, minSize)
           remSpace -= grdLn.width
-
       of UiAuto:
-        # First ensure minimum content width
-        let autoIndex = autoSizes.find(grdVal.amin)
-        if autoIndex >= 0:
-          let minWidth = autoSizes[autoIndex]
-          # Distribute remaining space equally among auto tracks
-          let autoShare =
-            if autoSizes.len > 0:
-              remSpace / autoSizes.len.UiScalar
+        if i in computedSizes:
+          let minSize = computedSizes[i].autoSize
+          let autoShare = 
+            if autoTrackIndices.len > 0:
+              remSpace / autoTrackIndices.len.UiScalar
             else:
               0.UiScalar
-          debugPrint "UI AUTO: minWidth: ", minWidth, "autoShare=", autoShare
-          grdLn.width = max(minWidth, autoShare)
+          grdLn.width = max(minSize, autoShare)
 
   # Final pass: calculate positions
   var cursor = 0.0.UiScalar
@@ -180,11 +153,17 @@ proc createEndTracks*(grid: GridTemplate) =
       grid.lines[drow][^1].track.kind != UiEnd:
     grid.lines[drow].add initGridLine(csEnd())
 
-proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = false) =
+proc computeTracks*(
+    grid: GridTemplate,
+    contentSize: UiBox,
+    computedSizes: array[GridDir, Table[int, ComputedTrackSize]],
+    extendOnOverflow = false
+) =
   # The free space is calculated after any non-flexible items. In 
   prettyGridTemplate(grid)
-  grid.overflowSizes[dcol] = grid.lines[dcol].computeLineOverflow()
-  grid.overflowSizes[drow] = grid.lines[drow].computeLineOverflow()
+  grid.overflowSizes[dcol] = computeLineOverflow(grid.lines[dcol], computedSizes[dcol])
+  grid.overflowSizes[drow] = computeLineOverflow(grid.lines[drow], computedSizes[drow])
+
   var
     colLen = contentSize.w
     rowLen = contentSize.h
@@ -192,8 +171,17 @@ proc computeTracks*(grid: GridTemplate, contentSize: UiBox, extendOnOverflow = f
     colLen += grid.overflowSizes[dcol]
     rowLen += grid.overflowSizes[drow]
 
-  grid.lines[dcol].computeLineLayout(length=colLen, spacing=grid.gaps[dcol])
-  grid.lines[drow].computeLineLayout(length=rowLen, spacing=grid.gaps[drow])
+  # Pass computed sizes to layout
+  grid.lines[dcol].computeLineLayout(
+    computedSizes[dcol],
+    length=colLen,
+    spacing=grid.gaps[dcol]
+  )
+  grid.lines[drow].computeLineLayout(
+    computedSizes[drow],
+    length=rowLen,
+    spacing=grid.gaps[drow]
+  )
 
   prettyGridTemplate(grid)
 
@@ -375,7 +363,11 @@ proc computeAutoFlow(
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
-proc computeContentSizes*(grid: GridTemplate, children: seq[GridNode]) =
+proc computeContentSizes*(
+    grid: GridTemplate,
+    children: seq[GridNode]
+): array[GridDir, Table[int, ComputedTrackSize]] =
+
   ## Computes content min/max for each grid track based on children
   ## including nested children for auto tracks
   var contentSized: array[GridDir, set[int16]]
@@ -443,6 +435,7 @@ proc computeNodeLayout*(
   if hasAutos:
     debugPrint "computeAutoFlow: "
     computeAutoFlow(gridTemplate, box, parent.children)
+
 
   debugPrint "COMPUTE parent layout: "
   prettyLayout(parent)

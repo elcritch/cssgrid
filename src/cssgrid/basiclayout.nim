@@ -186,8 +186,8 @@ proc calcBasicConstraint*(node: GridNode) =
   calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y)
   calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
-  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmin.w, parentBox.w)
-  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmin.h, parentBox.h)
+  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
+  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
 
 proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node

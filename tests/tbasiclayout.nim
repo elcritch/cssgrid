@@ -144,6 +144,7 @@ suite "Basic CSS Layout Tests":
     # Set child width to fit content
     child.cxSize[dcol] = csContentMin()
     child.cxSize[drow] = csContentMin()
+    child.cxMax[drow] = csContentMax()
     # calcBasicConstraint(child, dcol, isXY = false)
     computeLayout(parent)
     
@@ -155,6 +156,7 @@ suite "Basic CSS Layout Tests":
     check child.box.w == grandchild.bmin.w # 
     check child.box.h == grandchild.bmin.h # 
     check child.bmin == uiSize(100, 40)
+    check child.bmax == uiSize(UiScalar.low, 100)
 
   test "Position constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)

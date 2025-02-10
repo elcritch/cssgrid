@@ -210,12 +210,9 @@ suite "Basic CSS Layout Tests":
     let child = newTestNode("child", 50, 50, 200, 150)
     parent.addChild(child)
     
-    parent.cxOffset = [csFixed(400), csFixed(300)]
-
-    # Setup grid
-    parent.gridTemplate = newGridTemplate()
+    parent.cxSize = [csFixed(400), csFixed(300)]
     child.cxSize = [csAuto(), csAuto()]
-    
+
     computeLayout(parent)
 
     check child.box.x == 50

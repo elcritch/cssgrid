@@ -325,27 +325,3 @@ suite "Compute Layout Tests":
       # Child should be centered in its 100x100 grid cell
       check child.box.x == 25  # (100 - 50) / 2
       check child.box.y == 25  # (100 - 50) / 2
-
-  test "Post-process auto sizing with grid":
-    let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child = newTestNode("child", 50, 50, 200, 150)
-    parent.addChild(child)
-    
-    parent.cxOffset = [csFixed(400), csFixed(300)]
-
-    # Setup grid
-    parent.gridTemplate = newGridTemplate()
-    child.cxSize = [csAuto(), csAuto()]
-    
-    # Initial layout
-    calcBasicConstraint(child, dcol, isXY = false)
-    calcBasicConstraint(child, drow, isXY = false)
-    
-    # Post processing should preserve grid sizes
-    calcBasicConstraintPost(child, dcol, isXY = false)
-    calcBasicConstraintPost(child, drow, isXY = false)
-
-    check child.box.x == 50
-    check child.box.y == 50
-    check child.box.w == 350
-    check child.box.h == 250

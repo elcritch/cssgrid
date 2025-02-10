@@ -370,8 +370,9 @@ proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
         UiFixed(coord):
           maxSize = coord
         UiContentMin():
-          if cmin.float32 != float32.high():
-            maxSize = cmin
+          discard
+          # if cmin.float32 != float32.high():
+          #   maxSize = cmin
         UiAuto():
           maxSize = node.WH(dir)
         UiFrac(_):
@@ -395,38 +396,41 @@ proc computeContentSizes*(
     grid: GridTemplate,
     children: seq[GridNode]
 ): array[GridDir, Table[int, ComputedTrackSize]] =
+  ## Returns computed sizes for each track that needs content sizing
 
-  ## Computes content min/max for each grid track based on children
-  ## including nested children for auto tracks
-  var contentSized: array[GridDir, set[int16]]
+  # Find which tracks need content sizing
+  var contentSized: array[GridDir, HashSet[int]]
   for dir in [dcol, drow]:
     for i in 0 ..< grid.lines[dir].len():
-      if isContentSized(grid.lines[dir][i].track):
-        contentSized[dir].incl(i.int16)
+      let track = grid.lines[dir][i].track
+      if isContentSized(track):
+        contentSized[dir].incl(i)
 
   # Process each child and track
   for child in children:
     let cspan = child.gridItem.span
     for dir in [dcol, drow]:
-      debugPrint "calculateContentSize:", child.name
       if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
-        template track(): auto = grid.lines[dir][cspan[dir].a-1].track
+        let trackIndex = cspan[dir].a-1
+        let track = grid.lines[dir][trackIndex].track
         
-        # Calculate size recursively including all nested children
+        # Calculate size recursively including nested children
         let contentSize = calculateContentSize(child, dir)
-        debugPrint "calculateContentSize:", child.name, "contentSize=", contentSize, "track().value=", track().value
         
-        # Update track size based on content
-        if track().value.kind == UiAuto:
-          track().value.amin = contentSize
-        elif track().value.kind == UiFrac:
-          track().value.fmin = contentSize
-        elif track().value.kind == UiContentMin:
-          track().value.cmin = min(contentSize, track().value.cmin)
-        elif track().value.kind == UiContentMax:
-          track().value.cmax = max(contentSize, track().value.cmax)
-        else:
-          assert false, "shouldn't reach here " & $track().value.kind
+        # Update track's computed size based on its type
+        var computed = result[dir].getOrDefault(trackIndex)
+        case track.value.kind:
+        of UiAuto:
+          computed.autoSize = contentSize
+        of UiFrac:
+          computed.fracMinSize = contentSize
+        of UiContentMin:
+          computed.minContent = contentSize
+        of UiContentMax:
+          computed.maxContent = contentSize
+        else: discard
+        
+        result[dir][trackIndex] = computed
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
@@ -468,10 +472,11 @@ proc computeNodeLayout*(
   debugPrint "COMPUTE parent layout: "
   prettyLayout(parent)
 
-  gridTemplate.computeContentSizes(parent.children)
+  let computedSizes = gridTemplate.computeContentSizes(parent.children)
+
   debugPrint "GRID:CS: ", "box=", $box, "extendOnOverflow=", extendOnOverflow
   printGrid(gridTemplate)
-  gridTemplate.computeTracks(box, extendOnOverflow)
+  gridTemplate.computeTracks(box, computedSizes, extendOnOverflow)
   debugPrint "GRID:ComputedTracks: "
   printGrid(gridTemplate)
 

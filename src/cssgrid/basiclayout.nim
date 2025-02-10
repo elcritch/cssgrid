@@ -131,9 +131,9 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
     block:
       var res: UiScalar
       match val:
-        UiContentMin(cmins):
+        UiContentMin():
           res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
-        UiContentMax(cmaxs):
+        UiContentMax():
           res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
           debugPrint "CONTENT MAX: ", "node =", node.name, "res =", res, "d =", repr(dir), "children =", node.children.mapIt((it.name, it.box.w, it.box.h))
         _:
@@ -150,10 +150,14 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
   match csValue:
     UiNone:
       discard
-    UiSum(ls, rs):
+    UiAdd(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
       node.box.f = lv + rv
+    UiSub(ls, rs):
+      let lv = ls.calcBasic()
+      let rv = rs.calcBasic()
+      node.box.f = lv - rv
     UiMin(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()

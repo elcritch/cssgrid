@@ -30,23 +30,17 @@ template debugPrint*(args: varargs[string, `$`]) =
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =
   case cs.kind
   of UiAuto:
-    if cs.amin.float32 == 0:
-      mode.withStyle(fgCyan, text = "auto")
-    else:
-      mode.withStyle(fgCyan, text = &"auto(min:{cs.amin.float.float:.2f})")
+    mode.withStyle(fgCyan, text = "auto")
   of UiFrac:
-    mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr (min:{cs.fmin.float:.2f})")
+    mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr")
   of UiPerc:
     mode.withStyle(fgYellow, text = &"{cs.perc.float:.2f}'pp")
   of UiFixed:
     mode.withStyle(fgGreen, text = &"{cs.coord.float:.2f}'ui")
   of UiContentMin:
-    if cs.cmin.float32 == 0:
-      mode.withStyle(fgBlue, text = "min-content")
-    else:
-      mode.withStyle(fgBlue, text = &"min-content({cs.cmin.float:.2f})")
+    mode.withStyle(fgBlue, text = "min-content")
   of UiContentMax:
-    mode.withStyle(fgBlue, text = &"max-content({cs.cmax.float:.2f})")
+    mode.withStyle(fgBlue, text = "max-content")
 
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind
@@ -66,11 +60,17 @@ proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
     mode.withStyle(fgWhite, text = ", ")
     prettyConstraintSize(c.rmax, "", mode)
     mode.withStyle(fgWhite, text = ")")
-  of UiSum:
-    mode.withStyle(fgWhite, text = "sum(")
-    prettyConstraintSize(c.lsum, "", mode)
+  of UiAdd:
+    mode.withStyle(fgWhite, text = "add(")
+    prettyConstraintSize(c.ladd, "", mode)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.rsum, "", mode)
+    prettyConstraintSize(c.radd, "", mode)
+    mode.withStyle(fgWhite, text = ")")
+  of UiSub:
+    mode.withStyle(fgWhite, text = "sub(")
+    prettyConstraintSize(c.lsub, "", mode)
+    mode.withStyle(fgWhite, text = ", ")
+    prettyConstraintSize(c.rsub, "", mode)
     mode.withStyle(fgWhite, text = ")")
   of UiMinMax:
     mode.withStyle(fgWhite, text = "minmax(")

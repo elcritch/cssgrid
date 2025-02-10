@@ -150,6 +150,10 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   # Box dimensions
   mode.withStyle(fgWhite, {styleBright}, text = indent & "  box: ")
   mode.withStyle(fgYellow, text = &"[x: {node.box.x.float:.2f}, y: {node.box.y.float:.2f}, w: {node.box.w.float:.2f}, h: {node.box.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmin: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bmin.w.float:.2f}, y: {node.bmin.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmax: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bmax.w.float:.2f}, y: {node.bmax.h.float:.2f}]\n")
   
   # Constraints
   for i, constraint in node.cxSize:
@@ -164,6 +168,18 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
     prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   
+  for i, constraint in node.cxMin:
+    let dir = if i == dcol: "minX" else: "minY"
+    mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+    prettyConstraint(constraint, "", mode)
+  mode.withStyle(fgWhite, text = "\n")
+  
+  for i, constraint in node.cxMax:
+    let dir = if i == dcol: "maxX" else: "maxY"
+    mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+    prettyConstraint(constraint, "", mode)
+  mode.withStyle(fgWhite, text = "\n")
+
   # Grid template
   if not node.gridTemplate.isNil:
     prettyGridTemplate(node.gridTemplate, indent & "  ", mode)

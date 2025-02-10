@@ -73,6 +73,7 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child, dcol, isXY = false)
     calcBasicConstraint(child, drow, isXY = false)
     
+    prettyLayout(parent, mode=cmTerminal)
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
 

@@ -38,7 +38,7 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var UiScalar, pf: UiScalar) =
+proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -52,7 +52,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, isXY: bool, f: var Ui
       match val:
         UiAuto():
           if not isXY:
-            res = pf
+            res = pf - f0
           # when astToStr(f) in ["w"]:
           #   res = parentBox.f - node.box.x
           # elif astToStr(f) in ["h"]:
@@ -186,16 +186,16 @@ proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool
     calcBasicConstraintImpl(node, dir, isXY, node.box.y, parentBox.h)
   # w & h need to run after x & y
   elif isXY == false and dir == dcol:
-    calcBasicConstraintImpl(node, dir, isXY, node.box.w, parentBox.w)
+    calcBasicConstraintImpl(node, dir, isXY, node.box.w, parentBox.w, node.box.x)
   elif isXY == false and dir == drow:
-    calcBasicConstraintImpl(node, dir, isXY, node.box.h, parentBox.h)
+    calcBasicConstraintImpl(node, dir, isXY, node.box.h, parentBox.h, node.box.y)
 
 proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   when isXY == true and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, isXY, node.box.x)
+    calcBasicConstraintPostImpl(node, dir, isXY, node.box.w)
   elif isXY == true and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, isXY, node.box.y)
+    calcBasicConstraintPostImpl(node, dir, isXY, node.box.h)
   # w & h need to run after x & y
   elif isXY == false and dir == dcol:
     calcBasicConstraintPostImpl(node, dir, isXY, node.box.w)

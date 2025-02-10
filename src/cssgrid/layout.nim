@@ -25,11 +25,9 @@ proc computeLineOverflow*(
             UiContentMax(cmax):
               result += cmax
             UiContentMin(cmin):
-              echo "computeLineOverflow:content-min: ", cmin, " res: ", result
               if cmin.float32 != float32.high():
                 result += cmin
             UiFrac(_, fmin): 
-              echo "computeLineOverflow:uifrace: ", fmin, " res: ", result
               if fmin.float32 != float32.high():
                 result += fmin
             UiAuto(amin):

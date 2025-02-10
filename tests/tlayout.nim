@@ -117,5 +117,8 @@ suite "grids":
     let (n2, b2) = makeGrid1(gt2)
     saveImage(gt2, b2, n2, "extra-")
 
+  var md = ""
+  md.add &""
+  writeFile("tests/tlayout.html", md)
 
 

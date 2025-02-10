@@ -17,7 +17,7 @@ import pixie
 type
   GridNode* = ref object
     name*: string
-    box: UiBox
+    box, bmin, bmax: UiBox
     parent*: GridNode
     gridItem*: GridItem
     gridTemplate*: GridTemplate
@@ -133,7 +133,7 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   # ==== process grid ====
   parent.children = nodes
   parent.gridTemplate = gridTemplate
-  computeLayout(parent, 0)
+  computeLayout(parent)
   result = (nodes, parent.box)
 
   printGrid(gridTemplate)

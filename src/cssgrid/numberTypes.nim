@@ -227,6 +227,10 @@ proc y*(r: var UiPos): var UiScalar = GVec2[UiScalar](r)[1]
 proc `x=`*(r: var UiPos, v: UiScalar) = r[0] = v
 proc `y=`*(r: var UiPos, v: UiScalar) = r[1] = v
 
+proc bounding*(rect: UiBox): UiSize =
+  result.w = rect.x + rect.w
+  result.h = rect.y + rect.h
+
 proc `+`*(rect: UiBox, xy: UiPos): UiBox =
   ## offset rect with xy vec2 
   result = rect

@@ -137,6 +137,10 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
           res = UiScalar.high()
           for child in node.children:
             res = min(res, child.bmin[dir])
+        UiContentMax():
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
 
           # res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
         # UiContentMax():

@@ -19,19 +19,16 @@ type
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
-    of UiAuto:
-      amin*: UiScalar ## default, which is parent width/height less the x/y positions of the node and it's parents
     of UiFrac:
       frac*: UiScalar ## set `fr` aka CSS Grid fractions
-      fmin*: UiScalar ## content min size for `fr`
     of UiPerc:
       perc*: UiScalar ## set percentage of parent box or grid
     of UiFixed:
       coord*: UiScalar ## set fixed coordinate size
-    of UiContentMin:
-      cmin*: UiScalar ## sets layout to use min-content, `cmin` is calculated internally
-    of UiContentMax:
-      cmax*: UiScalar ## sets layout to use max-content, `cmax` is calculated internally
+    of UiContentMin, UiContentMax:
+      discard
+    of UiAuto:
+      discard
 
   Constraints* = enum
     UiValue
@@ -64,7 +61,7 @@ type
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)
 proc csAuto*(): Constraint =
-  csValue(ConstraintSize(kind: UiAuto, amin: 0.UiScalar))
+  csValue(ConstraintSize(kind: UiAuto))
 
 proc csFrac*[T](size: T): Constraint =
   csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
@@ -73,9 +70,9 @@ proc csFixed*[T](coord: T): Constraint =
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
 proc csContentMin*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMin, cmin: UiScalar.high()))
+  csValue(ConstraintSize(kind: UiContentMin))
 proc csContentMax*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
+  csValue(ConstraintSize(kind: UiContentMax))
 
 proc isContentSized*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiAuto, UiFrac] 
@@ -175,9 +172,9 @@ proc `$`*(a: ConstraintSize): string =
     UiFrac(frac): result = $frac & "'fr"
     UiFixed(coord): result = $coord & "'ux"
     UiPerc(perc): result = $perc & "'perc"
-    UiContentMin(cmin): result = $cmin & "'min"
-    UiContentMax(cmax): result = $cmax & "'max"
-    UiAuto(amin): result = $amin & "'auto"
+    UiContentMin(): result = "cx'content-min"
+    UiContentMax(): result = "cx'content-max"
+    UiAuto(): result = "cx'auto"
 
 proc `'ux`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit

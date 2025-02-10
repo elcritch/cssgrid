@@ -1,5 +1,6 @@
 import patty
 import std/terminal
+import std/tables
 
 import numberTypes, constraints, gridtypes, parser
 import basiclayout
@@ -8,32 +9,38 @@ export constraints, gridtypes
 
 import prettyprints
 
+type
+  ComputedTrackSize* = object
+    minContent*: UiScalar
+    maxContent*: UiScalar
+    autoSize*: UiScalar
+    fracMinSize*: UiScalar
+
 proc computeLineOverflow*(
     lines: var seq[GridLine],
+    computedSizes: Table[int, ComputedTrackSize]
 ): UiScalar =
   debugPrint "computeLineOverflow:pre: ", result
   for grdLn in lines:
     if grdLn.isAuto:
       match grdLn.track:
-        UiNone():
-          discard
         UiValue(value):
           match value:
             UiFixed(coord):
               result += coord
             UiPerc(): discard
-            UiContentMax(cmax):
-              result += cmax
-            UiContentMin(cmin):
-              if cmin.float32 != float32.high():
-                result += cmin
-            UiFrac(_, fmin): 
-              if fmin.float32 != float32.high():
-                result += fmin
-            UiAuto(amin):
-              if amin.float32 != float32.high():
-                result += amin
-        _: discard
+            UiContentMax():
+              if i in computedSizes:
+                result += computedSizes[i].maxContent
+            UiContentMin():
+              if i in computedSizes:
+                result += computedSizes[i].minContent
+            UiFrac(): 
+              if i in computedSizes:
+                result += computedSizes[i].fracMinSize
+            UiAuto():
+              if i in computedSizes:
+                result += computedSizes[i].autoSize
   debugPrint "computeLineOverflow:post: ", result
 
 proc computeLineLayout*(

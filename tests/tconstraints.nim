@@ -6,12 +6,12 @@ suite "constraints":
 
 
   test "basic constraint creation":
-    check csAuto() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiAuto, amin: 0.UiScalar))
+    check csAuto() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiAuto))
     check csFixed(100) == Constraint(kind: UiValue, value: ConstraintSize(kind: UiFixed, coord: 100.UiScalar))
     check csFrac(1) == Constraint(kind: UiValue, value: ConstraintSize(kind: UiFrac, frac: 1.UiScalar))
     check csPerc(50) == Constraint(kind: UiValue, value: ConstraintSize(kind: UiPerc, perc: 50.UiScalar))
-    check csContentMin() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentMin, cmin: UiScalar.high()))
-    check csContentMax() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
+    check csContentMin() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentMin))
+    check csContentMax() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentMax))
 
   test "constraint helpers":
     check 1'ux == csFixed(1)
@@ -36,6 +36,9 @@ suite "constraints":
     check maxSize == csMax(200'pp, csAuto())
     check addSize == csAdd(200.0'pp, 10'ux)
     check subSize == csSub(200.0'pp, 10'ux)
+    
+    # expect(ValueError):
+    #   let s1 = csSub(200.0'pp, csAuto())
 
   test "constraint operations":
     let fixed1 = csFixed(100)

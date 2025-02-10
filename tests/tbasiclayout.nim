@@ -6,6 +6,7 @@ import unittest
 import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/basiclayout
+import cssgrid/layout
 import cssgrid/parser
 import cssgrid/prettyprints
 
@@ -117,26 +118,26 @@ suite "Basic CSS Layout Tests":
     check child1.box.w == 200 # max(50% of 400, 100)
     check child2.box.w == 150 # (25% of 400) + 50
 
-  # test "Content based constraints":
-  #   let parent = newTestNode("parent", 0, 0, 400, 300)
-  #   let child = newTestNode("child", 0, 0, 100, 100)
-  #   let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
+  test "Content based constraints":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100)
+    let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
     
-  #   parent.children.add(child)
-  #   child.parent = parent
-  #   child.children.add(grandchild)
-  #   grandchild.parent = child
+    parent.children.add(child)
+    child.parent = parent
+    child.children.add(grandchild)
+    grandchild.parent = child
     
-  #   # Set child width to fit content
-  #   child.cxSize[dcol] = csContentMax()
-  #   # calcBasicConstraint(child, dcol, isXY = false)
-  #   computeLayout(parent, 0)
+    # Set child width to fit content
+    child.cxSize[dcol] = csContentMax()
+    # calcBasicConstraint(child, dcol, isXY = false)
+    computeLayout(parent, 0)
     
-  #   echo "BOX: ", parent.cxOffset.repr
-  #   echo "BOX: ", parent.cxSize.repr
-  #   printLayout(parent, cmTerminal)
+    echo "BOX: ", parent.cxOffset.repr
+    echo "BOX: ", parent.cxSize.repr
+    printLayout(parent, cmTerminal)
 
-  #   check child.box.w >= grandchild.box.w # Should be at least as wide as content
+    check child.box.w >= grandchild.box.w # Should be at least as wide as content
 
   test "Position constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)

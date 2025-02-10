@@ -141,7 +141,8 @@ suite "Basic CSS Layout Tests":
     grandchild.parent = child
     
     # Set child width to fit content
-    child.cxSize[dcol] = csContentMax()
+    child.cxSize[dcol] = csContentMin()
+    child.cxSize[drow] = csContentMin()
     # calcBasicConstraint(child, dcol, isXY = false)
     computeLayout(parent)
     

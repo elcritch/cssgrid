@@ -25,6 +25,8 @@ type
     gridItem: GridItem
     cxSize: array[GridDir, Constraint]  # For width/height
     cxOffset: array[GridDir, Constraint] # For x/y positions
+    cxMin: array[GridDir, Constraint]  # For width/height
+    cxMax: array[GridDir, Constraint] # For x/y positions
     children: seq[GridNode]
     gridTemplate: GridTemplate
 
@@ -77,7 +79,9 @@ suite "grids":
       columns = @[initGridLine 1'fr, initGridLine 1'fr],
       rows = @[gl 1'fr, gl 1'fr],
     )
-    gt.computeTracks(uiBox(0, 0, 100, 100))
+
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
     # print "grid template: ", gt
 
     check gt.lines[dcol][0].start == 0.UiScalar
@@ -90,7 +94,8 @@ suite "grids":
       columns = @[gl 1'fr, gl 1'fr, gl 1'fr],
       rows = @[gl 1'fr, gl 1'fr, gl 1'fr],
     )
-    gt.computeTracks(uiBox(0, 0, 100, 100))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
     # print "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
@@ -105,7 +110,8 @@ suite "grids":
       columns = @[1'fr.gl, initGridLine(5.csFixed), 1'fr.gl, 1'fr.gl, initGridLine(csEnd())],
       rows = @[initGridLine(csEnd())],
     )
-    gt.computeTracks(uiBox(0, 0, 100, 100))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
     # echo "grid template: ", gt
 
     checks gt.lines[dcol][0].start.float == 0.0
@@ -156,7 +162,8 @@ suite "grids":
       ["five"] 40'ux ["end"]
     parseGridTemplateRows tmpl, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
 
-    tmpl.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    tmpl.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     let gt = tmpl
     # print "grid template: ", gridTemplate
     checks gt.lines[dcol][0].start.float == 0.0
@@ -186,7 +193,8 @@ suite "grids":
 
     gt.gaps[dcol] = 10.UiScalar
     gt.gaps[drow] = 10.UiScalar
-    gt.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # print "grid template: ", gt
     checks gt.lines[dcol][0].start.float == 0.0
     checks gt.lines[dcol][1].start.float == 50.0
@@ -206,7 +214,9 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # echo "grid template: ", repr gridTemplate
 
     var gridItem = newGridItem()
@@ -237,7 +247,9 @@ suite "grids":
         ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
     parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux \
         ["third-line"] auto ["last-line"]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # echo "grid template: ", repr gridTemplate
 
     let contentSize = uiSize(500, 200)
@@ -326,7 +338,8 @@ suite "grids":
 
     itemb.setGridSpans(gridTemplate, contentSize)
 
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     ## computes
     ## 
     let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
@@ -339,7 +352,7 @@ suite "grids":
     let boxa = nodea.computeBox(gridTemplate)
     let boxb = nodeb.computeBox(gridTemplate)
 
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
 
     # echo "gridTemplate: ", gridTemplate
     checks boxa == uiBox(0, 90, 60, 90)
@@ -363,7 +376,9 @@ suite "grids":
     itema.row = 1 // 2
 
     itema.setGridSpans(gridTemplate, contentSize)
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
     let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 0, 60, 90)
@@ -395,7 +410,8 @@ suite "grids":
     itemb.row = 3 // 4
     itemb.setGridSpans(gridTemplate, contentSize)
 
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
     let nodeb = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itemb)
     let boxa = nodea.computeBox(gridTemplate)
@@ -414,7 +430,8 @@ suite "grids":
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 6
     check gridTemplate.lines[drow].len() == 3
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
 

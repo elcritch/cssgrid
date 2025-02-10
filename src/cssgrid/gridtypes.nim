@@ -15,6 +15,12 @@ type
   Atom* = StackString[CssGridAtomSize]
   LineName* = Atom
 
+  ComputedSize* = object of RootObj
+    minContent*: UiScalar
+    maxContent*: UiScalar
+    autoSize*: UiScalar
+    fracMinSize*: UiScalar
+
   GridNode* = concept node
     typeof(node.box) is UiBox
     typeof(node.cxSize) is array[GridDir, Constraint]

@@ -10,11 +10,7 @@ export constraints, gridtypes
 import prettyprints
 
 type
-  ComputedTrackSize* = object
-    minContent*: UiScalar
-    maxContent*: UiScalar
-    autoSize*: UiScalar
-    fracMinSize*: UiScalar
+  ComputedTrackSize* = object of ComputedSize
 
 proc computeLineOverflow*(
     lines: var seq[GridLine],
@@ -362,6 +358,38 @@ proc computeAutoFlow(
   if foundOverflow:
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
+
+proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
+  ## Recursively calculates the content size for a node by examining its children
+  var maxSize = 0.UiScalar
+  
+  # First check the node's own size constraints
+  match node.cxSize[dir]:
+    UiValue(value):
+      match value:
+        UiFixed(coord):
+          maxSize = coord
+        UiContentMin():
+          if cmin.float32 != float32.high():
+            maxSize = cmin
+        UiAuto():
+          maxSize = node.WH(dir)
+        UiFrac(_):
+          maxSize = node.WH(dir)
+        _: discard
+    _: discard
+  debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir].kind
+
+  # Then recursively check all children
+  for child in node.children:
+    let childSize = calculateContentSize(child, dir)
+    maxSize = max(maxSize, childSize)
+    
+    # Add any additional space needed for grid gaps if parent has grid
+    if not node.gridTemplate.isNil and node.children.len > 1:
+      maxSize += node.gridTemplate.gaps[dir]
+
+  return maxSize
 
 proc computeContentSizes*(
     grid: GridTemplate,

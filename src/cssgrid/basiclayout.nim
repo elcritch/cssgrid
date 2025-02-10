@@ -38,38 +38,6 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
-  ## Recursively calculates the content size for a node by examining its children
-  var maxSize = 0.UiScalar
-  
-  # First check the node's own size constraints
-  match node.cxSize[dir]:
-    UiValue(value):
-      match value:
-        UiFixed(coord):
-          maxSize = coord
-        UiContentMin(cmin):
-          if cmin.float32 != float32.high():
-            maxSize = cmin
-        UiAuto(_):
-          maxSize = node.WH(dir)
-        UiFrac(_, _):
-          maxSize = node.WH(dir)
-        _: discard
-    _: discard
-  debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir].kind
-
-  # Then recursively check all children
-  for child in node.children:
-    let childSize = calculateContentSize(child, dir)
-    maxSize = max(maxSize, childSize)
-    
-    # Add any additional space needed for grid gaps if parent has grid
-    if not node.gridTemplate.isNil and node.children.len > 1:
-      maxSize += node.gridTemplate.gaps[dir]
-
-  return maxSize
-
 template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
@@ -82,7 +50,7 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       debugPrint "calcBasic: ", val
       var res: UiScalar
       match val:
-        UiAuto(_):
+        UiAuto():
           when astToStr(f) in ["w"]:
             res = parentBox.f - node.box.x
           elif astToStr(f) in ["h"]:
@@ -100,20 +68,10 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
             else:
               parentBox.f
           res = perc.UiScalar / 100.0.UiScalar * ppval
-        UiContentMin(cmins):
-          debugPrint "CMINS: ", cmins
-          for n in node.children:
-            when astToStr(f) == "w":
-              res = min(node.box.x + node.box.w, res)
-            elif astToStr(f) == "h":
-              res = min(node.box.y + node.box.h, res)
-        UiContentMax(cmaxs):
-          debugPrint "CMAXS: ", cmaxs
-          for n in node.children:
-            when astToStr(f) == "w":
-              res = max(node.box.x + node.box.w, res)
-            elif astToStr(f) == "h":
-              res = max(node.box.y + node.box.h, res)
+        UiContentMin():
+          discard
+        UiContentMax():
+          discard
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -126,10 +84,14 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
   match csValue:
     UiNone:
       discard
-    UiSum(ls, rs):
+    UiAdd(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
       node.box.f = lv + rv
+    UiSub(ls, rs):
+      let lv = ls.calcBasic()
+      let rv = rs.calcBasic()
+      node.box.f = lv - rv
     UiMin(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
@@ -138,10 +100,10 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
       node.box.f = max(lv, rv)
-    UiMinMax(ls, rs):
-      discard
     UiValue(value):
       node.box.f = calcBasic(value)
+    UiMinMax(ls, rs):
+      discard # handled in grid layout
     UiEnd:
       discard
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h

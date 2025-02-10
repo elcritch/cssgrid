@@ -1,8 +1,8 @@
 import typetraits
 import macros except `$`
-import numberTypes, gridtypes, layout
+import numberTypes, gridtypes
 
-export gridtypes, layout
+export gridtypes
 
 proc flatten(arg: NimNode): NimNode {.compileTime.} =
   ## flatten the representation

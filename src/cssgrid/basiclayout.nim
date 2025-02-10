@@ -184,7 +184,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     UiMinMax(ls, rs):
       return # doesn't make sense here
     UiValue(value):
-      return # doesn't make sense here
+      f = calcBasic(value)
     UiEnd:
       discard
 

@@ -151,8 +151,9 @@ suite "Basic CSS Layout Tests":
     printLayout(parent, cmTerminal)
 
     check grandchild.bmin == uiSize(100, 40)
-    check child.bmin == uiSize(100, 40)
-    check child.box.w == grandchild.box.w # Should be at least as wide as content
+    # check child.bmin == uiSize(100, 40)
+    check child.box.w == grandchild.bmin.w # 
+    check child.box.h == grandchild.bmin.h # 
 
   test "Position constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)

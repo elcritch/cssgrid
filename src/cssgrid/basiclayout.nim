@@ -121,7 +121,7 @@ proc calculateMinOrMaxes(node: GridNode, fs: static string, doMax: static bool):
       else:
         result = min(n.box.y + n.box.h, result)
 
-template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: untyped) =
+proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, isXY: bool, f: var UiScalar) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
@@ -137,14 +137,14 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
           res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
           debugPrint "CONTENT MAX: ", "node =", node.name, "res =", res, "d =", repr(dir), "children =", node.children.mapIt((it.name, it.box.w, it.box.h))
         _:
-          res = node.box.f
+          res = f
       res
 
   let csValue =
-    when astToStr(f) in ["w", "h"]:
-      node.cxSize[dir]
-    else:
+    if isXY:
       node.cxOffset[dir]
+    else:
+      node.cxSize[dir]
   
   debugPrint "CONTENT csValue: ", "node =", node.name, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:
@@ -154,22 +154,22 @@ template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: unt
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
         let rv = rs.calcBasic()
-        node.box.f = lv + rv
+        f = lv + rv
     UiSub(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
         let rv = rs.calcBasic()
-        node.box.f = lv - rv
+        f = lv - rv
     UiMin(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
         let rv = rs.calcBasic()
-        node.box.f = min(lv, rv)
+        f = min(lv, rv)
     UiMax(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
         let rv = rs.calcBasic()
-        node.box.f = max(lv, rv)
+        f = max(lv, rv)
     UiMinMax(ls, rs):
       return # doesn't make sense here
     UiValue(value):
@@ -195,11 +195,11 @@ proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool
 proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   when isXY == true and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, x)
+    calcBasicConstraintPostImpl(node, dir, isXY, node.box.x)
   elif isXY == true and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, y)
+    calcBasicConstraintPostImpl(node, dir, isXY, node.box.y)
   # w & h need to run after x & y
   elif isXY == false and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, w)
+    calcBasicConstraintPostImpl(node, dir, isXY, node.box.w)
   elif isXY == false and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, h)
+    calcBasicConstraintPostImpl(node, dir, isXY, node.box.h)

@@ -42,10 +42,11 @@ suite "CSS Grid Content Sizing":
       rows = @[initGridLine(csAuto())]
     )
     
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
-      {0: ComputedTrackSize(autoSize: 75.UiScalar)}.toTable,
-      {0: ComputedTrackSize(autoSize: 125.UiScalar)}.toTable
-    ]
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    computedSizes[dcol] = {
+        0: ComputedTrackSize(autoSize: 75.UiScalar),
+        1: ComputedTrackSize(autoSize: 125.UiScalar)
+      }.toTable
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 

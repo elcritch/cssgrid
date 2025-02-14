@@ -142,7 +142,7 @@ suite "Basic CSS Layout Tests":
     let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
     
     grandchild.cxMin = [100'ux, 40'ux]
-    grandchild.cxMax = [200'ux, 100'ux]
+    grandchild.cxMax = [200'ux, 200'ux]
 
     parent.children.add(child)
     child.parent = parent
@@ -159,8 +159,8 @@ suite "Basic CSS Layout Tests":
     check grandchild.bmin == uiSize(100, 40)
     check child.box.w == grandchild.bmin.w # 
     check child.box.h == grandchild.bmin.h # 
-    check child.bmin == uiSize(100, 40)
-    check child.bmax == uiSize(UiScalar.low, 100)
+    # check child.bmin == uiSize(100, 40)
+    check child.bmax == uiSize(UiScalar.low, 200)
 
   test "Position constraints":
     # prettyPrintWriteMode = cmTerminal

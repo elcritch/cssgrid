@@ -37,6 +37,9 @@ suite "CSS Grid Content Sizing":
     check gt.lines[drow][0].width == 150.UiScalar
 
   test "auto sizing with content":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
     var gt = newGridTemplate(
       columns = @[initGridLine(csAuto())],
       rows = @[initGridLine(csAuto())]

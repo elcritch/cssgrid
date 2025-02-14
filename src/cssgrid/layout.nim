@@ -18,7 +18,9 @@ proc computeLineOverflow*(
 ): UiScalar =
   debugPrint "computeLineOverflow:pre: ", result
   for i, grdLn in lines:
+    debugPrint "computeLineOverflow:grdLn: ", grdLn.isAuto
     if grdLn.isAuto:
+      debugPrint "computeLineOverflow:grdLn: ", grdLn.isAuto
       match grdLn.track:
         UiValue(value):
           match value:
@@ -436,13 +438,11 @@ proc computeContentSizes*(
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
-    parent: GridNode,
+    node: GridNode,
     extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
 
-  let box = 
-    when parent is GridNode: UiBox(parent.box)
-    elif parent is GridBox: UiBox(parent)
+  let box = node.box
 
   gridTemplate.createEndTracks()
   ## implement full(ish) CSS grid algorithm here
@@ -453,14 +453,14 @@ proc computeNodeLayout*(
   ##   https://www.w3.org/TR/css3-grid-layout/#grid-item-placement-algorithm
   ## 
   var hasAutos = true
-  for child in parent.children:
+  for child in node.children:
     if child.gridItem == nil:
       # ensure all grid children have a GridItem
       child.gridItem = GridItem()
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
     
   # compute UiSizes for partially fixed children
-  for child in parent.children:
+  for child in node.children:
     if fixedCount(child.gridItem) in 1..3:
       # child.UiBox = child.gridItem.computeUiSize(gridTemplate, child.UiBox.wh)
       assert false, "todo: implement me!"
@@ -468,13 +468,13 @@ proc computeNodeLayout*(
   # compute UiSizes for auto flow items
   if hasAutos:
     debugPrint "computeAutoFlow: "
-    computeAutoFlow(gridTemplate, box, parent.children)
+    computeAutoFlow(gridTemplate, box, node.children)
 
 
-  debugPrint "COMPUTE parent layout: "
-  prettyLayout(parent)
+  debugPrint "COMPUTE node layout: "
+  prettyLayout(node)
 
-  let computedSizes = gridTemplate.computeContentSizes(parent.children)
+  let computedSizes = gridTemplate.computeContentSizes(node.children)
 
   debugPrint "GRID:CS: ", "box=", $box, "extendOnOverflow=", extendOnOverflow
   printGrid(gridTemplate)
@@ -483,9 +483,9 @@ proc computeNodeLayout*(
   printGrid(gridTemplate)
 
   debugPrint "COMPUTE Parent: "
-  prettyLayout(parent)
+  prettyLayout(node)
   debugPrint "COMPUTE BOXES: "
-  for child in parent.children:
+  for child in node.children:
     if fixedCount(child.gridItem) in 1..3:
       continue
     # debugPrint "COMPUTE BOXES:CHILD: "
@@ -494,7 +494,7 @@ proc computeNodeLayout*(
     child.box = typeof(child.box)(cbox)
     prettyLayout(child)
   debugPrint "COMPUTE POST: "
-  prettyLayout(parent)
+  prettyLayout(node)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]

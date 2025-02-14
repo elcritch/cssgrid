@@ -45,14 +45,18 @@ suite "CSS Grid Content Sizing":
       rows = @[initGridLine(csAuto())]
     )
     
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    computedSizes[dcol] = {
-        0: ComputedTrackSize(autoSize: 75.UiScalar),
-        1: ComputedTrackSize(autoSize: 125.UiScalar)
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
+      dcol: {
+        0: ComputedTrackSize(autoSize: 125.UiScalar),
+      }.toTable,
+      drow: {
+        0: ComputedTrackSize(autoSize: 75.UiScalar)
       }.toTable
+    ]
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 
+    printGrid(gt, cmTerminal)
     check gt.lines[dcol][0].width == 75.UiScalar
     check gt.lines[drow][0].width == 125.UiScalar
 

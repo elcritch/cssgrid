@@ -132,8 +132,6 @@ suite "CSS Grid Content Sizing":
     check gt.lines[dcol][1].start == 120.UiScalar  # 100 + 20 gap
 
   test "auto flow with content sizing":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
 
     var gt = newGridTemplate(
       columns = @[
@@ -164,9 +162,16 @@ suite "CSS Grid Content Sizing":
     check gt.lines[drow][0].width == 200.UiScalar
 
   test "content sizing overflow":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
     var gt = newGridTemplate(
-      columns = @[initGridLine(csContentMin())],
-      rows = @[initGridLine(csContentMin())]
+      columns = @[
+        initGridLine(csContentMin())
+      ],
+      rows = @[
+        initGridLine(csContentMin())
+      ]
     )
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [

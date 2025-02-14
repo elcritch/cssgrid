@@ -47,7 +47,7 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(autoSize: 125.UiScalar),
+        0: ComputedTrackSize(autoSize: 50.UiScalar),
       }.toTable,
       drow: {
         0: ComputedTrackSize(autoSize: 75.UiScalar)
@@ -56,7 +56,7 @@ suite "CSS Grid Content Sizing":
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 
-    printGrid(gt, cmTerminal)
+    # printGrid(gt, cmTerminal)
     check gt.lines[dcol][0].width == 75.UiScalar
     check gt.lines[drow][0].width == 125.UiScalar
 

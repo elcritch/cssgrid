@@ -15,9 +15,9 @@ type ColorMode* = enum
 var prettyPrintWriteMode* = cmNone
 
 template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {}, text: string) =
-  if mode == cmTerminal:
+  if mode == cmTerminal or prettyPrintWriteMode == cmTerminal:
     stdout.styledWrite(fg, style, text)
-  elif mode == cmTerminal:
+  elif mode == cmPlain:
     stdout.write(text)
   else:
     discard

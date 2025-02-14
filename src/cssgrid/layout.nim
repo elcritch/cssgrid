@@ -85,13 +85,17 @@ proc computeLineLayout*(
   fixed += spacing * UiScalar(lines.len() - 1)
 
   # Calculate minimum space needed for auto and frac tracks
-  let
-    totalAutoMin = autoTrackIndices.mapIt(
-      if it in computedSizes: computedSizes[it].autoSize else: 0.UiScalar
-    ).foldl(a + b, 0.UiScalar)
-    totalFracMin = fracTrackIndices.mapIt(
-      if it in computedSizes: computedSizes[it].fracMinSize else: 0.UiScalar
-    ).foldl(a + b, 0.UiScalar)
+  var
+    totalAutoMin: UiScalar
+    totalFracMin: UiScalar
+
+  for trk in autoTrackIndices:
+    if trk in computedSizes:
+        totalAutoMin += computedSizes[trk].autoSize
+
+  for trk in autoTrackIndices:
+    if trk in computedSizes:
+        totalAutoMin += computedSizes[trk].fracMinSize
 
   # Calculate available free space
   var
@@ -181,6 +185,7 @@ proc computeTracks*(
     spacing=grid.gaps[drow]
   )
 
+  echo "prettyGridTemplate(grid)"
   prettyGridTemplate(grid)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =

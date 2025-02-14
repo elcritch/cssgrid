@@ -80,9 +80,6 @@ suite "CSS Grid Content Sizing":
     check gt.lines[drow][0].width == 200.UiScalar  # 1fr
 
   test "mixed content sizing":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
-
     var gt = newGridTemplate(
       columns = @[
         initGridLine(csContentMin()),
@@ -135,16 +132,24 @@ suite "CSS Grid Content Sizing":
     check gt.lines[dcol][1].start == 120.UiScalar  # 100 + 20 gap
 
   test "auto flow with content sizing":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
     var gt = newGridTemplate(
-      columns = @[initGridLine(csAuto()), initGridLine(csAuto())],
-      rows = @[initGridLine(csAuto())]
+      columns = @[
+        initGridLine(csAuto()),
+        initGridLine(csAuto())
+      ],
+      rows = @[
+        initGridLine(csAuto())
+      ]
     )
     gt.autoFlow = grRow
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
         0: ComputedTrackSize(autoSize: 50.UiScalar),
-        1: ComputedTrackSize(autoSize: 75.UiScalar)
+        1: ComputedTrackSize(autoSize: 100.UiScalar)
       }.toTable,
       drow: {
         0: ComputedTrackSize(autoSize: 100.UiScalar)
@@ -153,9 +158,10 @@ suite "CSS Grid Content Sizing":
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 
-    check gt.lines[dcol][0].width == 50.UiScalar
-    check gt.lines[dcol][1].width == 75.UiScalar
-    check gt.lines[drow][0].width == 100.UiScalar
+    check gt.lines[dcol][0].width == 75.UiScalar
+    check gt.lines[dcol][1].width == 125.UiScalar
+
+    check gt.lines[drow][0].width == 200.UiScalar
 
   test "content sizing overflow":
     var gt = newGridTemplate(

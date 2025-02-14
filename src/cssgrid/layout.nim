@@ -93,15 +93,18 @@ proc computeLineLayout*(
     if trk in computedSizes:
         totalAutoMin += computedSizes[trk].autoSize
 
-  for trk in autoTrackIndices:
+  for trk in fracTrackIndices:
     if trk in computedSizes:
-        totalAutoMin += computedSizes[trk].fracMinSize
+        totalFracMin += computedSizes[trk].fracMinSize
 
   # Calculate available free space
   let
     freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
   var
     remSpace = freeSpace
+
+  if fracTrackIndices.len() > 0:
+    remSpace = 0.0.UiScalar
 
   debugPrint "computeLineLayout:metrics",
     "length=", length,
@@ -129,7 +132,7 @@ proc computeLineLayout*(
       of UiFrac:
         if totalFracs > 0:
           let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
-          grdLn.width = max(freeSpace * grdVal.frac/totalFracs, minSize)
+          grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
           remSpace -= grdLn.width
       of UiAuto:
         if i in computedSizes:

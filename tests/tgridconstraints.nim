@@ -37,9 +37,6 @@ suite "CSS Grid Content Sizing":
     check gt.lines[drow][0].width == 150.UiScalar
 
   test "auto sizing with content":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
-
     var gt = newGridTemplate(
       columns = @[initGridLine(csAuto())],
       rows = @[initGridLine(csAuto())]
@@ -57,8 +54,8 @@ suite "CSS Grid Content Sizing":
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 
     # printGrid(gt, cmTerminal)
-    check gt.lines[dcol][0].width == 75.UiScalar
-    check gt.lines[drow][0].width == 125.UiScalar
+    check gt.lines[dcol][0].width == 200.UiScalar
+    check gt.lines[drow][0].width == 200.UiScalar
 
   test "fr units with minimum content size":
     var gt = newGridTemplate(
@@ -83,6 +80,9 @@ suite "CSS Grid Content Sizing":
     check gt.lines[drow][0].width == 200.UiScalar  # 1fr
 
   test "mixed content sizing":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
     var gt = newGridTemplate(
       columns = @[
         initGridLine(csContentMin()),
@@ -102,6 +102,11 @@ suite "CSS Grid Content Sizing":
 
     gt.computeTracks(uiBox(0, 0, 500, 100), computedSizes)
 
+    # TL; DR: when setting a grid template, such as using grid-template-columns,
+    # auto is "greedy" for left over space except when it's used with fr units.
+    # When auto is used with fr, the auto row(s)/column(s) takes up just
+    # enough space to fit its content and any remaining space is given to the
+    # row(s)/columns(s) defined with fr units.
     check gt.lines[dcol][0].width == 50.UiScalar   # min-content
     check gt.lines[dcol][1].width == 75.UiScalar   # auto
     check gt.lines[dcol][2].width == 375.UiScalar  # remaining space

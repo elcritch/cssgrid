@@ -98,8 +98,9 @@ proc computeLineLayout*(
         totalAutoMin += computedSizes[trk].fracMinSize
 
   # Calculate available free space
-  var
+  let
     freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
+  var
     remSpace = freeSpace
 
   debugPrint "computeLineLayout:metrics",
@@ -138,7 +139,8 @@ proc computeLineLayout*(
               remSpace / autoTrackIndices.len.UiScalar
             else:
               0.UiScalar
-          grdLn.width = max(minSize, autoShare)
+          debugPrint "computeLineLayout:auto: ", "autoshare=", autoShare, "minsize=", minsize
+          grdLn.width = minSize + autoShare
 
   # Final pass: calculate positions
   var cursor = 0.0.UiScalar

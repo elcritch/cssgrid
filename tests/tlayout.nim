@@ -17,7 +17,8 @@ import pixie
 type
   GridNode* = ref object
     name*: string
-    box, bmin, bmax: UiBox
+    box*: UiBox
+    bmin*, bmax*: UiSize
     parent*: GridNode
     gridItem*: GridItem
     gridTemplate*: GridTemplate

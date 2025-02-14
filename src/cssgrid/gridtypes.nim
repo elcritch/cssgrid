@@ -23,10 +23,10 @@ type
 
   GridNode* = concept node
     typeof(node.box) is UiBox
-    typeof(node.bmin) is UiSize
-    typeof(node.bmax) is UiSize
-    typeof(node.cxSize) is array[GridDir, Constraint]
-    typeof(node.cxOffset) is array[GridDir, Constraint]
+    # typeof(node.bmin) is UiSize
+    # typeof(node.bmax) is UiSize
+    # typeof(node.cxSize) is array[GridDir, Constraint]
+    # typeof(node.cxOffset) is array[GridDir, Constraint]
     # typeof(node.cxMin) is array[GridDir, Constraint]
     # typeof(node.cxMax) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem

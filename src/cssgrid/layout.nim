@@ -377,16 +377,14 @@ proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
     UiValue(value):
       match value:
         UiFixed(coord):
-          debugPrint "FIXED!", "coord=", coord
           return coord
         _: discard
     _: discard
 
-  match node.cxSize[dir]:
+  match node.cxMin[dir]:
     UiValue(value):
       match value:
         UiFixed(coord):
-          debugPrint "FIXED!", "coord=", coord
           result = coord
         UiContentMin():
           discard # TODO

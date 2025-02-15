@@ -45,43 +45,62 @@ Using `auto-flow: column`:
 
 ```nim
 type
-  GridNode* = ref object
-    ## a container that fullfills the concept
-    id: string
+  TestNode* = ref object
+    ## a container that fullfills the GridNode concept
+    name: string
     box: UiBox
+    bmin, bmax: UiSize
     gridItem: GridItem
+    cxSize: array[GridDir, Constraint]  # For width/height
+    cxOffset: array[GridDir, Constraint] # For x/y positions
+    cxMin: array[GridDir, Constraint]  # For width/height
+    cxMax: array[GridDir, Constraint] # For x/y positions
+    gridTemplate: GridTemplate
+    children: seq[TestNode]
+    parent*: TestNode
 
-proc `box=`*[T](v: T, box: UiBox) = 
-  v.box = box
+template getParentBoxOrWindows*(node: TestNode): UiBox =
+  ## this needs to be implemented for the GridNode type
+  if node.parent.isNil:
+    node.frame.windowSize
+  else:
+    node.parent.box
 
-proc setupGrid(): (seq[GridNode], UiBox) =
-  var gridTemplate: GridTemplate # holds the grid info
-  # setup the grid constraints
-  parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux 60'ux
-  parseGridTemplateRows gridTemplate, 33'ux 33'ux 33'ux
-  # set item behavior
-  gridTemplate.justifyItems = CxStretch
+proc newTestNode(name: string, x, y, w, h: float32): TestNode =
+  result = TestNode(
+    name: name, box: uiBox(x, y, w, h), children: @[],
+    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
+  )
 
-  # nodes are a concept for containers that hold a
-  # box and a gridItem.  
-  var nodes = newSeq[GridNode](1)
+proc addChild(parent, child: TestNode) =
+  parent.children.add(child)
+  child.parent = parent
 
-  var parent = GridNode()
-  # create bounding box -- a box are UI coordinates in [X, Y, W, H] format
-  parent.box = uiBox(0, 0,
-                  60*(gridTemplate.columns().len().float-1),
-                  33*(gridTemplate.rows().len().float-1))
+test "Grid with basic constrained children":
+  let parent = newTestNode("parent", 0, 0, 400, 300)
+  let child1 = newTestNode("child1", 10, 10, 100, 100)
+  let child2 = newTestNode("child2", 10, 120, 100, 100)
+  
+  parent.addChild(child1)
+  parent.addChild(child2)
+  
+  # Set fixed-parent constraint
+  parent.cxSize[dcol] = csFixed(400)  # set fixed parent
+  parent.cxSize[drow] = csFixed(300)  # set fixed parent
 
-  # item a
-  var itema = newGridItem()
-  itema.column = 1
-  itema.row = 1 // 3
-  nodes[0] = GridNode(id: "a", gridItem: itema)
-
-  # computes the grid layout, flows any non-fixed nodes and sets node box sizes
-  gridTemplate.computeNodeLayout(parent, nodes)
-  result = (nodes, box)
-
+  # Set percentage-based constraints for children
+  child1.cxSize[dcol] = csPerc(50)  # 50% of parent
+  child1.cxSize[drow] = csPerc(30)  # 30% of parent
+  
+  child2.cxSize[dcol] = csPerc(70)  # 70% of parent
+  child2.cxSize[drow] = csPerc(40)  # 40% of parent
+  
+  computeLayout(parent, 0)
+  
+  check child1.box.w == 200  # 50% of 400
+  check child1.box.h == 90   # 30% of 300
+  check child2.box.w == 280  # 70% of 400
+  check child2.box.h == 120  # 40% of 300
 ```
 
 

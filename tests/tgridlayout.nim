@@ -102,11 +102,6 @@ suite "Compute Layout Tests":
       parent.cxSize[dcol] = csFixed(400)  # set fixed parent
       parent.cxSize[drow] = csFixed(300)  # set fixed parent
 
-      # child1.cxSize[dcol] = csFixed(100)  # set fixed parent
-      # child1.cxSize[drow] = csFixed(100)  # set fixed parent
-      # child2.cxSize[dcol] = csFixed(100)  # set fixed parent
-      # child2.cxSize[drow] = csFixed(100)  # set fixed parent
-
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
         initGridLine(csFrac(1)),

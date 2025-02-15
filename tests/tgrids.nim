@@ -666,7 +666,7 @@ suite "grids":
     var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
     parent.cxSize[drow] = csContentMin()  # set fixed parent
-    parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
+    parent.frame = Frame(windowSize: uiBox(0, 0, 600, 50))
 
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](8)
@@ -679,7 +679,7 @@ suite "grids":
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
       parent.addChild(nodes[i])
-    nodes[2].box.h = 150
+    nodes[2].cxMin[drow] = csFixed(150)
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====

@@ -664,9 +664,10 @@ suite "grids":
     gridTemplate.autos[drow] = csContentMin()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
-    var parent = GridNode()
-    parent.box.w = 50
-    parent.box.h = 50
+    var parent = GridNode(name: "parent")
+    parent.cxSize[dcol] = csFixed(50)  # set fixed parent
+    parent.cxSize[drow] = csContentMin()  # set fixed parent
+    parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
 
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](8)
@@ -674,7 +675,7 @@ suite "grids":
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i),
-                          box: uiBox(0,0,50,50),
+                          cxMin: [50'ux, 50'ux],
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
@@ -683,11 +684,10 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
-    let box1 = gridTemplate.computeNodeLayout(parent)
-    let box = gridTemplate.computeNodeLayout(parent)
+    computeLayout(parent)
 
-    check box.w == 50
-    check box.h == 500
+    check parent.box.w == 50
+    check parent.box.h == 500
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16

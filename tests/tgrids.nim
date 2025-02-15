@@ -541,9 +541,6 @@ suite "grids":
     gridTemplate.autos[dcol] = csFixed 100.0
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
-    # echo "grid template pre: ", repr gridTemplate
-    # gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
     parent.box.w = 50
     parent.box.h = 50
@@ -557,16 +554,7 @@ suite "grids":
     # ==== process grid ====
     parent.children = nodes
     discard gridTemplate.computeNodeLayout(parent)
-    # echo "grid template:1: ", repr gridTemplate
     let box = gridTemplate.computeNodeLayout(parent)
-    # echo "grid template:2: ", repr gridTemplate
-    # print box
-
-    # echo "grid template post: ", repr gridTemplate
-    # ==== item a's ====
-    # printChildrens(0)
-    # echo "grid template:post: ", gridTemplate
-    # print gridTemplate.overflowSizes
 
     check box.w == 750
     check box.h == 50
@@ -591,8 +579,8 @@ suite "grids":
     gridTemplate.autoFlow = grColumn
     var parent = GridNode()
     parent.gridTemplate = gridTemplate
-    # parent.cxSize[dcol] = csAuto()  # set fixed parent
-    parent.cxMin[dcol] = csContentMin()  # set fixed parent
+    parent.cxSize[dcol] = csContentMin()  # set fixed parent
+    # parent.cxMin[dcol] = csContentMin()  # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
 

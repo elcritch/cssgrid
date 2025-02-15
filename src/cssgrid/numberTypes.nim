@@ -227,6 +227,10 @@ proc y*(r: var UiPos): var UiScalar = GVec2[UiScalar](r)[1]
 proc `x=`*(r: var UiPos, v: UiScalar) = r[0] = v
 proc `y=`*(r: var UiPos, v: UiScalar) = r[1] = v
 
+proc bounding*(rect: UiBox): UiSize =
+  result.w = rect.x + rect.w
+  result.h = rect.y + rect.h
+
 proc `+`*(rect: UiBox, xy: UiPos): UiBox =
   ## offset rect with xy vec2 
   result = rect
@@ -243,6 +247,9 @@ proc sum*(rect: UiBox): UiScalar =
   result = rect.x + rect.y + rect.w + rect.h
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
+
+# proc totalWH*(rect: UiBox): UiScalar =
+#   result = rect.x + rect.y + rect.w + rect.h
 
 proc toRect*(box: UiBox): Rect = rect(box.x.float32, box.y.float32, box.w.float32, box.h.float32)
 proc toVec*(p: UiPos): Vec2 = vec2(p.x.float32, p.y.float32)

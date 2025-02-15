@@ -17,17 +17,26 @@ import pretty
 type
   TestNode = ref object
     box: UiBox
+    bmin, bmax: UiSize
     name*: string
     parent*: TestNode
     children*: seq[TestNode]
     cxSize*: array[GridDir, Constraint]  # For width/height
     cxOffset*: array[GridDir, Constraint] # For x/y positions
+    cxMin*: array[GridDir, Constraint] # For x/y positions
+    cxMax*: array[GridDir, Constraint] # For x/y positions
     gridItem*: GridItem
     gridTemplate*: GridTemplate
     frame*: Frame
 
   Frame = ref object
     windowSize*: UiBox
+
+template getParentBoxOrWindows*(node: GridNode): UiBox =
+  if node.parent.isNil:
+    node.frame.windowSize
+  else:
+    node.parent.box
 
 proc newTestNode(name: string, x, y, w, h: float32): TestNode =
   result = TestNode(
@@ -69,7 +78,7 @@ suite "Nested Content Size Tests":
       autoChild.gridItem.column = 1
       autoChild.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       printLayout(parent)
       # Auto track should be at least as wide as the fixed grandchild

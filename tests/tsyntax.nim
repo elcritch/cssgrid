@@ -21,7 +21,8 @@ suite "syntaxes":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gt, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
     parseGridTemplateRows gt, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
-    gt.computeTracks(uiBox(0, 0, 1000, 1000))
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+    gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # echo "grid template: ", repr gridTemplate
 
   template checkSpans(gridTemplate: GridTemplate, gridItem: GridItem) =

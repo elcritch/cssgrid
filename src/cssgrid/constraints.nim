@@ -19,25 +19,23 @@ type
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
-    of UiAuto:
-      amin*: UiScalar ## default, which is parent width/height less the x/y positions of the node and it's parents
     of UiFrac:
       frac*: UiScalar ## set `fr` aka CSS Grid fractions
-      fmin*: UiScalar ## content min size for `fr`
     of UiPerc:
       perc*: UiScalar ## set percentage of parent box or grid
     of UiFixed:
       coord*: UiScalar ## set fixed coordinate size
-    of UiContentMin:
-      cmin*: UiScalar ## sets layout to use min-content, `cmin` is calculated internally
-    of UiContentMax:
-      cmax*: UiScalar ## sets layout to use max-content, `cmax` is calculated internally
+    of UiContentMin, UiContentMax:
+      discard
+    of UiAuto:
+      discard
 
   Constraints* = enum
     UiValue
     UiMin
     UiMax
-    UiSum
+    UiAdd
+    UiSub
     UiMinMax
     UiNone
     UiEnd
@@ -52,8 +50,10 @@ type
       lmin*, rmin*: ConstraintSize ## minimum of lhs and rhs (partially supported)
     of UiMax:
       lmax*, rmax*: ConstraintSize ## maximum of lhs and rhs (partially supported)
-    of UiSum:
-      lsum*, rsum*: ConstraintSize ## sum of lhs and rhs (partially supported)
+    of UiAdd:
+      ladd*, radd*: ConstraintSize ## sum of lhs and rhs (partially supported)
+    of UiSub:
+      lsub*, rsub*: ConstraintSize ## sum of lhs and rhs (partially supported)
     of UiMinMax:
       lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
@@ -61,7 +61,7 @@ type
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)
 proc csAuto*(): Constraint =
-  csValue(ConstraintSize(kind: UiAuto, amin: 0.UiScalar))
+  csValue(ConstraintSize(kind: UiAuto))
 
 proc csFrac*[T](size: T): Constraint =
   csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
@@ -70,12 +70,14 @@ proc csFixed*[T](coord: T): Constraint =
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
 proc csContentMin*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMin, cmin: UiScalar.high()))
+  csValue(ConstraintSize(kind: UiContentMin))
 proc csContentMax*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMax, cmax: 0.UiScalar))
+  csValue(ConstraintSize(kind: UiContentMax))
 
 proc isContentSized*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiAuto, UiFrac] 
+proc isBasicContentSized*(cs: ConstraintSize): bool =
+  cs.kind in [UiContentMin, UiContentMax]
 proc isAuto*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiAuto, UiFrac]
 
@@ -84,7 +86,7 @@ proc csEnd*(): Constraint =
 proc csNone*(): Constraint =
   Constraint(kind: UiNone)
 
-proc csSum*[U, T](a: U, b: T): Constraint =
+proc csAdd*[U, T](a: U, b: T): Constraint =
   ## create sum op
   let a = when a is ConstraintSize: a
           elif a is Constraint: a.value
@@ -92,7 +94,17 @@ proc csSum*[U, T](a: U, b: T): Constraint =
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
-  Constraint(kind: UiSum, lsum: a, rsum: b)
+  Constraint(kind: UiAdd, ladd: a, radd: b)
+
+proc csSub*[U, T](a: U, b: T): Constraint =
+  ## create sum op
+  let a = when a is ConstraintSize: a
+          elif a is Constraint: a.value
+          else: csFixed(a).value
+  let b = when b is ConstraintSize: b
+          elif b is Constraint: b.value
+          else: csFixed(b).value
+  Constraint(kind: UiSub, lsub: a, rsub: b)
 
 proc csMax*[U, T](a: U, b: T): Constraint =
   ## create max op
@@ -125,9 +137,15 @@ proc csMinMax*[U, T](a: U, b: T): Constraint =
   Constraint(kind: UiMinMax, lmm: a, rmm: b)
 
 proc `+`*[U: Constraint, T](a: U, b: T): Constraint =
-  csSum(a, b)
+  csAdd(a, b)
 proc `-`*[U: Constraint, T](a: U, b: T): Constraint =
-  csSum(a, b)
+  csSub(a, b)
+
+proc max*[U, T: Constraint](a: U, b: T): Constraint =
+  csMax(a, b)
+
+proc min*[U, T: Constraint](a: U, b: T): Constraint =
+  csMin(a, b)
 
 proc `==`*(a, b: ConstraintSize): bool =
   if a.kind == b.kind:
@@ -146,7 +164,8 @@ proc `==`*(a, b: Constraint): bool =
       UiValue(value): return value == b.value
       UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin
       UiMax(lmax, rmax): return lmax == b.lmax and rmax == b.rmax
-      UiSum(lsum, rsum): return lsum == b.lsum and rsum == b.rsum
+      UiAdd(ladd, radd): return ladd == b.ladd and radd == b.radd
+      UiSub(lsub, rsub): return lsub == b.lsub and rsub == b.rsub
       UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
       UiEnd(): return true
 
@@ -155,9 +174,20 @@ proc `$`*(a: ConstraintSize): string =
     UiFrac(frac): result = $frac & "'fr"
     UiFixed(coord): result = $coord & "'ux"
     UiPerc(perc): result = $perc & "'perc"
-    UiContentMin(cmin): result = $cmin & "'min"
-    UiContentMax(cmax): result = $cmax & "'max"
-    UiAuto(amin): result = $amin & "'auto"
+    UiContentMin(): result = "cx'content-min"
+    UiContentMax(): result = "cx'content-max"
+    UiAuto(): result = "cx'auto"
+
+proc `$`*(a: Constraint): string =
+  match a:
+    UiNone(): "cx(none)"
+    UiValue(value): "cx(" & $value & ")"
+    UiMin(lmin, rmin): "min(" & $lmin & "," & $rmin & ")"
+    UiMax(lmax, rmax): "max(" & $lmax & "," & $rmax & ")"
+    UiAdd(ladd, radd): "add(" & $ladd & "," & $radd & ")"
+    UiSub(lsub, rsub): "sub(" & $lsub & "," & $rsub & ")"
+    UiMinMax(lmm, rmm): "minmax(" & $lmm & "," & $rmm & ")"
+    UiEnd(): "cx(end)"
 
 proc `'ux`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit

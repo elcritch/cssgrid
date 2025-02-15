@@ -17,6 +17,7 @@ import pretty
 type
   TestNode = ref object
     box: UiBox
+    bmin, bmax: UiSize
     name*: string
     parent*: TestNode
     children*: seq[TestNode]
@@ -77,7 +78,7 @@ suite "Nested Content Size Tests":
       autoChild.gridItem.column = 1
       autoChild.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       printLayout(parent)
       # Auto track should be at least as wide as the fixed grandchild

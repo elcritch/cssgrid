@@ -320,19 +320,29 @@ suite "Grid alignment and justification tests":
     parent.addChild(child4)
     
     # Set up fixed parent size
-    parent.cxSize[dcol] = csFixed(400)
-    parent.cxSize[drow] = csFixed(400)
+    parent.cxSize[dcol] = 400'ux
+    parent.cxSize[drow] = 400'ux
     
     # Create 2x2 grid with equal cells
     parent.gridTemplate = newGridTemplate()
-    parent.gridTemplate.lines[dcol] = @[
-      initGridLine(csFixed(200)),  # First column
-      initGridLine(csFixed(200))   # Second column
-    ]
-    parent.gridTemplate.lines[drow] = @[
-      initGridLine(csFixed(200)),  # First row
-      initGridLine(csFixed(200))   # Second row
-    ]
+    var gt = newGridTemplate(
+      columns = @[
+        initGridLine(200'ux),
+        initGridLine(200'ux)
+      ],
+      rows = @[
+        initGridLine(200'ux),
+        initGridLine(200'ux)
+      ],
+    )
+    # parent.gridTemplate.lines[dcol] = @[
+    #   initGridLine(csFixed(200)),  # First column
+    #   initGridLine(csFixed(200))   # Second column
+    # ]
+    # parent.gridTemplate.lines[drow] = @[
+    #   initGridLine(csFixed(200)),  # First row
+    #   initGridLine(csFixed(200))   # Second row
+    # ]
     
     # Place children in grid with stretch behavior (default)
     for (child, pos) in [(child1, (1, 1)), (child2, (2, 1)), 
@@ -345,8 +355,9 @@ suite "Grid alignment and justification tests":
     #   child1.gridItem.column = 1
     #   child1.gridItem.row = 1
       
-    # computeLayout(parent, 0)
+    computeLayout(parent)
     
+    printLayout(parent, cmTerminal)
     # # Check all children stretch to their cell size
     # for child in [child1, child2, child3, child4]:
     #   check child.box.w == 200  # Should stretch to column width
@@ -374,18 +385,18 @@ suite "Grid alignment and justification tests":
     parent.addChild(child3)
     parent.addChild(child4)
     
-    parent.cxSize[dcol] = csFixed(400)
-    parent.cxSize[drow] = csFixed(400)
+    parent.cxSize[dcol] = 400'ux
+    parent.cxSize[drow] = 400'ux
     
     # Create 2x2 grid
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     parent.gridTemplate.lines[drow] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     
     # Place children with start alignment

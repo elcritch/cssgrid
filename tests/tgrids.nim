@@ -581,7 +581,6 @@ suite "grids":
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
 
-    let contentSize = uiSize(30, 30)
     var nodes = newSeq[GridNode](8)
 
     # ==== item a's ====

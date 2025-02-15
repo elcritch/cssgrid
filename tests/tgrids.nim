@@ -591,7 +591,7 @@ suite "grids":
     gridTemplate.autoFlow = grColumn
     var parent = GridNode()
     parent.gridTemplate = gridTemplate
-    parent.cxSize[dcol] = csAuto()  # set fixed parent
+    # parent.cxSize[dcol] = csAuto()  # set fixed parent
     parent.cxMin[dcol] = csContentMin()  # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))

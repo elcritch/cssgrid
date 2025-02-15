@@ -324,8 +324,7 @@ suite "Grid alignment and justification tests":
     parent.cxSize[drow] = 400'ux
     
     # Create 2x2 grid with equal cells
-    parent.gridTemplate = newGridTemplate()
-    var gt = newGridTemplate(
+    parent.gridTemplate = newGridTemplate(
       columns = @[
         initGridLine(200'ux),
         initGridLine(200'ux)
@@ -335,14 +334,6 @@ suite "Grid alignment and justification tests":
         initGridLine(200'ux)
       ],
     )
-    # parent.gridTemplate.lines[dcol] = @[
-    #   initGridLine(csFixed(200)),  # First column
-    #   initGridLine(csFixed(200))   # Second column
-    # ]
-    # parent.gridTemplate.lines[drow] = @[
-    #   initGridLine(csFixed(200)),  # First row
-    #   initGridLine(csFixed(200))   # Second row
-    # ]
     
     # Place children in grid with stretch behavior (default)
     for (child, pos) in [(child1, (1, 1)), (child2, (2, 1)), 
@@ -350,6 +341,10 @@ suite "Grid alignment and justification tests":
       child.gridItem = newGridItem()
       child.gridItem.column = pos[0]
       child.gridItem.row = pos[1]
+      child.cxSize[dcol] = csFixed(100)
+      child.cxSize[drow] = csFixed(100)
+      child.gridItem.justify = some(CxStretch)
+      child.gridItem.align = some(CxStretch)
     
     #   child1.gridItem = newGridItem()
     #   child1.gridItem.column = 1
@@ -357,11 +352,10 @@ suite "Grid alignment and justification tests":
       
     computeLayout(parent)
     
-    printLayout(parent, cmTerminal)
-    # # Check all children stretch to their cell size
-    # for child in [child1, child2, child3, child4]:
-    #   check child.box.w == 200  # Should stretch to column width
-    #   check child.box.h == 200  # Should stretch to row height
+    # Check all children stretch to their cell size
+    for child in [child1, child2, child3, child4]:
+      check child.box.w == 200  # Should stretch to column width
+      check child.box.h == 200  # Should stretch to row height
 
     # Verify positions
     check child1.box.x == 0     # First column
@@ -410,7 +404,7 @@ suite "Grid alignment and justification tests":
       child.cxSize[dcol] = csFixed(100)
       child.cxSize[drow] = csFixed(100)
     
-    computeLayout(parent, 0)
+    computeLayout(parent)
     
     # Check all children maintain their size
     for child in [child1, child2, child3, child4]:

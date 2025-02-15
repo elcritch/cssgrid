@@ -654,8 +654,8 @@ suite "grids":
     checks nodes[7].box == uiBox(0, 350, 50, 50)
 
   test "compute layout manual overflow (rows)":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, cx"auto"
@@ -703,7 +703,9 @@ suite "grids":
 
     checks nodes[7].box == uiBox(0, 450, 50, 50)
 
-  test "compute layout manual overflow rows second":
+  test "compute layout manual overflow rows fracs":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 
@@ -712,24 +714,26 @@ suite "grids":
     gridTemplate.autos[drow] = 1'fr
     gridTemplate.justifyItems = CxStart
     gridTemplate.autoFlow = grRow
-    var parent = GridNode()
-    parent.box.w = 50
-    parent.box.h = 400
+    var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
+    parent.cxSize[dcol] = csFixed(50)  # set fixed parent
+    parent.cxSize[drow] = csContentMin()  # set fixed parent
+    parent.frame = Frame(windowSize: uiBox(0, 0, 50, 400))
 
     var nodes = newSeq[GridNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i),
-                          box: uiBox(0,0,50,50),
+                          cxMin: [50'ux, 50'ux],
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-    nodes[2].box.h = 150
+      parent.addChild(nodes[i])
+      
+    nodes[2].cxMin[drow] = csFixed(150)
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
-    parent.children = nodes
     let box1 = gridTemplate.computeNodeLayout(parent)
     let box = gridTemplate.computeNodeLayout(parent)
     echo "grid template:post: ", gridTemplate

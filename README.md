@@ -95,7 +95,7 @@ test "Grid with basic constrained children":
   child2.cxSize[dcol] = csPerc(70)  # 70% of parent
   child2.cxSize[drow] = csPerc(40)  # 40% of parent
   
-  computeLayout(parent, 0)
+  computeLayout(parent)
   
   check child1.box.w == 200  # 50% of 400
   check child1.box.h == 90   # 30% of 300
@@ -104,3 +104,126 @@ test "Grid with basic constrained children":
 ```
 
 
+Here's another example using Pixie to generate an image of the grid layout. This layout also sets HTML / CSS Grid style alignment and justification.
+
+From [tplots.nim](tests/tplots.nim):
+
+```nim
+  test "grid alignment and justification":
+    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
+    # parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
+    let cnt = 8
+    var gridTemplate = newGridTemplate()
+    gridTemplate.autoFlow = grRow
+
+    parseGridTemplateColumns gridTemplate, 1'fr 1'fr 1'fr 1'fr 1'fr 
+    parseGridTemplateRows gridTemplate, 50'ux 50'ux
+    gridTemplate.justifyItems = CxStretch
+
+    var nodes = newSeq[GridNode](cnt)
+
+    var parent = GridNode(gridTemplate: gridTemplate)
+    assert parent is GridNode
+    parent.cxSize = [300'ux, 100'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
+
+    # item a
+    var itema = newGridItem()
+    itema.column = 1 // 2
+    itema.row = 1 // 3
+    nodes[0] = GridNode(name: "a", gridItem: itema, frame: parent.frame)
+
+    # ==== item e ====
+    var iteme = newGridItem()
+    iteme.column = 5 // 6
+    iteme.row = 1 // 3
+    nodes[1] = GridNode(name: "e", gridItem: iteme, frame: parent.frame)
+
+    # ==== item b's ====
+    for i in 2 ..< nodes.len():
+      let gi = newGridItem()
+      nodes[i] = GridNode(name: "b" & $(i-2), gridItem: gi, frame: parent.frame)
+      nodes[i].cxSize = [33'ux, 33'ux]
+      nodes[i].parent = parent
+      nodes[i].gridItem.justify = some(CxCenter)
+      nodes[i].gridItem.align = some(CxCenter)
+      if i == 5:
+        nodes[i].gridItem.justify = some(CxStart)
+      if i == 6:
+        nodes[i].gridItem.align = some(CxStart)
+      if i == 7:
+        nodes[i].gridItem.align = some(CxEnd)
+
+    # ==== process grid ====
+    parent.children = nodes
+    parent.computeLayout()
+
+    printGrid(gridTemplate, cmTerminal)
+    printLayout(parent, cmTerminal)
+    saveImage(gridTemplate, parent.box, nodes, "grid-align-and-justify")
+```
+
+## Basic Layouts
+
+CSS Grid now handles basic HTML style layouts. These are also integrated with the CSS Grid so you can specify things like content-min and have the grid layout understand it!
+
+From [tbasiclayout.nim](tests/tbasiclayout.nim):
+
+```nim
+suite "Basic CSS Layout Tests":
+  test "Fixed size constraints":
+    let node = newTestNode("test", 0, 0, 100, 100)
+    node.cxSize[dcol] = 200'ux
+    node.cxSize[drow] = 150'ux
+    
+    calcBasicConstraint(node)
+    
+    check node.box.w == 200
+    check node.box.h == 150
+
+  test "Percentage constraints":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100)
+    child.parent = parent
+    parent.children.add(child)
+    
+    child.cxSize[dcol] = 50'pp # 50% of parent width
+    child.cxSize[drow] = 25'pp # 25% of parent height
+    
+    computeLayout(parent)
+    # calcBasicConstraint(child, dcol, isXY = false)
+    # calcBasicConstraint(child, drow, isXY = false)
+    
+    # prettyLayout(parent, mode=cmTerminal)
+    check child.box.w == 200 # 50% of 400
+    check child.box.h == 75  # 25% of 300
+
+  test "Auto constraints":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 10, 10, 100, 100)
+    child.parent = parent
+    parent.children.add(child)
+    
+    child.cxSize[dcol] = csAuto()
+    child.cxSize[drow] = csAuto()
+    
+    computeLayout(parent)
+    
+    # Auto should fill available space (parent size - offset)
+    check child.box.w == 390 # 400 - 10
+    check child.box.h == 290 # 300 - 10
+
+  test "Min/Max constraints":
+    let node = newTestNode("test", 0, 0, 100, 100)
+    
+    # Test min constraint
+    node.cxSize[dcol] = csMin(csFixed(150), csFixed(200))
+    calcBasicConstraint(node)
+    check node.box.w == 150
+    
+    # Test max constraint
+    node.cxSize[drow] = csMax(csFixed(150), csFixed(200))
+    calcBasicConstraint(node)
+    check node.box.h == 200
+
+```

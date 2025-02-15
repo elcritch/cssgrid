@@ -61,8 +61,8 @@ proc addChild(parent, child: TestNode) =
 suite "Basic CSS Layout Tests":
   test "Fixed size constraints":
     let node = newTestNode("test", 0, 0, 100, 100)
-    node.cxSize[dcol] = csFixed(200)
-    node.cxSize[drow] = csFixed(150)
+    node.cxSize[dcol] = 200'ux
+    node.cxSize[drow] = 150'ux
     
     calcBasicConstraint(node)
     
@@ -75,8 +75,8 @@ suite "Basic CSS Layout Tests":
     child.parent = parent
     parent.children.add(child)
     
-    child.cxSize[dcol] = csPerc(50) # 50% of parent width
-    child.cxSize[drow] = csPerc(25) # 25% of parent height
+    child.cxSize[dcol] = 50'pp # 50% of parent width
+    child.cxSize[drow] = 25'pp # 25% of parent height
     
     computeLayout(parent)
     # calcBasicConstraint(child, dcol, isXY = false)
@@ -92,7 +92,7 @@ suite "Basic CSS Layout Tests":
     child.parent = parent
     parent.children.add(child)
     
-    child.cxSize[dcol] = csAuto()
+    child.cxSize[dcol] = cx"auto"
     child.cxSize[drow] = csAuto()
     
     computeLayout(parent)

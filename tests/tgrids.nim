@@ -734,15 +734,10 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
-    let box1 = gridTemplate.computeNodeLayout(parent)
-    let box = gridTemplate.computeNodeLayout(parent)
-    echo "grid template:post: ", gridTemplate
-    echo ""
-    # printChildrens()
-    # print gridTemplate.overflowSizes
+    computeLayout(parent)
 
-    check box.w == 50
-    check box.h == 500
+    check parent.box.w == 50
+    check parent.box.h == 500
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
@@ -753,9 +748,9 @@ suite "grids":
     checks nodes[2].box == uiBox(0, 100, 50, 150)
     checks nodes[3].box == uiBox(0, 250, 50, 50)
 
-    # for i in 0..7:
-    #   if i != 2:
-    #     checks nodes[i].box.wh == uiSize(50, 50)
+    for i in 0..7:
+      if i != 2:
+        checks nodes[i].box.wh == uiSize(50, 50)
 
     checks nodes[7].box == uiBox(0, 450, 50, 50)
     # echo "nodes[7]: ", nodes[7].box

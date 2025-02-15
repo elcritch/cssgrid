@@ -368,44 +368,6 @@ proc computeAutoFlow(
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
-proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
-  ## Recursively calculates the content size for a node by examining its children
-  
-  debugPrint "calculateContentSize: ", "node=", node.name, "bmin=", node.bmin, "bmax=", node.bmax
-  debugPrint "calculateContentSize: ", "node=", node.name, "cxsize=", node.cxsize[dir], "cxmin=", node.cxmin[dir]
-  result = node.bmin[dir]
-
-  # First check the node's own size constraints
-  # match node.cxSize[dir]:
-  #   UiValue(value):
-  #     match value:
-  #       UiFixed(coord):
-  #         return coord
-  #       _: discard
-  #   _: discard
-
-  # match node.cxMin[dir]:
-  #   UiValue(value):
-  #     match value:
-  #       UiFixed(coord):
-  #         result = coord
-  #       UiContentMin():
-  #         discard # TODO
-  #       UiContentMax():
-  #         discard # TODO
-  #       _: discard
-  #   _: discard
-
-  debugPrint "calculateContentSize: ", "result=", result
-  # TODO: is this just LLM nonsense?
-  # # Then recursively check all children
-  # for child in node.children:
-  #   let childSize = calculateContentSize(child, dir)
-  #   maxSize = max(maxSize, childSize)
-  #   # Add any additional space needed for grid gaps if parent has grid
-  #   if not node.gridTemplate.isNil and node.children.len > 1:
-  #     maxSize += node.gridTemplate.gaps[dir]
-
 proc computeContentSizes*(
     grid: GridTemplate,
     children: seq[GridNode]

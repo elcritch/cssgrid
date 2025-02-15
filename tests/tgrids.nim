@@ -567,8 +567,6 @@ suite "grids":
     checks nodes[1].box == uiBox(50, 0, 100, 50)
 
   test "compute layout overflow (columns)":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 
@@ -614,209 +612,200 @@ suite "grids":
 
     checks nodes[7].box == uiBox(350, 0, 150, 50)
 
-  when false:
-    test "compute layout overflow (rows)":
+  test "compute layout overflow (rows)":
+    var gridTemplate: GridTemplate
 
-      var gridTemplate: GridTemplate
+    parseGridTemplateColumns gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 50'ux
+    gridTemplate.autos[drow] = 50'ux
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.autoFlow = grRow
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 50
 
-      parseGridTemplateColumns gridTemplate, 1'fr
-      parseGridTemplateRows gridTemplate, 50'ux
-      gridTemplate.autos[drow] = 50'ux
-      gridTemplate.justifyItems = CxStretch
-      gridTemplate.autoFlow = grRow
-      var parent = GridNode()
-      parent.box.w = 50
-      parent.box.h = 50
+    let contentSize = uiSize(30, 30)
+    var nodes = newSeq[GridNode](8)
 
-      let contentSize = uiSize(30, 30)
-      var nodes = newSeq[GridNode](8)
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(name: "b" & $(i),
+                          box: uiBox(0,0,50,50),
+                          gridItem: nil)
+      # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
+      # nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
+      parent.addChild(nodes[i])
+    # nodes[7].box.w = 150
+    check gridTemplate.lines[dcol][0].track == 1'fr
 
-      # ==== item a's ====
-      for i in 0 ..< nodes.len():
-        nodes[i] = GridNode(name: "b" & $(i),
-                            box: uiBox(0,0,50,50),
-                            gridItem: nil)
-        # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
-        # nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
-      # nodes[7].box.w = 150
-      check gridTemplate.lines[dcol][0].track == 1'fr
+    # ==== process grid ====
+    let box = gridTemplate.computeNodeLayout(parent)
 
-      # ==== process grid ====
-      parent.children = nodes
-      let box = gridTemplate.computeNodeLayout(parent)
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-      check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-      check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-      check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
-      check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
 
-      checks nodes[0].box == uiBox(0, 0, 50, 50)
-      checks nodes[1].box == uiBox(0, 50, 50, 50)
+    for i in 0..6:
+      checks nodes[i].box.wh == uiSize(50, 50)
 
-      for i in 0..6:
+    checks nodes[7].box == uiBox(0, 350, 50, 50)
+
+  test "compute layout manual overflow (rows)":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+    var gridTemplate: GridTemplate
+
+    parseGridTemplateColumns gridTemplate, 1'fr
+    # parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = csContentMin()
+    gridTemplate.justifyItems = CxStretch
+    gridTemplate.autoFlow = grRow
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 50
+
+    let contentSize = uiSize(30, 30)
+    var nodes = newSeq[GridNode](8)
+
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(name: "b" & $(i),
+                          box: uiBox(0,0,50,50),
+                          gridItem: GridItem())
+      nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+      nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+      parent.addChild(nodes[i])
+    nodes[2].box.h = 150
+    check gridTemplate.lines[dcol][0].track == 1'fr
+
+    # ==== process grid ====
+    let box1 = gridTemplate.computeNodeLayout(parent)
+    let box = gridTemplate.computeNodeLayout(parent)
+
+    check box.w == 50
+    check box.h == 500
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
+
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
+    checks nodes[2].box == uiBox(0, 100, 50, 150)
+    checks nodes[3].box == uiBox(0, 250, 50, 50)
+
+    for i in 0..7:
+      if i != 2:
         checks nodes[i].box.wh == uiSize(50, 50)
 
-      checks nodes[7].box == uiBox(0, 350, 50, 50)
+    checks nodes[7].box == uiBox(0, 450, 50, 50)
 
-    test "compute layout manual overflow (rows)":
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
-      var gridTemplate: GridTemplate
+  test "compute layout manual overflow rows second":
 
-      parseGridTemplateColumns gridTemplate, 1'fr
-      # parseGridTemplateRows gridTemplate, 1'fr
-      gridTemplate.autos[drow] = csContentMin()
-      gridTemplate.justifyItems = CxStretch
-      gridTemplate.autoFlow = grRow
-      var parent = GridNode()
-      parent.box.w = 50
-      parent.box.h = 50
+    var gridTemplate: GridTemplate
 
-      let contentSize = uiSize(30, 30)
-      var nodes = newSeq[GridNode](8)
+    parseGridTemplateColumns gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = 1'fr
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.autoFlow = grRow
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 400
 
-      # ==== item a's ====
-      for i in 0 ..< nodes.len():
-        nodes[i] = GridNode(name: "b" & $(i),
-                            box: uiBox(0,0,50,50),
-                            gridItem: GridItem())
-        nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
-        nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-      nodes[2].box.h = 150
-      check gridTemplate.lines[dcol][0].track == 1'fr
+    var nodes = newSeq[GridNode](8)
 
-      # ==== process grid ====
-      parent.children = nodes
-      echo "\nLAYOUT::"
-      printLayout(parent, cmTerminal)
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(name: "b" & $(i),
+                          box: uiBox(0,0,50,50),
+                          gridItem: GridItem())
+      nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+      nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+    nodes[2].box.h = 150
+    check gridTemplate.lines[dcol][0].track == 1'fr
 
-      let box1 = gridTemplate.computeNodeLayout(parent)
-      let box = gridTemplate.computeNodeLayout(parent)
-      # echo "grid template:post: ", gridTemplate
-      # echo ""
-      # printChildrens()
-      # print gridTemplate.overflowSizes
+    # ==== process grid ====
+    parent.children = nodes
+    let box1 = gridTemplate.computeNodeLayout(parent)
+    let box = gridTemplate.computeNodeLayout(parent)
+    echo "grid template:post: ", gridTemplate
+    echo ""
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
-      check box.w == 50
-      check box.h == 500
-      check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-      check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-      check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
-      check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
+    check box.w == 50
+    check box.h == 500
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-      checks nodes[0].box == uiBox(0, 0, 50, 50)
-      checks nodes[1].box == uiBox(0, 50, 50, 50)
-      checks nodes[2].box == uiBox(0, 100, 50, 150)
-      checks nodes[3].box == uiBox(0, 250, 50, 50)
+    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    checks nodes[1].box == uiBox(0, 50, 50, 50)
+    checks nodes[2].box == uiBox(0, 100, 50, 150)
+    checks nodes[3].box == uiBox(0, 250, 50, 50)
 
-      for i in 0..7:
-        if i != 2:
-          checks nodes[i].box.wh == uiSize(50, 50)
+    for i in 0..7:
+      if i != 2:
+        checks nodes[i].box.wh == uiSize(50, 50)
 
-      checks nodes[7].box == uiBox(0, 450, 50, 50)
+    checks nodes[7].box == uiBox(0, 450, 50, 50)
+    # echo "nodes[7]: ", nodes[7].box
 
-    test "compute layout manual overflow rows second":
+  test "compute layout auto only":
+    var gridTemplate: GridTemplate
 
-      var gridTemplate: GridTemplate
+    parseGridTemplateColumns gridTemplate, 1'fr
+    # parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = 90'ux
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.autoFlow = grRow
+    var parent = GridNode()
+    parent.box.w = 50
+    parent.box.h = 400
 
-      parseGridTemplateColumns gridTemplate, 1'fr
-      parseGridTemplateRows gridTemplate, 1'fr
-      gridTemplate.autos[drow] = 1'fr
-      gridTemplate.justifyItems = CxStart
-      gridTemplate.autoFlow = grRow
-      var parent = GridNode()
-      parent.box.w = 50
-      parent.box.h = 400
+    var nodes = newSeq[GridNode](8)
 
-      var nodes = newSeq[GridNode](8)
+    # ==== item a's ====
+    for i in 0 ..< nodes.len():
+      nodes[i] = GridNode(name: "b" & $(i),
+                          box: uiBox(0,0,200,200),
+                          gridItem: GridItem())
+      # nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+      # nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+    nodes[2].box.h = 150
+    check gridTemplate.lines[dcol][0].track == 1'fr
 
-      # ==== item a's ====
-      for i in 0 ..< nodes.len():
-        nodes[i] = GridNode(name: "b" & $(i),
-                            box: uiBox(0,0,50,50),
-                            gridItem: GridItem())
-        nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
-        nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-      nodes[2].box.h = 150
-      check gridTemplate.lines[dcol][0].track == 1'fr
+    # ==== process grid ====
+    parent.children = nodes
+    let box1 = gridTemplate.computeNodeLayout(parent)
+    let box = gridTemplate.computeNodeLayout(parent)
+    echo "grid template:post: ", gridTemplate
+    echo ""
+    # printChildrens()
+    # print gridTemplate.overflowSizes
 
-      # ==== process grid ====
-      parent.children = nodes
-      let box1 = gridTemplate.computeNodeLayout(parent)
-      let box = gridTemplate.computeNodeLayout(parent)
-      echo "grid template:post: ", gridTemplate
-      echo ""
-      # printChildrens()
-      # print gridTemplate.overflowSizes
+    check gridTemplate.lines[drow].len() == 9
 
-      check box.w == 50
-      check box.h == 500
-      check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-      check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-      check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
-      check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
+    # check box.w == 50
+    # check box.h == 400
+    # check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    # check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    # check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
+    # check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-      checks nodes[0].box == uiBox(0, 0, 50, 50)
-      checks nodes[1].box == uiBox(0, 50, 50, 50)
-      checks nodes[2].box == uiBox(0, 100, 50, 150)
-      checks nodes[3].box == uiBox(0, 250, 50, 50)
+    # checks nodes[0].box == uiBox(0, 0, 50, 50)
+    # checks nodes[1].box == uiBox(0, 50, 50, 50)
+    # checks nodes[2].box == uiBox(0, 100, 50, 50)
+    # checks nodes[3].box == uiBox(0, 150, 50, 50)
 
-      for i in 0..7:
-        if i != 2:
-          checks nodes[i].box.wh == uiSize(50, 50)
+    # for i in 0..7:
+    #   if i != 2:
+    #     checks nodes[i].box.wh == uiSize(50, 50)
 
-      checks nodes[7].box == uiBox(0, 450, 50, 50)
-      # echo "nodes[7]: ", nodes[7].box
-
-    test "compute layout auto only":
-      var gridTemplate: GridTemplate
-
-      parseGridTemplateColumns gridTemplate, 1'fr
-      # parseGridTemplateRows gridTemplate, 1'fr
-      gridTemplate.autos[drow] = 90'ux
-      gridTemplate.justifyItems = CxStart
-      gridTemplate.autoFlow = grRow
-      var parent = GridNode()
-      parent.box.w = 50
-      parent.box.h = 400
-
-      var nodes = newSeq[GridNode](8)
-
-      # ==== item a's ====
-      for i in 0 ..< nodes.len():
-        nodes[i] = GridNode(name: "b" & $(i),
-                            box: uiBox(0,0,200,200),
-                            gridItem: GridItem())
-        # nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
-        # nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-      nodes[2].box.h = 150
-      check gridTemplate.lines[dcol][0].track == 1'fr
-
-      # ==== process grid ====
-      parent.children = nodes
-      let box1 = gridTemplate.computeNodeLayout(parent)
-      let box = gridTemplate.computeNodeLayout(parent)
-      echo "grid template:post: ", gridTemplate
-      echo ""
-      # printChildrens()
-      # print gridTemplate.overflowSizes
-
-      check gridTemplate.lines[drow].len() == 9
-
-      # check box.w == 50
-      # check box.h == 400
-      # check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-      # check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-      # check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
-      # check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
-
-      # checks nodes[0].box == uiBox(0, 0, 50, 50)
-      # checks nodes[1].box == uiBox(0, 50, 50, 50)
-      # checks nodes[2].box == uiBox(0, 100, 50, 50)
-      # checks nodes[3].box == uiBox(0, 150, 50, 50)
-
-      # for i in 0..7:
-      #   if i != 2:
-      #     checks nodes[i].box.wh == uiSize(50, 50)
-
-      # checks nodes[7].box == uiBox(0, 350, 50, 50)
+    # checks nodes[7].box == uiBox(0, 350, 50, 50)

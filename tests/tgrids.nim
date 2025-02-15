@@ -680,7 +680,7 @@ suite "grids":
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
       parent.addChild(nodes[i])
     nodes[2].cxMin[drow] = csFixed(150)
-    check gridTemplate.lines[dcol][0].track == 1'fr
+    check gridTemplate.lines[dcol][0].track == csAuto()
 
     # ==== process grid ====
     computeLayout(parent)

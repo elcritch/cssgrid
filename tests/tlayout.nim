@@ -154,15 +154,6 @@ suite "grids":
     let (n2, b2) = makeGrid1(gt2)
     saveImage(gt2, b2, n2)
 
-  test "compute no-autos":
-    var gt1 = newGridTemplate()
-    let (n1, b1) = makeGrid1(gt1)
-    saveImage(gt1, b1, n1, "noauto-")
-
-    var gt2 = newGridTemplate()
-    let (n2, b2) = makeGrid1(gt2)
-    saveImage(gt2, b2, n2, "noauto-")
-
   test "compute autos extra":
     var gt1 = newGridTemplate()
     gt1.autoFlow = grRow

@@ -24,15 +24,30 @@ type
     box: UiBox
     bmin, bmax: UiSize
     gridItem: GridItem
+    parent*: GridNode
     cxSize: array[GridDir, Constraint]  # For width/height
     cxOffset: array[GridDir, Constraint] # For x/y positions
     cxMin: array[GridDir, Constraint]  # For width/height
     cxMax: array[GridDir, Constraint] # For x/y positions
     children: seq[GridNode]
     gridTemplate: GridTemplate
+    frame*: Frame
+
+  Frame = ref object
+    windowSize*: UiBox
 
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box
+
+template getParentBoxOrWindows*(node: GridNode): UiBox =
+  if node.parent.isNil:
+    node.frame.windowSize
+  else:
+    node.parent.box
+
+proc addChild(parent, child: GridNode) =
+  parent.children.add(child)
+  child.parent = parent
 
 template printChildrens(start = 0) =
   for i in start ..< nodes.len():
@@ -569,17 +584,17 @@ suite "grids":
 
     var gridTemplate: GridTemplate
 
-    parseGridTemplateColumns gridTemplate, 1'fr
-    parseGridTemplateRows gridTemplate, 1'fr
+    parseGridTemplateColumns gridTemplate, cx"auto"
+    parseGridTemplateRows gridTemplate, cx"auto"
     gridTemplate.autos[dcol] = csAuto()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
-    # echo "grid template pre: ", repr gridTemplate
-    # gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000))
-    # echo "grid template: ", repr gridTemplate
     var parent = GridNode()
-    parent.cxSize[dcol] = csFixed(50)  # set fixed parent
+    parent.gridTemplate = gridTemplate
+    parent.cxSize[dcol] = csAuto()  # set fixed parent
+    parent.cxMin[dcol] = csContentMin()  # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
+    parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
 
     var nodes = newSeq[GridNode](8)
 
@@ -590,14 +605,14 @@ suite "grids":
                           gridItem: GridItem())
       nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
+      parent.addChild(nodes[i])
     nodes[7].cxMin[dcol] = csFixed(150)
 
     # ==== process grid ====
-    parent.children = nodes
-    let box = gridTemplate.computeNodeLayout(parent)
+    computeLayout(parent)
 
-    check box.w == 500
-    check box.h == 50
+    check parent.box.w == 500
+    check parent.box.h == 50
 
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16

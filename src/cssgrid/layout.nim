@@ -390,7 +390,7 @@ proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
           # maxSize = node.WH(dir)
         _: discard
     _: discard
-  debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir].kind
+  debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir]
 
   # Then recursively check all children
   for child in node.children:
@@ -498,7 +498,7 @@ proc computeNodeLayout*(
     # prettyLayout(child)
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
-    prettyLayout(child)
+    # prettyLayout(child)
   debugPrint "COMPUTE POST: "
   prettyLayout(node)
   

@@ -21,7 +21,8 @@ proc toVal*[T](v: T): float =
 type
   GridNode* = ref object
     name: string
-    box, bmin, bmax: UiBox
+    box: UiBox
+    bmin, bmax: UiSize
     gridItem: GridItem
     cxSize: array[GridDir, Constraint]  # For width/height
     cxOffset: array[GridDir, Constraint] # For x/y positions

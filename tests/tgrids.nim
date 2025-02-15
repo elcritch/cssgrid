@@ -575,8 +575,7 @@ suite "grids":
     gridTemplate.autos[dcol] = csAuto()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
-    var parent = GridNode(name: "parent")
-    parent.gridTemplate = gridTemplate
+    var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csContentMin()  # set fixed parent
     # parent.cxMin[dcol] = csContentMin()  # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
@@ -659,12 +658,12 @@ suite "grids":
     defer: prettyPrintWriteMode = cmNone
     var gridTemplate: GridTemplate
 
-    parseGridTemplateColumns gridTemplate, 1'fr
-    # parseGridTemplateRows gridTemplate, 1'fr
-    gridTemplate.autos[drow] = csContentMin()
+    parseGridTemplateColumns gridTemplate, cx"auto"
+    parseGridTemplateRows gridTemplate, cx"auto"
+    gridTemplate.autos[drow] = csAuto()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
-    var parent = GridNode(name: "parent")
+    var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
     parent.cxSize[drow] = csContentMin()  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))

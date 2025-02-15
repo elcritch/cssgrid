@@ -131,6 +131,7 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   # ==== item b's ====
   for i in 2 ..< nodes.len():
     nodes[i] = GridNode(name: "b" & $(i-2), frame: parent.frame)
+    nodes[i].parent = parent
 
   # ==== process grid ====
   parent.children = nodes
@@ -225,16 +226,14 @@ suite "grids":
     gridTemplate.autoFlow = grRow
 
     parseGridTemplateColumns gridTemplate, 1'fr 1'fr 1'fr 1'fr 1'fr 
-    parseGridTemplateRows gridTemplate, 33'ux 33'ux
+    parseGridTemplateRows gridTemplate, 50'ux 50'ux
     gridTemplate.justifyItems = CxStretch
 
     var nodes = newSeq[GridNode](cnt)
 
     var parent = GridNode()
     assert parent is GridNode
-    parent.box = uiBox(0, 0,
-                    60*(gridTemplate.columns().len().float-1),
-                    33*(gridTemplate.rows().len().float-1))
+    parent.cxSize = [100'ux, 100'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
 
     # item a
@@ -252,13 +251,15 @@ suite "grids":
     # ==== item b's ====
     for i in 2 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i-2), frame: parent.frame)
+      nodes[i].cxSize = [10'ux, 10'ux]
+      nodes[i].parent = parent
 
     # ==== process grid ====
     parent.children = nodes
-    parent.computeLayout(0)
+    parent.computeLayout()
 
     printGrid(gridTemplate, cmTerminal)
     printLayout(parent, cmTerminal)
-    saveImage(gridTemplate, parent.box, nodes, "grid-1frx1fr")
+    saveImage(gridTemplate, parent.box, nodes, "grid-centered")
 
   writeHtmlSummary()

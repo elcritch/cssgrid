@@ -332,3 +332,180 @@ suite "Compute Layout Tests":
       # Child should be centered in its 100x100 grid cell
       check child.box.x == 25  # (100 - 50) / 2
       check child.box.y == 25  # (100 - 50) / 2
+
+  test "Grid child positioning - stretch behavior":
+    # Create a grid with a single 200x200 cell and test that child stretches to fill it
+    let parent = newTestNode("stretch-grid", 0, 0, 400, 300)
+    let child = newTestNode("stretch-child", 0, 0, 50, 50)
+    
+    parent.addChild(child)
+    
+    # Set up fixed parent size
+    parent.cxSize[dcol] = csFixed(400)
+    parent.cxSize[drow] = csFixed(300)
+    
+    # Create grid with single cell
+    parent.gridTemplate = newGridTemplate()
+    parent.gridTemplate.lines[dcol] = @[
+      initGridLine(csFixed(200))  # Fixed width column
+    ]
+    parent.gridTemplate.lines[drow] = @[
+      initGridLine(csFixed(200))  # Fixed height row
+    ]
+    
+    # Place child in grid with stretch behavior (default)
+    child.gridItem = newGridItem()
+    child.gridItem.column = 1
+    child.gridItem.row = 1
+    # Default behavior should be stretch
+    
+    computeLayout(parent, 0)
+    
+    check child.box.w == 200  # Should stretch to column width
+    check child.box.h == 200  # Should stretch to row height
+    check child.box.x == 0    # Should start at grid cell edge
+    check child.box.y == 0    # Should start at grid cell edge
+
+  test "Grid child positioning - start alignment":
+    let parent = newTestNode("start-grid", 0, 0, 400, 300)
+    let child = newTestNode("start-child", 0, 0, 100, 100)
+    
+    parent.addChild(child)
+    
+    parent.cxSize[dcol] = csFixed(400)
+    parent.cxSize[drow] = csFixed(300)
+    
+    # Create grid with single 200x200 cell
+    parent.gridTemplate = newGridTemplate()
+    parent.gridTemplate.lines[dcol] = @[
+      initGridLine(csFixed(200))
+    ]
+    parent.gridTemplate.lines[drow] = @[
+      initGridLine(csFixed(200))
+    ]
+    
+    # Place child with start alignment
+    child.gridItem = newGridItem()
+    child.gridItem.column = 1
+    child.gridItem.row = 1
+    child.gridItem.justify = some(CxStart)  # Align to start horizontally
+    child.gridItem.align = some(CxStart)    # Align to start vertically
+    
+    # Fix child size
+    child.cxSize[dcol] = csFixed(100)
+    child.cxSize[drow] = csFixed(100)
+    
+    computeLayout(parent, 0)
+    
+    check child.box.w == 100  # Should maintain fixed width
+    check child.box.h == 100  # Should maintain fixed height
+    check child.box.x == 0    # Should align to start of cell
+    check child.box.y == 0    # Should align to start of cell
+
+  test "Grid child positioning - end alignment":
+    let parent = newTestNode("end-grid", 0, 0, 400, 300)
+    let child = newTestNode("end-child", 0, 0, 100, 100)
+    
+    parent.addChild(child)
+    
+    parent.cxSize[dcol] = csFixed(400)
+    parent.cxSize[drow] = csFixed(300)
+    
+    # Create grid with single 200x200 cell
+    parent.gridTemplate = newGridTemplate()
+    parent.gridTemplate.lines[dcol] = @[
+      initGridLine(csFixed(200))
+    ]
+    parent.gridTemplate.lines[drow] = @[
+      initGridLine(csFixed(200))
+    ]
+    
+    # Place child with end alignment
+    child.gridItem = newGridItem()
+    child.gridItem.column = 1
+    child.gridItem.row = 1
+    child.gridItem.justify = some(CxEnd)    # Align to end horizontally
+    child.gridItem.align = some(CxEnd)      # Align to end vertically
+    
+    # Fix child size
+    child.cxSize[dcol] = csFixed(100)
+    child.cxSize[drow] = csFixed(100)
+    
+    computeLayout(parent, 0)
+    
+    check child.box.w == 100  # Should maintain fixed width
+    check child.box.h == 100  # Should maintain fixed height
+    check child.box.x == 100  # Should align to end (200 - 100)
+    check child.box.y == 100  # Should align to end (200 - 100)
+
+  test "Grid child positioning - center alignment":
+    let parent = newTestNode("center-grid", 0, 0, 400, 300)
+    let child = newTestNode("center-child", 0, 0, 100, 100)
+    
+    parent.addChild(child)
+    
+    parent.cxSize[dcol] = csFixed(400)
+    parent.cxSize[drow] = csFixed(300)
+    
+    # Create grid with single 200x200 cell
+    parent.gridTemplate = newGridTemplate()
+    parent.gridTemplate.lines[dcol] = @[
+      initGridLine(csFixed(200))
+    ]
+    parent.gridTemplate.lines[drow] = @[
+      initGridLine(csFixed(200))
+    ]
+    
+    # Place child with center alignment
+    child.gridItem = newGridItem()
+    child.gridItem.column = 1
+    child.gridItem.row = 1
+    child.gridItem.justify = some(CxCenter)  # Center horizontally
+    child.gridItem.align = some(CxCenter)    # Center vertically
+    
+    # Fix child size
+    child.cxSize[dcol] = csFixed(100)
+    child.cxSize[drow] = csFixed(100)
+    
+    computeLayout(parent, 0)
+    
+    check child.box.w == 100  # Should maintain fixed width
+    check child.box.h == 100  # Should maintain fixed height
+    check child.box.x == 50   # Should be centered (200 - 100)/2
+    check child.box.y == 50   # Should be centered (200 - 100)/2
+
+  test "Grid child positioning - mixed alignments":
+    let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
+    let child = newTestNode("mixed-child", 0, 0, 100, 100)
+    
+    parent.addChild(child)
+    
+    parent.cxSize[dcol] = csFixed(400)
+    parent.cxSize[drow] = csFixed(300)
+    
+    # Create grid with single 200x200 cell
+    parent.gridTemplate = newGridTemplate()
+    parent.gridTemplate.lines[dcol] = @[
+      initGridLine(csFixed(200))
+    ]
+    parent.gridTemplate.lines[drow] = @[
+      initGridLine(csFixed(200))
+    ]
+    
+    # Place child with different horizontal and vertical alignments
+    child.gridItem = newGridItem()
+    child.gridItem.column = 1
+    child.gridItem.row = 1
+    child.gridItem.justify = some(CxStart)   # Align to start horizontally
+    child.gridItem.align = some(CxCenter)    # Center vertically
+    
+    # Fix child size
+    child.cxSize[dcol] = csFixed(100)
+    child.cxSize[drow] = csFixed(100)
+    
+    computeLayout(parent, 0)
+    
+    check child.box.w == 100  # Should maintain fixed width
+    check child.box.h == 100  # Should maintain fixed height
+    check child.box.x == 0    # Should align to start horizontally
+    check child.box.y == 50   # Should be centered vertically (200 - 100)/2

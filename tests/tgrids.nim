@@ -533,7 +533,7 @@ suite "grids":
     checks nodes[1].box == uiBox(0, 100, 100, 100)
     checks nodes[3].box == uiBox(0, 300, 100, 100)
 
-  test "compute layout auto flow overflow (columnar)":
+  test "compute layout auto flow overflow (colums)":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -578,7 +578,7 @@ suite "grids":
     checks nodes[0].box == uiBox(0, 0, 50, 50)
     checks nodes[1].box == uiBox(50, 0, 100, 50)
 
-  test "compute layout overflow (columnar)":
+  test "compute layout overflow (columns)":
     prettyPrintWriteMode = cmTerminal
     defer: prettyPrintWriteMode = cmNone
 
@@ -656,15 +656,6 @@ suite "grids":
     parent.children = nodes
     let box = gridTemplate.computeNodeLayout(parent)
 
-
-    # echo "grid template:post: ", gridTemplate
-    # echo "grid template:post: ", repr gridTemplate
-    # echo ""
-    # printChildrens()
-    # print gridTemplate.overflowSizes
-
-    # check box.w == 50
-    # check box.h == 500
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16

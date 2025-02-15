@@ -218,10 +218,10 @@ suite "grids":
     printLayout(parent, cmTerminal)
     saveImage(gridTemplate, parent.box, nodes, "grid-1frx1fr")
 
-  test "grid 2fr x 2fr end":
+  test "grid alignment and justification":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     # parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
-    let cnt = 6
+    let cnt = 8
     var gridTemplate = newGridTemplate()
     gridTemplate.autoFlow = grRow
 
@@ -231,9 +231,9 @@ suite "grids":
 
     var nodes = newSeq[GridNode](cnt)
 
-    var parent = GridNode()
+    var parent = GridNode(gridTemplate: gridTemplate)
     assert parent is GridNode
-    parent.cxSize = [100'ux, 100'ux]
+    parent.cxSize = [300'ux, 100'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
 
     # item a
@@ -250,9 +250,18 @@ suite "grids":
 
     # ==== item b's ====
     for i in 2 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i-2), frame: parent.frame)
-      nodes[i].cxSize = [10'ux, 10'ux]
+      let gi = newGridItem()
+      nodes[i] = GridNode(name: "b" & $(i-2), gridItem: gi, frame: parent.frame)
+      nodes[i].cxSize = [33'ux, 33'ux]
       nodes[i].parent = parent
+      nodes[i].gridItem.justify = some(CxCenter)
+      nodes[i].gridItem.align = some(CxCenter)
+      if i == 5:
+        nodes[i].gridItem.justify = some(CxStart)
+      if i == 6:
+        nodes[i].gridItem.align = some(CxStart)
+      if i == 7:
+        nodes[i].gridItem.align = some(CxEnd)
 
     # ==== process grid ====
     parent.children = nodes
@@ -260,6 +269,6 @@ suite "grids":
 
     printGrid(gridTemplate, cmTerminal)
     printLayout(parent, cmTerminal)
-    saveImage(gridTemplate, parent.box, nodes, "grid-centered")
+    saveImage(gridTemplate, parent.box, nodes, "grid-align-and-justify")
 
   writeHtmlSummary()

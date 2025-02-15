@@ -79,6 +79,7 @@ proc writeHtmlSummary() =
   md.add &"  </body>\n"
   md.add &"</html>\n"
   writeFile("tests/tlayout.html", md)
+  echo("open tests/tlayout.html")
 
 proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =
   # echo "grid template post: ", repr gridTemplate

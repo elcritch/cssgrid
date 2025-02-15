@@ -176,8 +176,7 @@ suite "Basic CSS Layout Tests":
     node.cxSize[dcol] = 200'ux
     node.cxSize[drow] = 150'ux
     
-    calcBasicConstraint(node)
-    
+    computeLayout(node)
     check node.box.w == 200
     check node.box.h == 150
 
@@ -191,7 +190,6 @@ suite "Basic CSS Layout Tests":
     child.cxSize[drow] = 25'pp # 25% of parent height
     
     computeLayout(parent)
-    
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
 
@@ -201,26 +199,40 @@ suite "Basic CSS Layout Tests":
     child.parent = parent
     parent.children.add(child)
     
-    child.cxSize[dcol] = csAuto()
+    child.cxSize[dcol] = cx"auto"
     child.cxSize[drow] = csAuto()
     
     computeLayout(parent)
-    
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10
     check child.box.h == 290 # 300 - 10
 
   test "Min/Max constraints":
     let node = newTestNode("test", 0, 0, 100, 100)
-    
     # Test min constraint
-    node.cxSize[dcol] = csMin(csFixed(150), csFixed(200))
-    calcBasicConstraint(node)
+    node.cxSize[dcol] = min(150'ux, 200'ux)
+    computeLayout(node)
     check node.box.w == 150
-    
     # Test max constraint
-    node.cxSize[drow] = csMax(csFixed(150), csFixed(200))
-    calcBasicConstraint(node)
+    node.cxSize[drow] = max(150'ux, 200'ux)
+    computeLayout(node)
     check node.box.h == 200
 
+  test "Complex nested constraints":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child1 = newTestNode("child1", 10, 10, 100, 100)
+    let child2 = newTestNode("child2", 10, 120, 100, 100)
+    parent.children = @[child1, child2]
+    child1.parent = parent
+    child2.parent = parent
+    
+    # Child1: 50% of parent width, min 100px
+    child1.cxSize[dcol] = max(50'pp, 100'ux) # same as csMax(csPerc(50), csFixed(100))
+    
+    # Child2: 25% of parent width + 50px
+    child2.cxSize[dcol] = 25'pp + 50'ux # same as csAdd(csPerc(25), csFixed(50))
+    
+    computeLayout(parent)
+    check child1.box.w == 200 # max(50% of 400, 100)
+    check child2.box.w == 150 # (25% of 400) + 50
 ```

@@ -161,9 +161,31 @@ suite "CSS Grid Content Sizing":
 
     check gt.lines[drow][0].width == 200.UiScalar
 
-  test "content sizing overflow":
+  test "auto flow with no content sizing":
     prettyPrintWriteMode = cmTerminal
     defer: prettyPrintWriteMode = cmNone
+
+    var gt = newGridTemplate(
+      columns = @[
+        initGridLine(csAuto()),
+        initGridLine(csAuto())
+      ],
+      rows = @[
+        initGridLine(csAuto())
+      ]
+    )
+    gt.autoFlow = grRow
+    
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+
+    gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
+
+    check gt.lines[dcol][0].width == 100.UiScalar
+    check gt.lines[dcol][1].width == 100.UiScalar
+
+    check gt.lines[drow][0].width == 200.UiScalar
+
+  test "content sizing overflow":
 
     var gt = newGridTemplate(
       columns = @[

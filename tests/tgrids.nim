@@ -153,15 +153,20 @@ suite "grids":
     # echo "grid template: ", repr gridTemplate
 
   test "compute macros":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     var tmpl: GridTemplate
 
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns tmpl, ["first"] 40'ux \
-      ["second", "line2"] 50'ux \
-      ["line3"] auto \
-      ["col4-start"] 50'ux \
-      ["five"] 40'ux ["end"]
-    parseGridTemplateRows tmpl, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+                                   ["second", "line2"] 50'ux \
+                                   ["line3"] auto \
+                                   ["col4-start"] 50'ux \
+                                   ["five"] 40'ux \
+                                   ["end"]
+    parseGridTemplateRows tmpl, ["row1-start"] 25'pp \
+                                ["row1-end"] 100'ux \
+                                ["third-line"] auto \
+                                ["last-line"]
 
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     tmpl.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
@@ -672,8 +677,8 @@ suite "grids":
     checks nodes[7].box == uiBox(0, 350, 50, 50)
 
   test "compute layout manual overflow (rows)":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr

@@ -16,11 +16,8 @@ proc computeLineOverflow*(
     lines: var seq[GridLine],
     computedSizes: Table[int, ComputedTrackSize]
 ): UiScalar =
-  debugPrint "computeLineOverflow:pre: ", result
   for i, grdLn in lines:
-    debugPrint "computeLineOverflow:grdLn: ", grdLn.isAuto
     if grdLn.isAuto:
-      debugPrint "computeLineOverflow:grdLn: ", grdLn.isAuto
       match grdLn.track:
         UiValue(value):
           match value:
@@ -135,15 +132,17 @@ proc computeLineLayout*(
           grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
           remSpace -= grdLn.width
       of UiAuto:
-        if i in computedSizes:
-          let minSize = computedSizes[i].autoSize
-          let autoShare = 
-            if autoTrackIndices.len > 0:
-              remSpace / autoTrackIndices.len.UiScalar
-            else:
-              0.UiScalar
-          debugPrint "computeLineLayout:auto: ", "autoshare=", autoShare, "minsize=", minsize
-          grdLn.width = minSize + autoShare
+        let minSize =
+          if i in computedSizes: computedSizes[i].autoSize
+          else: 0.UiScalar
+
+        let autoShare = 
+          if autoTrackIndices.len > 0:
+            remSpace / autoTrackIndices.len.UiScalar
+          else:
+            0.UiScalar
+        debugPrint "computeLineLayout:auto: ", "autoshare=", autoShare, "minsize=", minsize
+        grdLn.width = minSize + autoShare
 
   # Final pass: calculate positions
   var cursor = 0.0.UiScalar

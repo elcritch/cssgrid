@@ -79,10 +79,7 @@ suite "Basic CSS Layout Tests":
     child.cxSize[drow] = 25'pp # 25% of parent height
     
     computeLayout(parent)
-    # calcBasicConstraint(child, dcol, isXY = false)
-    # calcBasicConstraint(child, drow, isXY = false)
-    
-    # prettyLayout(parent, mode=cmTerminal)
+
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
 
@@ -105,12 +102,12 @@ suite "Basic CSS Layout Tests":
     let node = newTestNode("test", 0, 0, 100, 100)
     
     # Test min constraint
-    node.cxSize[dcol] = csMin(csFixed(150), csFixed(200))
+    node.cxSize[dcol] = min(150'ux, 200'ux)
     calcBasicConstraint(node)
     check node.box.w == 150
     
     # Test max constraint
-    node.cxSize[drow] = csMax(csFixed(150), csFixed(200))
+    node.cxSize[drow] = max(150'ux, 200'ux)
     calcBasicConstraint(node)
     check node.box.h == 200
 
@@ -124,10 +121,10 @@ suite "Basic CSS Layout Tests":
     child2.parent = parent
     
     # Child1: 50% of parent width, min 100px
-    child1.cxSize[dcol] = csMax(csPerc(50), csFixed(100))
+    child1.cxSize[dcol] = max(50'pp, 100'ux) # same as csMax(csPerc(50), csFixed(100))
     
     # Child2: 25% of parent width + 50px
-    child2.cxSize[dcol] = csAdd(csPerc(25), csFixed(50))
+    child2.cxSize[dcol] = 25'pp + 50'ux # same as csAdd(csPerc(25), csFixed(50))
     
     computeLayout(parent)
     # calcBasicConstraint(child1, dcol, isXY = false)

@@ -179,12 +179,11 @@ suite "CSS Grid Content Sizing":
       drow: {0: ComputedTrackSize(minContent: 400.UiScalar)}.toTable
     ]
 
-    gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes, extendOnOverflow = true)
+    gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 
     check gt.lines[dcol][0].width == 300.UiScalar  # Allows overflow
     check gt.lines[drow][0].width == 400.UiScalar  # Allows overflow
 
-    gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes, extendOnOverflow = false)
-
-    check gt.lines[dcol][0].width == 200.UiScalar  # Constrained to container
-    check gt.lines[drow][0].width == 200.UiScalar  # Constrained to container
+    # gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes, extendOnOverflow = false)
+    # check gt.lines[dcol][0].width == 200.UiScalar  # Constrained to container
+    # check gt.lines[drow][0].width == 200.UiScalar  # Constrained to container

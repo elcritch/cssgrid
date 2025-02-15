@@ -164,7 +164,6 @@ proc computeTracks*(
     grid: GridTemplate,
     contentSize: UiBox,
     computedSizes: array[GridDir, Table[int, ComputedTrackSize]],
-    extendOnOverflow = false
 ) =
   # The free space is calculated after any non-flexible items. In 
   prettyGridTemplate(grid)
@@ -174,9 +173,9 @@ proc computeTracks*(
   var
     colLen = contentSize.w
     rowLen = contentSize.h
-  if extendOnOverflow:
-    colLen += grid.overflowSizes[dcol]
-    rowLen += grid.overflowSizes[drow]
+
+  colLen += grid.overflowSizes[dcol]
+  rowLen += grid.overflowSizes[drow]
 
   # Pass computed sizes to layout
   grid.lines[dcol].computeLineLayout(
@@ -190,7 +189,6 @@ proc computeTracks*(
     spacing=grid.gaps[drow]
   )
 
-  echo "prettyGridTemplate(grid)"
   prettyGridTemplate(grid)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
@@ -449,7 +447,6 @@ proc computeContentSizes*(
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
     node: GridNode,
-    extendOnOverflow = true, # not sure what the spec says for this
 ): auto =
 
   let box = node.box
@@ -486,9 +483,9 @@ proc computeNodeLayout*(
 
   let computedSizes = gridTemplate.computeContentSizes(node.children)
 
-  debugPrint "GRID:CS: ", "box=", $box, "extendOnOverflow=", extendOnOverflow
+  debugPrint "GRID:CS: ", "box=", $box
   printGrid(gridTemplate)
-  gridTemplate.computeTracks(box, computedSizes, extendOnOverflow)
+  gridTemplate.computeTracks(box, computedSizes)
   debugPrint "GRID:ComputedTracks: "
   printGrid(gridTemplate)
 

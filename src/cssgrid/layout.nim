@@ -395,6 +395,7 @@ proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
         _: discard
     _: discard
 
+  debugPrint "calculateContentSize: ", "result=", result
   # TODO: is this just LLM nonsense?
   # # Then recursively check all children
   # for child in node.children:

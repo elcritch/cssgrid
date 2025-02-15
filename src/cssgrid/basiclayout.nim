@@ -142,13 +142,15 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       debugPrint "calcBasic: ", "val=", val
       match val:
         UiContentMin():
-          res = UiScalar.high()
+          res = UiScalar.low()
           for child in node.children:
-            res = min(res, child.box.xy()[dir] + child.bmin[dir])
+            debugPrint "calcBasic:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
+            res = max(res, child.box.xy[dir] + child.bmin[dir])
         UiContentMax():
           res = UiScalar.low()
           for child in node.children:
-            res = max(res, child.box.xy()[dir] + child.bmax[dir])
+            if child.bmin[dir] != UiScalar.low:
+              res = max(res, child.box.xy[dir] + child.bmax[dir])
         _:
           res = f
       res

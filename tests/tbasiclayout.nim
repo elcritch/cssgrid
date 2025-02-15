@@ -137,6 +137,8 @@ suite "Basic CSS Layout Tests":
     check child2.box.w == 150 # (25% of 400) + 50
 
   test "Content based constraints":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child = newTestNode("child", 0, 0, 100, 100)
     let grandchild = newTestNode("grandchild", 0, 0, 150, 80)

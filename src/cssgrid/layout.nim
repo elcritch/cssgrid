@@ -370,38 +370,39 @@ proc computeAutoFlow(
 
 proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
   ## Recursively calculates the content size for a node by examining its children
-  var maxSize = 0.UiScalar
   
+  debugPrint "calculateContentSize: ", "node=", node.name, "cxsize=", node.cxsize[dir], "cxmin=", node.cxmin[dir]
   # First check the node's own size constraints
   match node.cxSize[dir]:
     UiValue(value):
       match value:
         UiFixed(coord):
-          maxSize = coord
-        UiContentMin():
-          discard
-          # if cmin.float32 != float32.high():
-          #   maxSize = cmin
-        UiAuto():
-          discard
-          # maxSize = node.WH(dir)
-        UiFrac(_):
-          discard
-          # maxSize = node.WH(dir)
+          debugPrint "FIXED!", "coord=", coord
+          return coord
         _: discard
     _: discard
-  debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir]
 
-  # Then recursively check all children
-  for child in node.children:
-    let childSize = calculateContentSize(child, dir)
-    maxSize = max(maxSize, childSize)
-    
-    # Add any additional space needed for grid gaps if parent has grid
-    if not node.gridTemplate.isNil and node.children.len > 1:
-      maxSize += node.gridTemplate.gaps[dir]
+  match node.cxSize[dir]:
+    UiValue(value):
+      match value:
+        UiFixed(coord):
+          debugPrint "FIXED!", "coord=", coord
+          result = coord
+        UiContentMin():
+          discard # TODO
+        UiContentMax():
+          discard # TODO
+        _: discard
+    _: discard
 
-  return maxSize
+  # TODO: is this just LLM nonsense?
+  # # Then recursively check all children
+  # for child in node.children:
+  #   let childSize = calculateContentSize(child, dir)
+  #   maxSize = max(maxSize, childSize)
+  #   # Add any additional space needed for grid gaps if parent has grid
+  #   if not node.gridTemplate.isNil and node.children.len > 1:
+  #     maxSize += node.gridTemplate.gaps[dir]
 
 proc computeContentSizes*(
     grid: GridTemplate,
@@ -419,6 +420,7 @@ proc computeContentSizes*(
 
   # Process each child and track
   for child in children:
+    debugPrint "computeContentSizes: ", "child=", child.name
     let cspan = child.gridItem.span
     for dir in [dcol, drow]:
       if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
@@ -430,6 +432,7 @@ proc computeContentSizes*(
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)
+        debugPrint "computeContentSizes: ", "track=", track.value.kind, "contentSize=", contentSize, "computed=", computed
         case track.value.kind:
         of UiAuto:
           computed.autoSize = contentSize
@@ -548,6 +551,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 
   # debugPrint "computeLayout:post: ",
   #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
+  calcBasicConstraintPost(node)
 
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)

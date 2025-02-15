@@ -23,8 +23,14 @@ template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {},
     discard
 
 template debugPrint*(args: varargs[string, `$`]) =
-  for arg in args:
-    prettyPrintWriteMode.withStyle(fgGreen, text = arg & " ")
+  if args.len() >= 1:
+    prettyPrintWriteMode.withStyle(fgGreen, text = args[0] & " ")
+  if args.len() >= 2:
+    for i, arg in args[1..^1]:
+      if i mod 2 == 0:
+        prettyPrintWriteMode.withStyle(fgBlue, text = arg & " ")
+      else:
+        prettyPrintWriteMode.withStyle(fgWhite, text = arg & " ")
   prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
 
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =

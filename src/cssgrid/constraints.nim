@@ -178,6 +178,17 @@ proc `$`*(a: ConstraintSize): string =
     UiContentMax(): result = "cx'content-max"
     UiAuto(): result = "cx'auto"
 
+proc `$`*(a: Constraint): string =
+  match a:
+    UiNone(): "cx(none)"
+    UiValue(value): "cx(" & $value & ")"
+    UiMin(lmin, rmin): "min(" & $lmin & "," & $rmin & ")"
+    UiMax(lmax, rmax): "max(" & $lmax & "," & $rmax & ")"
+    UiAdd(ladd, radd): "add(" & $ladd & "," & $radd & ")"
+    UiSub(lsub, rsub): "sub(" & $lsub & "," & $rsub & ")"
+    UiMinMax(lmm, rmm): "minmax(" & $lmm & "," & $rmm & ")"
+    UiEnd(): "cx(end)"
+
 proc `'ux`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)

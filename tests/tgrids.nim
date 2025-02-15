@@ -577,7 +577,7 @@ suite "grids":
     gridTemplate.autos[dcol] = csAuto()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
-    var parent = GridNode()
+    var parent = GridNode(name: "parent")
     parent.gridTemplate = gridTemplate
     parent.cxSize[dcol] = csContentMin()  # set fixed parent
     # parent.cxMin[dcol] = csContentMin()  # set fixed parent
@@ -589,7 +589,7 @@ suite "grids":
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i),
-                          cxMin: [csFixed(50),csFixed(50)],
+                          cxMin: [50'ux, 50'ux],
                           gridItem: GridItem())
       nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)

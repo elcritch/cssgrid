@@ -57,18 +57,18 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
         UiPerc(perc):
           let ppval = pf
           res = perc.UiScalar / 100.0.UiScalar * ppval
-        # UiContentMin():
-        #   return # run as post
-        # UiContentMax():
-        #   return # run as post
         UiContentMin():
-          res = UiScalar.high()
-          for child in node.children:
-            res = min(res, child.bmin[dir])
+          return # run as post
         UiContentMax():
-          res = UiScalar.low()
-          for child in node.children:
-            res = max(res, child.bmax[dir])
+          return # run as post
+        # UiContentMin():
+        #   res = UiScalar.high()
+        #   for child in node.children:
+        #     res = min(res, child.bmin[dir])
+        # UiContentMax():
+        #   res = UiScalar.low()
+        #   for child in node.children:
+        #     res = max(res, child.bmax[dir])
       debugPrint "calcBasic: ", node.name, " val: ", val, " res: ", res
       res
 
@@ -84,7 +84,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
     of MAXSZ:
       node.cxMax[dir]
 
-  debugPrint "csValue: ", csValue, "f: ", astToStr(f)
+  debugPrint "csValue: ", csValue, "calc: ", calc
   match csValue:
     UiNone:
       discard

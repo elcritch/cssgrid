@@ -140,6 +140,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     block:
       var res: UiScalar
       match val:
+        debugPrint "calcBasic: ", "val=", val
         UiContentMin():
           res = UiScalar.high()
           for child in node.children:

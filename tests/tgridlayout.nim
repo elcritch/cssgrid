@@ -343,29 +343,35 @@ suite "Grid alignment and justification tests":
       child.gridItem.row = pos[1]
       child.cxSize[dcol] = csFixed(100)
       child.cxSize[drow] = csFixed(100)
-      child.gridItem.justify = some(CxStretch)
-      child.gridItem.align = some(CxStretch)
+      # child.gridItem.justify = some(CxStretch)
+      # child.gridItem.align = some(CxStretch)
     
     #   child1.gridItem = newGridItem()
     #   child1.gridItem.column = 1
     #   child1.gridItem.row = 1
+    child3.gridItem.justify = some(CxEnd)
       
     computeLayout(parent)
     
     # Check all children stretch to their cell size
-    for child in [child1, child2, child3, child4]:
+    for child in [child1, child2, child4]:
       check child.box.w == 200  # Should stretch to column width
       check child.box.h == 200  # Should stretch to row height
+
+    check child3.box.w == 100  # Should stretch to column width
+    check child3.box.h == 200  # Should stretch to row height
 
     # Verify positions
     check child1.box.x == 0     # First column
     check child1.box.y == 0     # First row
     check child2.box.x == 200   # Second column
     check child2.box.y == 0     # First row
-    check child3.box.x == 0     # First column
-    check child3.box.y == 200   # Second row
     check child4.box.x == 200   # Second column
     check child4.box.y == 200   # Second row
+
+    # this one doesn't stretch
+    check child3.box.x == 100     # First column
+    check child3.box.y == 200   # Second row
 
   test "Grid child positioning - start alignment in 2x2 grid":
     let parent = newTestNode("start-grid", 0, 0, 400, 400)

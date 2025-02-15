@@ -217,4 +217,48 @@ suite "grids":
     printLayout(parent, cmTerminal)
     saveImage(gridTemplate, parent.box, nodes, "grid-1frx1fr")
 
+  test "grid 2fr x 2fr end":
+    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
+    # parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
+    let cnt = 6
+    var gridTemplate = newGridTemplate()
+    gridTemplate.autoFlow = grRow
+
+    parseGridTemplateColumns gridTemplate, 1'fr 1'fr 1'fr 1'fr 1'fr 
+    parseGridTemplateRows gridTemplate, 33'ux 33'ux
+    gridTemplate.justifyItems = CxStretch
+
+    var nodes = newSeq[GridNode](cnt)
+
+    var parent = GridNode()
+    assert parent is GridNode
+    parent.box = uiBox(0, 0,
+                    60*(gridTemplate.columns().len().float-1),
+                    33*(gridTemplate.rows().len().float-1))
+    parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
+
+    # item a
+    var itema = newGridItem()
+    itema.column = 1 // 2
+    itema.row = 1 // 3
+    nodes[0] = GridNode(name: "a", gridItem: itema, frame: parent.frame)
+
+    # ==== item e ====
+    var iteme = newGridItem()
+    iteme.column = 5 // 6
+    iteme.row = 1 // 3
+    nodes[1] = GridNode(name: "e", gridItem: iteme, frame: parent.frame)
+
+    # ==== item b's ====
+    for i in 2 ..< nodes.len():
+      nodes[i] = GridNode(name: "b" & $(i-2), frame: parent.frame)
+
+    # ==== process grid ====
+    parent.children = nodes
+    parent.computeLayout(0)
+
+    printGrid(gridTemplate, cmTerminal)
+    printLayout(parent, cmTerminal)
+    saveImage(gridTemplate, parent.box, nodes, "grid-1frx1fr")
+
   writeHtmlSummary()

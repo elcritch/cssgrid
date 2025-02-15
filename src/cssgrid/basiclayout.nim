@@ -140,14 +140,14 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     block:
       var res: UiScalar
       match val:
-        UiContentMin():
-          res = UiScalar.high()
-          for child in node.children:
-            res = min(res, child.bmin[dir])
-        UiContentMax():
-          res = UiScalar.low()
-          for child in node.children:
-            res = max(res, child.bmax[dir])
+        # UiContentMin():
+        #   res = UiScalar.high()
+        #   for child in node.children:
+        #     res = min(res, child.bmin[dir])
+        # UiContentMax():
+        #   res = UiScalar.low()
+        #   for child in node.children:
+        #     res = max(res, child.bmax[dir])
         _:
           res = f
       res
@@ -163,7 +163,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     of MAXSZ:
       node.cxMax[dir]
   
-  debugPrint "CONTENT csValue: ", "node =", node.name, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
+  debugPrint "CONTENT csValue:post", "node =", node.name, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:
     UiNone:
       discard

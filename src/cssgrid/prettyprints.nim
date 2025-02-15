@@ -15,38 +15,38 @@ type ColorMode* = enum
 var prettyPrintWriteMode* = cmNone
 
 template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {}, text: string) =
-  if mode == cmTerminal:
+  if mode == cmTerminal or prettyPrintWriteMode == cmTerminal:
     stdout.styledWrite(fg, style, text)
-  elif mode == cmTerminal:
+  elif mode == cmPlain:
     stdout.write(text)
   else:
     discard
 
 template debugPrint*(args: varargs[string, `$`]) =
-  for arg in args:
-    prettyPrintWriteMode.withStyle(fgGreen, text = arg & " ")
+  if args.len() >= 1:
+    prettyPrintWriteMode.withStyle(fgGreen, text = args[0] & " ")
+  if args.len() >= 2:
+    for i, arg in args[1..^1]:
+      if i mod 2 == 0:
+        prettyPrintWriteMode.withStyle(fgBlue, text = arg & " ")
+      else:
+        prettyPrintWriteMode.withStyle(fgWhite, text = arg & " ")
   prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
 
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =
   case cs.kind
   of UiAuto:
-    if cs.amin.float32 == 0:
-      mode.withStyle(fgCyan, text = "auto")
-    else:
-      mode.withStyle(fgCyan, text = &"auto(min:{cs.amin.float.float:.2f})")
+    mode.withStyle(fgCyan, text = "auto")
   of UiFrac:
-    mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr (min:{cs.fmin.float:.2f})")
+    mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr")
   of UiPerc:
     mode.withStyle(fgYellow, text = &"{cs.perc.float:.2f}'pp")
   of UiFixed:
     mode.withStyle(fgGreen, text = &"{cs.coord.float:.2f}'ui")
   of UiContentMin:
-    if cs.cmin.float32 == 0:
-      mode.withStyle(fgBlue, text = "min-content")
-    else:
-      mode.withStyle(fgBlue, text = &"min-content({cs.cmin.float:.2f})")
+    mode.withStyle(fgBlue, text = "min-content")
   of UiContentMax:
-    mode.withStyle(fgBlue, text = &"max-content({cs.cmax.float:.2f})")
+    mode.withStyle(fgBlue, text = "max-content")
 
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind
@@ -66,11 +66,17 @@ proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
     mode.withStyle(fgWhite, text = ", ")
     prettyConstraintSize(c.rmax, "", mode)
     mode.withStyle(fgWhite, text = ")")
-  of UiSum:
-    mode.withStyle(fgWhite, text = "sum(")
-    prettyConstraintSize(c.lsum, "", mode)
+  of UiAdd:
+    mode.withStyle(fgWhite, text = "add(")
+    prettyConstraintSize(c.ladd, "", mode)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.rsum, "", mode)
+    prettyConstraintSize(c.radd, "", mode)
+    mode.withStyle(fgWhite, text = ")")
+  of UiSub:
+    mode.withStyle(fgWhite, text = "sub(")
+    prettyConstraintSize(c.lsub, "", mode)
+    mode.withStyle(fgWhite, text = ", ")
+    prettyConstraintSize(c.rsub, "", mode)
     mode.withStyle(fgWhite, text = ")")
   of UiMinMax:
     mode.withStyle(fgWhite, text = "minmax(")
@@ -150,6 +156,10 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   # Box dimensions
   mode.withStyle(fgWhite, {styleBright}, text = indent & "  box: ")
   mode.withStyle(fgYellow, text = &"[x: {node.box.x.float:.2f}, y: {node.box.y.float:.2f}, w: {node.box.w.float:.2f}, h: {node.box.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmin: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bmin.w.float:.2f}, y: {node.bmin.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmax: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bmax.w.float:.2f}, y: {node.bmax.h.float:.2f}]\n")
   
   # Constraints
   for i, constraint in node.cxSize:
@@ -164,10 +174,22 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
     prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   
+  # for i, constraint in node.cxMin:
+  #   let dir = if i == dcol: "minX" else: "minY"
+  #   mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+  #   prettyConstraint(constraint, "", mode)
+  # mode.withStyle(fgWhite, text = "\n")
+
+  # for i, constraint in node.cxMax:
+  #   let dir = if i == dcol: "maxX" else: "maxY"
+  #   mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+  #   prettyConstraint(constraint, "", mode)
+  # mode.withStyle(fgWhite, text = "\n")
+
   # Grid template
   if not node.gridTemplate.isNil:
     prettyGridTemplate(node.gridTemplate, indent & "  ", mode)
-  
+
   # Grid item
   if not node.gridItem.isNil:
     mode.withStyle(fgBlue, {styleBright}, text = indent & "  gridItem:\n")

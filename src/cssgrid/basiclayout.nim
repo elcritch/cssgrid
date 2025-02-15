@@ -2,26 +2,24 @@ import numberTypes, constraints, gridtypes
 
 import prettyprints
 
-template XY*(node: GridNode, fs: static string): UiScalar =
-  when fs == "x": node.box.x
-  elif fs == "y": node.box.y
-  else: {.error: "invalid field".}
+type
+  CalcKind* {.pure.} = enum
+    XY, WH, MINSZ, MAXSZ
 
-template WH*(node: GridNode, fs: static string): UiScalar =
-  when fs == "w": node.box.w
-  elif fs == "h": node.box.h
-  else: {.error: "invalid field".}
+# template XY*(node: GridNode, fs: static string): UiScalar =
+#   when fs == "x": node.box.x
+#   elif fs == "y": node.box.y
+#   else: {.error: "invalid field".}
 
-template WH*(node: GridNode, dir: GridDir): UiScalar =
-  case dir
-  of dcol: WH(node, "w")
-  of drow: WH(node, "h")
+# template WH*(node: GridNode, fs: static string): UiScalar =
+#   when fs == "w": node.box.w
+#   elif fs == "h": node.box.h
+#   else: {.error: "invalid field".}
 
-template getParentBoxOrWindows*(node: GridNode): UiBox =
-  if node.parent.isNil:
-    node.frame.windowSize
-  else:
-    node.parent.box
+# template WH*(node: GridNode, dir: GridDir): UiScalar =
+#   case dir
+#   of dcol: WH(node, "w")
+#   of drow: WH(node, "h")
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
@@ -38,39 +36,7 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
-  ## Recursively calculates the content size for a node by examining its children
-  var maxSize = 0.UiScalar
-  
-  # First check the node's own size constraints
-  match node.cxSize[dir]:
-    UiValue(value):
-      match value:
-        UiFixed(coord):
-          maxSize = coord
-        UiContentMin(cmin):
-          if cmin.float32 != float32.high():
-            maxSize = cmin
-        UiAuto(_):
-          maxSize = node.WH(dir)
-        UiFrac(_, _):
-          maxSize = node.WH(dir)
-        _: discard
-    _: discard
-  debugPrint "calculateContentSize:w: ", "kind=", node.cxSize[dir].kind
-
-  # Then recursively check all children
-  for child in node.children:
-    let childSize = calculateContentSize(child, dir)
-    maxSize = max(maxSize, childSize)
-    
-    # Add any additional space needed for grid gaps if parent has grid
-    if not node.gridTemplate.isNil and node.children.len > 1:
-      maxSize += node.gridTemplate.gaps[dir]
-
-  return maxSize
-
-template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped) =
+proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -79,157 +45,185 @@ template calcBasicConstraintImpl(node: GridNode, dir: static GridDir, f: untyped
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
-      debugPrint "calcBasic: ", val
       var res: UiScalar
       match val:
-        UiAuto(_):
-          when astToStr(f) in ["w"]:
-            res = parentBox.f - node.box.x
-          elif astToStr(f) in ["h"]:
-            res = parentBox.f - node.box.y
+        UiAuto():
+          if calc == WH:
+            res = max(pf - f0, 0)
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
-          res = frac.UiScalar * node.parent[].box.f
+          res = frac.UiScalar * pf
         UiPerc(perc):
-          let ppval =
-            when astToStr(f) == "x":
-              parentBox.w
-            elif astToStr(f) == "y":
-              parentBox.h
-            else:
-              parentBox.f
+          let ppval = pf
           res = perc.UiScalar / 100.0.UiScalar * ppval
-        UiContentMin(cmins):
-          debugPrint "CMINS: ", cmins
-          for n in node.children:
-            when astToStr(f) == "w":
-              res = min(node.box.x + node.box.w, res)
-            elif astToStr(f) == "h":
-              res = min(node.box.y + node.box.h, res)
-        UiContentMax(cmaxs):
-          debugPrint "CMAXS: ", cmaxs
-          for n in node.children:
-            when astToStr(f) == "w":
-              res = max(node.box.x + node.box.w, res)
-            elif astToStr(f) == "h":
-              res = max(node.box.y + node.box.h, res)
+        # UiContentMin():
+        #   return # run as post
+        # UiContentMax():
+        #   return # run as post
+        UiContentMin():
+          res = UiScalar.high()
+          for child in node.children:
+            res = min(res, child.bmin[dir])
+        UiContentMax():
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
+      debugPrint "calcBasic: ", node.name, "calc=", calc, "val: ", val, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
   let csValue =
-    when astToStr(f) in ["w", "h"]:
-      node.cxSize[dir]
-    else:
+    case calc
+    of XY:
       node.cxOffset[dir]
-  debugPrint "csValue: ", csValue, "f: ", astToStr(f)
+    of WH:
+      node.cxSize[dir]
+    of MINSZ:
+      node.cxMin[dir]
+    of MAXSZ:
+      node.cxMax[dir]
+
+  debugPrint "csValue: ", csValue, "calc: ", calc
   match csValue:
     UiNone:
       discard
-    UiSum(ls, rs):
+    UiAdd(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = lv + rv
+      f = lv + rv
+    UiSub(ls, rs):
+      let lv = ls.calcBasic()
+      let rv = rs.calcBasic()
+      f = lv - rv
     UiMin(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = min(lv, rv)
+      f = min(lv, rv)
     UiMax(ls, rs):
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
-      node.box.f = max(lv, rv)
-    UiMinMax(ls, rs):
-      discard
+      f = max(lv, rv)
     UiValue(value):
-      node.box.f = calcBasic(value)
+      f = calcBasic(value)
+    UiMinMax(ls, rs):
+      return
     UiEnd:
-      discard
+      return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
-proc calculateMinOrMaxes(node: GridNode, fs: static string, doMax: static bool): UiScalar =
+proc calculateMin(node: GridNode, calc: CalcKind): UiScalar =
   for n in node.children:
-    when fs == "w":
-      when doMax:
-        result = max(n.box.x + n.box.w, result)
-      else:
-        result = min(n.box.x + n.box.w, result)
-    elif fs == "h":
-      when doMax:
-        result = max(n.box.y + n.box.h, result)
-      else:
-        result = min(n.box.y + n.box.h, result)
+    case calc:
+    of WH:
+      result = max(n.box.x + n.box.w, result)
+      result = min(n.box.y + n.box.h, result)
+    of XY:
+      result = max(n.box.x + n.box.w, result)
+      result = min(n.box.y + n.box.h, result)
 
-template calcBasicConstraintPostImpl(node: GridNode, dir: static GridDir, f: untyped) =
+    #   else:
+    #     result = min(n.box.x + n.box.w, result)
+    # elif fs == "h":
+    #   when doMax:
+    #     result = max(n.box.y + n.box.h, result)
+    #   else:
+    #     result = min(n.box.y + n.box.h, result)
+
+proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
-  debugPrint "calcBasicConstraintPostImpl: ", "name =", node.name, "boxH=", node.box.h
+  debugPrint "\ncalcBasicConstraintPostImpl: ", "name=", node.name, "calc=", calc, "dir=", dir, "box=", f
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar
+      debugPrint "calcBasic: ", "val=", val
       match val:
-        UiContentMin(cmins):
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=false)
-        UiContentMax(cmaxs):
-          res = node.calculateMinOrMaxes(astToStr(f), doMax=true)
-          debugPrint "CONTENT MAX: ", "node =", node.name, "res =", res, "d =", repr(dir), "children =", node.children.mapIt((it.name, it.box.w, it.box.h))
+        UiContentMin():
+          res = UiScalar.low()
+          for child in node.children:
+            debugPrint "calcBasic:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
+            res = max(res, child.box.xy[dir] + child.bmin[dir])
+        UiContentMax():
+          res = UiScalar.low()
+          for child in node.children:
+            if child.bmin[dir] != UiScalar.low:
+              res = max(res, child.box.xy[dir] + child.bmax[dir])
         _:
-          res = node.box.f
+          res = f
       res
 
   let csValue =
-    when astToStr(f) in ["w", "h"]:
-      node.cxSize[dir]
-    else:
+    case calc
+    of XY:
       node.cxOffset[dir]
+    of WH:
+      node.cxSize[dir]
+    of MINSZ:
+      node.cxMin[dir]
+    of MAXSZ:
+      node.cxMax[dir]
   
-  debugPrint "CONTENT csValue: ", "node =", node.name, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
+  debugPrint "CONTENT csValue:post", "node =", node.name, "calc=", calc, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:
     UiNone:
       discard
-    UiSum(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = lv + rv
+    UiAdd(ls, rs):
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        f = lv + rv
+    UiSub(ls, rs):
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        f = lv - rv
     UiMin(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = min(lv, rv)
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        f = min(lv, rv)
     UiMax(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      node.box.f = max(lv, rv)
+      if ls.isBasicContentSized() or rs.isBasicContentSized():
+        let lv = ls.calcBasic()
+        let rv = rs.calcBasic()
+        f = max(lv, rv)
     UiMinMax(ls, rs):
-      discard
+      return # doesn't make sense here
     UiValue(value):
-      node.box.f = calcBasic(value)
+      f = calcBasic(value)
     UiEnd:
       discard
 
-  debugPrint "calcBasicConstraintPostImpl:done: ", " name = ", node.name, " boxH = ", node.box.h
+  debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
 
-proc calcBasicConstraint*(node: GridNode, dir: static GridDir, isXY: static bool) =
+proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
-  when isXY == true and dir == dcol:
-    calcBasicConstraintImpl(node, dir, x)
-  elif isXY == true and dir == drow:
-    calcBasicConstraintImpl(node, dir, y)
-  # w & h need to run after x & y
-  elif isXY == false and dir == dcol:
-    calcBasicConstraintImpl(node, dir, w)
-  elif isXY == false and dir == drow:
-    calcBasicConstraintImpl(node, dir, h)
+  let parentBox = node.getParentBoxOrWindows()
+  node.bmin = uiSize(UiScalar.high,UiScalar.high)
+  node.bmax = uiSize(UiScalar.low,UiScalar.low)
+  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
+  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y)
+  calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w)
+  calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
+  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
+  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
 
-proc calcBasicConstraintPost*(node: GridNode, dir: static GridDir, isXY: static bool) =
+proc calcBasicConstraintPost*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
-  when isXY == true and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, x)
-  elif isXY == true and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, y)
+  calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
+  calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
   # w & h need to run after x & y
-  elif isXY == false and dir == dcol:
-    calcBasicConstraintPostImpl(node, dir, w)
-  elif isXY == false and dir == drow:
-    calcBasicConstraintPostImpl(node, dir, h)
+  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
+  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
+
+  calcBasicConstraintPostImpl(node, dcol, MINSZ, node.bmin.w)
+  calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h)
+  calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w)
+  calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h)
+  debugPrint "calcBasicConstraintPost:done", "name=", node.name, "box=", node.box, "bmin=", node.bmin

@@ -15,8 +15,20 @@ type
   Atom* = StackString[CssGridAtomSize]
   LineName* = Atom
 
+  ComputedSize* = object of RootObj
+    minContent*: UiScalar
+    maxContent*: UiScalar
+    autoSize*: UiScalar
+    fracMinSize*: UiScalar
+
   GridNode* = concept node
     typeof(node.box) is UiBox
+    typeof(node.bmin) is UiSize
+    typeof(node.bmax) is UiSize
+    typeof(node.cxSize) is array[GridDir, Constraint]
+    typeof(node.cxOffset) is array[GridDir, Constraint]
+    # typeof(node.cxMin) is array[GridDir, Constraint]
+    # typeof(node.cxMax) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem
   GridBox* = concept box
     typeof(box) is UiBox
@@ -64,6 +76,16 @@ type
 
 proc atom*(a: static string): Atom =
   discard result.addTruncate a
+
+proc `[]`*(r: UiPos, dir: GridDir): UiScalar =
+  case dir
+  of dcol: return r.x
+  of drow: return r.y
+
+proc `[]`*(r: UiSize, dir: GridDir): UiScalar =
+  case dir
+  of dcol: return r.w
+  of drow: return r.h
 
 macro ln*(n: string): GridIndex =
   ## numeric literal view width unit

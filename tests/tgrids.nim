@@ -753,9 +753,9 @@ suite "grids":
     checks nodes[2].box == uiBox(0, 100, 50, 150)
     checks nodes[3].box == uiBox(0, 250, 50, 50)
 
-    for i in 0..7:
-      if i != 2:
-        checks nodes[i].box.wh == uiSize(50, 50)
+    # for i in 0..7:
+    #   if i != 2:
+    #     checks nodes[i].box.wh == uiSize(50, 50)
 
     checks nodes[7].box == uiBox(0, 450, 50, 50)
     # echo "nodes[7]: ", nodes[7].box

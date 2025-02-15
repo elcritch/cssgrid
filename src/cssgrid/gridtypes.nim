@@ -77,6 +77,11 @@ type
 proc atom*(a: static string): Atom =
   discard result.addTruncate a
 
+proc `[]`*(r: UiPos, dir: GridDir): UiScalar =
+  case dir
+  of dcol: return r.x
+  of drow: return r.y
+
 proc `[]`*(r: UiSize, dir: GridDir): UiScalar =
   case dir
   of dcol: return r.w

@@ -57,19 +57,19 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
         UiPerc(perc):
           let ppval = pf
           res = perc.UiScalar / 100.0.UiScalar * ppval
-        UiContentMin():
-          return # run as post
-        UiContentMax():
-          return # run as post
         # UiContentMin():
-        #   res = UiScalar.high()
-        #   for child in node.children:
-        #     res = min(res, child.bmin[dir])
+        #   return # run as post
         # UiContentMax():
-        #   res = UiScalar.low()
-        #   for child in node.children:
-        #     res = max(res, child.bmax[dir])
-      debugPrint "calcBasic: ", node.name, " val: ", val, " res: ", res
+        #   return # run as post
+        UiContentMin():
+          res = UiScalar.high()
+          for child in node.children:
+            res = min(res, child.bmin[dir])
+        UiContentMax():
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
+      debugPrint "calcBasic: ", node.name, "calc=", calc, "val: ", val, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -134,20 +134,20 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
-  debugPrint "calcBasicConstraintPostImpl: ", "name =", node.name, "boxH=", node.box.h
+  debugPrint "\ncalcBasicConstraintPostImpl: ", "name=", node.name, "calc=", calc, "dir=", dir, "box=", f
   let parentBox = node.getParentBoxOrWindows()
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar
       match val:
-        # UiContentMin():
-        #   res = UiScalar.high()
-        #   for child in node.children:
-        #     res = min(res, child.bmin[dir])
-        # UiContentMax():
-        #   res = UiScalar.low()
-        #   for child in node.children:
-        #     res = max(res, child.bmax[dir])
+        UiContentMin():
+          res = UiScalar.high()
+          for child in node.children:
+            res = min(res, child.bmin[dir])
+        UiContentMax():
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
         _:
           res = f
       res
@@ -163,7 +163,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     of MAXSZ:
       node.cxMax[dir]
   
-  debugPrint "CONTENT csValue:post", "node =", node.name, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
+  debugPrint "CONTENT csValue:post", "node =", node.name, "calc=", calc, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:
     UiNone:
       discard
@@ -194,7 +194,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     UiEnd:
       discard
 
-  debugPrint "calcBasicConstraintPostImpl:done: ", " name = ", node.name, " boxH = ", node.box.h
+  debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
 
 proc calcBasicConstraint*(node: GridNode) =
@@ -223,3 +223,4 @@ proc calcBasicConstraintPost*(node: GridNode) =
   calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h)
   calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w)
   calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h)
+  debugPrint "calcBasicConstraintPost:done", "name=", node.name, "box=", node.box, "bmin=", node.bmin

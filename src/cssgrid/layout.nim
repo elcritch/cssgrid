@@ -371,27 +371,30 @@ proc computeAutoFlow(
 proc calculateContentSize*(node: GridNode, dir: GridDir): UiScalar =
   ## Recursively calculates the content size for a node by examining its children
   
+  debugPrint "calculateContentSize: ", "node=", node.name, "bmin=", node.bmin, "bmax=", node.bmax
   debugPrint "calculateContentSize: ", "node=", node.name, "cxsize=", node.cxsize[dir], "cxmin=", node.cxmin[dir]
-  # First check the node's own size constraints
-  match node.cxSize[dir]:
-    UiValue(value):
-      match value:
-        UiFixed(coord):
-          return coord
-        _: discard
-    _: discard
+  result = node.bmin[dir]
 
-  match node.cxMin[dir]:
-    UiValue(value):
-      match value:
-        UiFixed(coord):
-          result = coord
-        UiContentMin():
-          discard # TODO
-        UiContentMax():
-          discard # TODO
-        _: discard
-    _: discard
+  # First check the node's own size constraints
+  # match node.cxSize[dir]:
+  #   UiValue(value):
+  #     match value:
+  #       UiFixed(coord):
+  #         return coord
+  #       _: discard
+  #   _: discard
+
+  # match node.cxMin[dir]:
+  #   UiValue(value):
+  #     match value:
+  #       UiFixed(coord):
+  #         result = coord
+  #       UiContentMin():
+  #         discard # TODO
+  #       UiContentMax():
+  #         discard # TODO
+  #       _: discard
+  #   _: discard
 
   debugPrint "calculateContentSize: ", "result=", result
   # TODO: is this just LLM nonsense?
@@ -427,11 +430,11 @@ proc computeContentSizes*(
         let track = grid.lines[dir][trackIndex].track
         
         # Calculate size recursively including nested children
-        let contentSize = calculateContentSize(child, dir)
+        # let contentSize = calculateContentSize(child, dir)
+        let contentSize = child.bmin[dir]
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)
-        debugPrint "computeContentSizes: ", "track=", track.value.kind, "contentSize=", contentSize, "computed=", computed
         case track.value.kind:
         of UiAuto:
           computed.autoSize = contentSize
@@ -443,6 +446,8 @@ proc computeContentSizes*(
           computed.maxContent = contentSize
         else: discard
         
+        debugPrint "computeContentSizes: ", "track=", track.value.kind, "contentSize=", contentSize, "computed=", computed
+
         result[dir][trackIndex] = computed
 
 proc computeNodeLayout*(

@@ -77,11 +77,11 @@ suite "Compute Layout Tests":
     parent.cxSize[drow] = 300'ux  # set fixed parent
 
     # Set percentage-based constraints for children
-    child1.cxSize[dcol] = csPerc(50)  # 50% of parent
-    child1.cxSize[drow] = csPerc(30)  # 30% of parent
+    child1.cxSize[dcol] = 50'pp  # 50% of parent
+    child1.cxSize[drow] = 30'pp  # 30% of parent
     
-    child2.cxSize[dcol] = csPerc(70)  # 70% of parent
-    child2.cxSize[drow] = csPerc(40)  # 40% of parent
+    child2.cxSize[dcol] = 70'pp  # 70% of parent
+    child2.cxSize[drow] = 40'pp  # 40% of parent
     
     computeLayout(parent, 0)
     
@@ -125,8 +125,7 @@ suite "Compute Layout Tests":
       parent.addChild(child2)
       
       # Setup grid template
-      parent.cxSize[dcol] = 400'ux  # set fixed parent
-      parent.cxSize[drow] = 300'ux  # set fixed parent
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
 
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
@@ -146,7 +145,7 @@ suite "Compute Layout Tests":
       child2.gridItem.column = 2
       child2.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       # Children should each take up half the width
       check child1.box.w == 200  # Half of parent width
@@ -269,8 +268,8 @@ suite "Compute Layout Tests":
       parent.cxSize[drow] = 300'ux  # set fixed parent
 
       # Inner child with percentage constraint
-      innerChild.cxSize[dcol] = csPerc(50)
-      innerChild.cxSize[drow] = csPerc(50)
+      innerChild.cxSize[dcol] = 50'pp
+      innerChild.cxSize[drow] = 50'pp
       
       computeLayout(parent, 0)
       

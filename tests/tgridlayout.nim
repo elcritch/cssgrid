@@ -24,7 +24,7 @@ type
     parent*: TestNode
     children*: seq[TestNode]
     cxSize*: array[GridDir, Constraint] = [cx"auto", csNone()]  # For width/height
-    cxOffset*: array[GridDir, Constraint] # For x/y positions
+    cxOffset*: array[GridDir, Constraint] = [cx"auto", cx"auto"] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     gridItem*: GridItem
@@ -205,9 +205,6 @@ suite "Compute Layout Tests":
 
   test "Grid with content sizing":
     when true:
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
-
       let parent = newTestNode("content-grid", 0, 0, 400, 300)
       let child1 = newTestNode("content-child1", 0, 0, 150, 100)
       let child2 = newTestNode("content-child2", 0, 0, 100, 100)
@@ -238,10 +235,13 @@ suite "Compute Layout Tests":
       check child2.box.w >= 100  # Should accommodate content
 
   test "Grid with nested basic constraints":
-    when false:
+    when true:
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
+
       let parent = newTestNode("nested-grid", 0, 0, 400, 300)
       let gridChild = newTestNode("grid-child", 0, 0, 200, 200)
-      let innerChild = newTestNode("inner-child", 0, 0, 100, 100)
+      let innerChild = newTestNode("inner-child")
       
       parent.addChild(gridChild)
       gridChild.addChild(innerChild)
@@ -260,15 +260,11 @@ suite "Compute Layout Tests":
       gridChild.gridItem.column = 1
       gridChild.gridItem.row = 1
       
-      # Setup parent fixed size
-      parent.cxSize[dcol] = 400'ux  # set fixed parent
-      parent.cxSize[drow] = 300'ux  # set fixed parent
-
       # Inner child with percentage constraint
       innerChild.cxSize[dcol] = 50'pp
       innerChild.cxSize[drow] = 50'pp
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       check innerChild.box.w == 200  # 50% of grid child width
       check innerChild.box.h == 150  # 50% of grid child height

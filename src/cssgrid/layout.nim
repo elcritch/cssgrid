@@ -393,7 +393,8 @@ proc computeContentSizes*(
         
         # Calculate size recursively including nested children
         # let contentSize = calculateContentSize(child, dir)
-        let contentSize = child.bmin[dir]
+        var contentSize = child.bmin[dir]
+        if contentSize == UiScalar.high: contentSize = 0.UiScalar
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)

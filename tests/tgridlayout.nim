@@ -115,8 +115,6 @@ suite "Compute Layout Tests":
                 buttonItem(self, this, idx)
 
   test "Simple grid layout":
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
       let parent = newTestNode("grid-parent", 0, 0, 400, 300)
       let child1 = newTestNode("grid-child1", 0, 0, 100, 100)
       let child2 = newTestNode("grid-child2", 0, 0, 100, 100)
@@ -127,14 +125,8 @@ suite "Compute Layout Tests":
       # Setup grid template
       parent.cxSize = [400'ux, 300'ux]  # set fixed parent
 
-      parent.gridTemplate = newGridTemplate()
-      parent.gridTemplate.lines[dcol] = @[
-        initGridLine(1'fr),
-        initGridLine(1'fr)
-      ]
-      parent.gridTemplate.lines[drow] = @[
-        initGridLine(100'ux)
-      ]
+      parseGridTemplateColumns parent.gridTemplate, 1'fr 1'fr
+      parseGridTemplateRows parent.gridTemplate, 100'ux
       
       # Setup grid items
       child1.gridItem = newGridItem()
@@ -154,7 +146,8 @@ suite "Compute Layout Tests":
       check child2.box.h == 100  # Fixed height from grid
 
   test "Grid with mixed units":
-    when false:
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
       let child1 = newTestNode("fixed-child", 0, 0, 100, 100)

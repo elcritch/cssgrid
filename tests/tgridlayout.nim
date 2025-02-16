@@ -23,7 +23,7 @@ type
     name*: string
     parent*: TestNode
     children*: seq[TestNode]
-    cxSize*: array[GridDir, Constraint] = [csAuto(), csNone()]  # For width/height
+    cxSize*: array[GridDir, Constraint] = [cx"auto", csNone()]  # For width/height
     cxOffset*: array[GridDir, Constraint] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
@@ -106,8 +106,8 @@ suite "Compute Layout Tests":
 
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFrac(1)),
-        initGridLine(csFrac(1))
+        initGridLine(1'fr),
+        initGridLine(1'fr)
       ]
       parent.gridTemplate.lines[drow] = @[
         initGridLine(100'ux)
@@ -158,8 +158,8 @@ suite "Compute Layout Tests":
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
         initGridLine(100'ux),  # Fixed width column
-        initGridLine(csFrac(1)),     # Fractional column
-        initGridLine(csAuto())       # Auto column
+        initGridLine(1'fr),     # Fractional column
+        initGridLine(cx"auto")       # Auto column
       ]
       parent.gridTemplate.lines[drow] = @[
         initGridLine(100'ux)   # Single row
@@ -229,10 +229,10 @@ suite "Compute Layout Tests":
       # Setup grid
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFrac(1))
+        initGridLine(1'fr)
       ]
       parent.gridTemplate.lines[drow] = @[
-        initGridLine(csFrac(1))
+        initGridLine(1'fr)
       ]
       
       # Grid placement
@@ -271,8 +271,8 @@ suite "Compute Layout Tests":
       # Setup grid with 2 columns
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFrac(1)),
-        initGridLine(csFrac(1))
+        initGridLine(1'fr),
+        initGridLine(1'fr)
       ]
       parent.gridTemplate.autoFlow = grRow
       parent.gridTemplate.autos[drow] = cx"auto"

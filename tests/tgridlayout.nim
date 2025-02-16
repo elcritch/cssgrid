@@ -40,13 +40,24 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
   else:
     node.parent.box
 
-proc newTestNode(name: string, x, y, w, h: float32): TestNode =
+proc newTestNode(name: string): TestNode =
   result = TestNode(
     name: name,
-    box: uiBox(x, y, w, h),
+    box: uiBox(0, 0, 0, 0),
     children: @[],
     frame: Frame(windowSize: uiBox(0, 0, 800, 600))
   )
+
+proc newTestNode(name: string, x, y, w, h: float32): TestNode =
+  result = TestNode(
+    name: name,
+    box: uiBox(0, 0, 0, 0),
+    cxOffset: [csFixed(x), csFixed(y)],
+    cxSize: [csFixed(w), csFixed(h)],
+    children: @[],
+    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
+  )
+
 
 proc addChild(parent, child: TestNode) =
   parent.children.add(child)
@@ -149,9 +160,6 @@ suite "Compute Layout Tests":
 
   test "Grid with mixed units":
     when true:
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
-
       let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
       let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
       let child2 = newTestNode("frac-child", 0, 0, 100, 100)
@@ -196,7 +204,10 @@ suite "Compute Layout Tests":
       check child3.box.w > 0     # Should get minimum required space
 
   test "Grid with content sizing":
-    when false:
+    when true:
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
+
       let parent = newTestNode("content-grid", 0, 0, 400, 300)
       let child1 = newTestNode("content-child1", 0, 0, 150, 100)
       let child2 = newTestNode("content-child2", 0, 0, 100, 100)
@@ -221,7 +232,7 @@ suite "Compute Layout Tests":
       child2.gridItem.column = 2
       child2.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       check child1.box.w >= 150  # Should accommodate content
       check child2.box.w >= 100  # Should accommodate content

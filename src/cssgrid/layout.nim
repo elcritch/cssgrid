@@ -133,7 +133,8 @@ proc computeLineLayout*(
         if totalFracs > 0:
           let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
           grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
-          remSpace -= grdLn.width
+          debugPrint "computeLineLayout:frac: ", "remSpace=", remSpace, "width=", grdLn.width
+          # remSpace -= grdLn.width
       of UiAuto:
         let minSize =
           if i in computedSizes: computedSizes[i].autoSize

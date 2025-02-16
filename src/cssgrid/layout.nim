@@ -506,13 +506,12 @@ proc computeLayout*(node: GridNode, depth: int) =
     let res = node.gridTemplate.computeNodeLayout(node).UiBox
     node.box = res
 
-    # for n in node.children:
-    #   for c in n.children:
+    for n in node.children:
+      for c in n.children:
+        calcBasicConstraint(c)
+        debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
     #     calcBasicConstraint(c, dcol, isXY = false)
     #     calcBasicConstraint(c, drow, isXY = false)
-    for n in node.children:
-      calcBasicConstraintPost(n)
-      debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
     debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
   else:

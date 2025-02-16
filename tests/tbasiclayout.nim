@@ -211,8 +211,8 @@ suite "Basic CSS Layout Tests":
     check child.box.h == 250
 
   test "grand child":
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
       let parent: TestNode = newTestNode("mixed-grid", 0, 0, 400, 300)
       let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
       let child2 = newTestNode("frac-child", 0, 0, 100, 100)

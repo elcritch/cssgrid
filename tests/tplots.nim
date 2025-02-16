@@ -216,8 +216,8 @@ suite "grids":
     parent.children = nodes
     parent.computeLayout()
 
-    printGrid(gridTemplate, cmTerminal)
-    printLayout(parent, cmTerminal)
+    # printGrid(gridTemplate, cmTerminal)
+    # printLayout(parent, cmTerminal)
     saveImage(gridTemplate, parent.box, nodes, "grid-1frx1fr")
 
   test "grid alignment and justification":
@@ -269,8 +269,8 @@ suite "grids":
     parent.children = nodes
     parent.computeLayout()
 
-    printGrid(gridTemplate, cmTerminal)
-    printLayout(parent, cmTerminal)
+    # printGrid(gridTemplate, cmTerminal)
+    # printLayout(parent, cmTerminal)
     saveImage(gridTemplate, parent.box, nodes, "grid-align-and-justify")
 
   writeHtmlSummary()

@@ -236,8 +236,8 @@ suite "Compute Layout Tests":
 
   test "Grid with nested basic constraints":
     when true:
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("nested-grid", 0, 0, 400, 300)
       let gridChild = newTestNode("grid-child", 0, 0, 200, 200)

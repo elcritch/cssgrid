@@ -744,6 +744,7 @@ suite "grids":
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
     checks nodes[0].box == uiBox(0, 0, 50, 50)
+
     checks nodes[1].box == uiBox(0, 50, 50, 50)
     checks nodes[2].box == uiBox(0, 100, 50, 150)
     checks nodes[3].box == uiBox(0, 250, 50, 50)

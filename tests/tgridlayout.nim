@@ -14,14 +14,17 @@ import cssgrid/prettyprints
 import pretty
 
 type
+  Box* = UiBox
+
+type
   TestNode = ref object
-    box*: UiBox
+    box*: Box
     bmin*, bmax*: UiSize
     name*: string
     parent*: TestNode
     children*: seq[TestNode]
-    cxSize*: array[GridDir, Constraint] = [csAuto(), csNone()]  # For width/height
-    cxOffset*: array[GridDir, Constraint] # For x/y positions
+    cxSize*: array[GridDir, Constraint] = [cx"auto", csNone()]  # For width/height
+    cxOffset*: array[GridDir, Constraint] = [cx"auto", cx"auto"] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     gridItem*: GridItem
@@ -37,13 +40,24 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
   else:
     node.parent.box
 
-proc newTestNode(name: string, x, y, w, h: float32): TestNode =
+proc newTestNode(name: string): TestNode =
   result = TestNode(
     name: name,
-    box: uiBox(x, y, w, h),
+    box: uiBox(0, 0, 0, 0),
     children: @[],
     frame: Frame(windowSize: uiBox(0, 0, 800, 600))
   )
+
+proc newTestNode(name: string, x, y, w, h: float32): TestNode =
+  result = TestNode(
+    name: name,
+    box: uiBox(0, 0, 0, 0),
+    cxOffset: [csFixed(x), csFixed(y)],
+    cxSize: [csFixed(w), csFixed(h)],
+    children: @[],
+    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
+  )
+
 
 proc addChild(parent, child: TestNode) =
   parent.children.add(child)
@@ -53,8 +67,8 @@ suite "Compute Layout Tests":
   test "Basic node without grid":
     # Test simple node with basic constraints
     let node = newTestNode("root", 0, 0, 400, 300)
-    node.cxSize[dcol] = csFixed(200)
-    node.cxSize[drow] = csFixed(150)
+    node.cxSize[dcol] = 200'ux
+    node.cxSize[drow] = 150'ux
     
     computeLayout(node, 0)
     
@@ -70,15 +84,15 @@ suite "Compute Layout Tests":
     parent.addChild(child2)
     
     # Set fixed-parent constraint
-    parent.cxSize[dcol] = csFixed(400)  # set fixed parent
-    parent.cxSize[drow] = csFixed(300)  # set fixed parent
+    parent.cxSize[dcol] = 400'ux  # set fixed parent
+    parent.cxSize[drow] = 300'ux  # set fixed parent
 
     # Set percentage-based constraints for children
-    child1.cxSize[dcol] = csPerc(50)  # 50% of parent
-    child1.cxSize[drow] = csPerc(30)  # 30% of parent
+    child1.cxSize[dcol] = 50'pp  # 50% of parent
+    child1.cxSize[drow] = 30'pp  # 30% of parent
     
-    child2.cxSize[dcol] = csPerc(70)  # 70% of parent
-    child2.cxSize[drow] = csPerc(40)  # 40% of parent
+    child2.cxSize[dcol] = 70'pp  # 70% of parent
+    child2.cxSize[drow] = 40'pp  # 40% of parent
     
     computeLayout(parent, 0)
     
@@ -87,10 +101,31 @@ suite "Compute Layout Tests":
     check child2.box.w == 280  # 70% of 400
     check child2.box.h == 120  # 40% of 300
 
-  test "Simple grid layout":
+  test "vertical layout":
     when false:
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      proc buttonItem(self, this: Figuro, idx: int) =
+        Button.new "button":
+          size 1'fr, 50'ux
+          # this.cxMin = [40'ux, 50'ux]
+          fill rgba(66, 177, 44, 197).to(Color).spin(idx.toFloat*20)
+          if idx in [3, 7]:
+            size 0.9'fr, 120'ux
+
+      proc draw*(self: Main) {.slot.} =
+        withWidget(self):
+          fill css"#0000AA"
+          setTitle("Scrolling example")
+          ScrollPane.new "scroll":
+            offset 2'pp, 2'pp
+            cornerRadius 7.0'ux
+            size 96'pp, 90'pp
+            Vertical.new "":
+              offset 10'ux, 10'ux
+              contentHeight cx"auto"
+              for idx in 0 .. 15:
+                buttonItem(self, this, idx)
+
+  test "Simple grid layout":
       let parent = newTestNode("grid-parent", 0, 0, 400, 300)
       let child1 = newTestNode("grid-child1", 0, 0, 100, 100)
       let child2 = newTestNode("grid-child2", 0, 0, 100, 100)
@@ -99,17 +134,10 @@ suite "Compute Layout Tests":
       parent.addChild(child2)
       
       # Setup grid template
-      parent.cxSize[dcol] = csFixed(400)  # set fixed parent
-      parent.cxSize[drow] = csFixed(300)  # set fixed parent
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
 
-      parent.gridTemplate = newGridTemplate()
-      parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFrac(1)),
-        initGridLine(csFrac(1))
-      ]
-      parent.gridTemplate.lines[drow] = @[
-        initGridLine(csFixed(100))
-      ]
+      parseGridTemplateColumns parent.gridTemplate, 1'fr 1'fr
+      parseGridTemplateRows parent.gridTemplate, 100'ux
       
       # Setup grid items
       child1.gridItem = newGridItem()
@@ -120,17 +148,18 @@ suite "Compute Layout Tests":
       child2.gridItem.column = 2
       child2.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       # Children should each take up half the width
       check child1.box.w == 200  # Half of parent width
       check child2.box.w == 200  # Half of parent width
       check child1.box.h == 100  # Fixed height from grid
       check child2.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 200  # Fixed height from grid
 
   test "Grid with mixed units":
-    when false:
-
+    when true:
       let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
       let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
       let child2 = newTestNode("frac-child", 0, 0, 100, 100)
@@ -145,23 +174,12 @@ suite "Compute Layout Tests":
       child3.addChild(child31)
       
       # Setup grid with fixed, fractional and auto tracks
-      parent.cxSize[dcol] = csFixed(400)  # set fixed parent
-      parent.cxSize[drow] = csFixed(300)  # set fixed parent
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
+      child21.cxSize = [50'ux, 50'ux]  # set fixed parent
+      child31.cxSize = [50'ux, 50'ux]  # set fixed parent
 
-      child21.cxSize[dcol] = csFixed(50)  # set fixed parent
-      child21.cxSize[drow] = csFixed(50)  # set fixed parent
-      child31.cxSize[dcol] = csFixed(50)  # set fixed parent
-      child31.cxSize[drow] = csFixed(50)  # set fixed parent
-
-      parent.gridTemplate = newGridTemplate()
-      parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFixed(100)),  # Fixed width column
-        initGridLine(csFrac(1)),     # Fractional column
-        initGridLine(csAuto())       # Auto column
-      ]
-      parent.gridTemplate.lines[drow] = @[
-        initGridLine(csFixed(100))   # Single row
-      ]
+      parseGridTemplateColumns parent.gridTemplate, 100'ux 1'fr auto
+      parseGridTemplateRows parent.gridTemplate, 100'ux
       
       # Place children in grid
       child1.gridItem = newGridItem()
@@ -177,15 +195,16 @@ suite "Compute Layout Tests":
       child3.gridItem.row = 1
       
       # Set minimum content size for auto child
-      # child3.box.w = 100  # This should be respected as minimum width
-      computeLayout(parent, 0)
+      child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
+
+      computeLayout(parent)
       
       check child1.box.w == 100  # Fixed width
       check child2.box.w > 100   # Should get remaining space
       check child3.box.w > 0     # Should get minimum required space
 
   test "Grid with content sizing":
-    when false:
+    when true:
       let parent = newTestNode("content-grid", 0, 0, 400, 300)
       let child1 = newTestNode("content-child1", 0, 0, 150, 100)
       let child2 = newTestNode("content-child2", 0, 0, 100, 100)
@@ -199,7 +218,7 @@ suite "Compute Layout Tests":
         initGridLine(csContentMin())   # Size to min content
       ]
       parent.gridTemplate.lines[drow] = @[
-        initGridLine(csFixed(100))
+        initGridLine(100'ux)
       ]
       
       child1.gridItem = newGridItem()
@@ -210,16 +229,19 @@ suite "Compute Layout Tests":
       child2.gridItem.column = 2
       child2.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       check child1.box.w >= 150  # Should accommodate content
       check child2.box.w >= 100  # Should accommodate content
 
   test "Grid with nested basic constraints":
-    when false:
+    when true:
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
+
       let parent = newTestNode("nested-grid", 0, 0, 400, 300)
       let gridChild = newTestNode("grid-child", 0, 0, 200, 200)
-      let innerChild = newTestNode("inner-child", 0, 0, 100, 100)
+      let innerChild = newTestNode("inner-child")
       
       parent.addChild(gridChild)
       gridChild.addChild(innerChild)
@@ -227,10 +249,10 @@ suite "Compute Layout Tests":
       # Setup grid
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFrac(1))
+        initGridLine(1'fr)
       ]
       parent.gridTemplate.lines[drow] = @[
-        initGridLine(csFrac(1))
+        initGridLine(1'fr)
       ]
       
       # Grid placement
@@ -238,15 +260,11 @@ suite "Compute Layout Tests":
       gridChild.gridItem.column = 1
       gridChild.gridItem.row = 1
       
-      # Setup parent fixed size
-      parent.cxSize[dcol] = csFixed(400)  # set fixed parent
-      parent.cxSize[drow] = csFixed(300)  # set fixed parent
-
       # Inner child with percentage constraint
-      innerChild.cxSize[dcol] = csPerc(50)
-      innerChild.cxSize[drow] = csPerc(50)
+      innerChild.cxSize[dcol] = 50'pp
+      innerChild.cxSize[drow] = 50'pp
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       check innerChild.box.w == 200  # 50% of grid child width
       check innerChild.box.h == 150  # 50% of grid child height
@@ -257,8 +275,8 @@ suite "Compute Layout Tests":
       var children: seq[TestNode]
       
       # Setup grid template
-      parent.cxSize[dcol] = csFixed(400)  # set fixed parent
-      parent.cxSize[drow] = csFixed(300)  # set fixed parent
+      parent.cxSize[dcol] = 400'ux  # set fixed parent
+      parent.cxSize[drow] = 300'ux  # set fixed parent
 
       # Create 4 children
       for i in 1..4:
@@ -269,8 +287,8 @@ suite "Compute Layout Tests":
       # Setup grid with 2 columns
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
-        initGridLine(csFrac(1)),
-        initGridLine(csFrac(1))
+        initGridLine(1'fr),
+        initGridLine(1'fr)
       ]
       parent.gridTemplate.autoFlow = grRow
       parent.gridTemplate.autos[drow] = cx"auto"
@@ -336,15 +354,9 @@ suite "Grid alignment and justification tests":
       child.gridItem = newGridItem()
       child.gridItem.column = pos[0]
       child.gridItem.row = pos[1]
-      child.cxSize[dcol] = csFixed(100)
-      child.cxSize[drow] = csFixed(100)
-      # child.gridItem.justify = some(CxStretch)
-      # child.gridItem.align = some(CxStretch)
+      child.cxSize[dcol] = 100'ux
+      child.cxSize[drow] = 100'ux
     
-    #   child1.gridItem = newGridItem()
-    #   child1.gridItem.column = 1
-    #   child1.gridItem.row = 1
-      
     computeLayout(parent)
     
     # Check all children stretch to their cell size
@@ -397,8 +409,8 @@ suite "Grid alignment and justification tests":
       child.gridItem.row = pos[1]
       child.gridItem.justify = some(CxStart)
       child.gridItem.align = some(CxStart)
-      child.cxSize[dcol] = csFixed(100)
-      child.cxSize[drow] = csFixed(100)
+      child.cxSize[dcol] = 100'ux
+      child.cxSize[drow] = 100'ux
     
     computeLayout(parent)
     
@@ -429,17 +441,17 @@ suite "Grid alignment and justification tests":
     parent.addChild(child3)
     parent.addChild(child4)
     
-    parent.cxSize[dcol] = csFixed(400)
-    parent.cxSize[drow] = csFixed(400)
+    parent.cxSize[dcol] = 400'ux
+    parent.cxSize[drow] = 400'ux
     
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     parent.gridTemplate.lines[drow] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     
     # Place children with end alignment
@@ -450,8 +462,8 @@ suite "Grid alignment and justification tests":
       child.gridItem.row = pos[1]
       child.gridItem.justify = some(CxEnd)
       child.gridItem.align = some(CxEnd)
-      child.cxSize[dcol] = csFixed(100)
-      child.cxSize[drow] = csFixed(100)
+      child.cxSize[dcol] = 100'ux
+      child.cxSize[drow] = 100'ux
     
     computeLayout(parent, 0)
     
@@ -482,17 +494,17 @@ suite "Grid alignment and justification tests":
     parent.addChild(child3)
     parent.addChild(child4)
     
-    parent.cxSize[dcol] = csFixed(400)
-    parent.cxSize[drow] = csFixed(400)
+    parent.cxSize[dcol] = 400'ux
+    parent.cxSize[drow] = 400'ux
     
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     parent.gridTemplate.lines[drow] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     
     # Place children with center alignment
@@ -503,8 +515,8 @@ suite "Grid alignment and justification tests":
       child.gridItem.row = pos[1]
       child.gridItem.justify = some(CxCenter)
       child.gridItem.align = some(CxCenter)
-      child.cxSize[dcol] = csFixed(100)
-      child.cxSize[drow] = csFixed(100)
+      child.cxSize[dcol] = 100'ux
+      child.cxSize[drow] = 100'ux
     
     computeLayout(parent, 0)
     
@@ -535,17 +547,17 @@ suite "Grid alignment and justification tests":
     parent.addChild(child3)
     parent.addChild(child4)
     
-    parent.cxSize[dcol] = csFixed(400)
-    parent.cxSize[drow] = csFixed(400)
+    parent.cxSize[dcol] = 400'ux
+    parent.cxSize[drow] = 400'ux
     
     parent.gridTemplate = newGridTemplate()
     parent.gridTemplate.lines[dcol] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     parent.gridTemplate.lines[drow] = @[
-      initGridLine(csFixed(200)),
-      initGridLine(csFixed(200))
+      initGridLine(200'ux),
+      initGridLine(200'ux)
     ]
     
     # Configure different alignments for each child
@@ -575,8 +587,8 @@ suite "Grid alignment and justification tests":
     
     # Set fixed sizes for all children
     for child in [child1, child2, child3, child4]:
-      child.cxSize[dcol] = csFixed(100)
-      child.cxSize[drow] = csFixed(100)
+      child.cxSize[dcol] = 100'ux
+      child.cxSize[drow] = 100'ux
     
     computeLayout(parent, 0)
     

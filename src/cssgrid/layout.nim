@@ -107,7 +107,10 @@ proc computeLineLayout*(
     "length=", length,
     "fixed=", fixed,
     "freeSpace=", freeSpace,
-    "remSpace=", remSpace,
+    "remSpace=", remSpace
+  debugPrint "computeLineLayout:metrics",
+    "fracTrackIndices=", fracTrackIndices.len(),
+    "autoTrackIndices=", autoTrackIndices.len(),
     "totalFracMin=", totalFracMin,
     "totalAutoMin=", totalAutoMin
 
@@ -130,7 +133,8 @@ proc computeLineLayout*(
         if totalFracs > 0:
           let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
           grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
-          remSpace -= grdLn.width
+          debugPrint "computeLineLayout:frac: ", "remSpace=", remSpace, "width=", grdLn.width
+          # remSpace -= grdLn.width
       of UiAuto:
         let minSize =
           if i in computedSizes: computedSizes[i].autoSize
@@ -393,7 +397,8 @@ proc computeContentSizes*(
         
         # Calculate size recursively including nested children
         # let contentSize = calculateContentSize(child, dir)
-        let contentSize = child.bmin[dir]
+        var contentSize = child.bmin[dir]
+        if contentSize == UiScalar.high: contentSize = 0.UiScalar
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)
@@ -468,8 +473,8 @@ proc computeNodeLayout*(
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
     # prettyLayout(child)
-  debugPrint "COMPUTE POST: "
-  prettyLayout(node)
+  # debugPrint "COMPUTE POST: "
+  # prettyLayout(node)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
@@ -501,10 +506,13 @@ proc computeLayout*(node: GridNode, depth: int) =
     let res = node.gridTemplate.computeNodeLayout(node).UiBox
     node.box = res
 
-    # for n in node.children:
-    #   for c in n.children:
+    for n in node.children:
+      for c in n.children:
+        calcBasicConstraint(c)
+        debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
     #     calcBasicConstraint(c, dcol, isXY = false)
     #     calcBasicConstraint(c, drow, isXY = false)
+
     debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:
@@ -521,6 +529,8 @@ proc computeLayout*(node: GridNode, depth: int) =
 
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)
+  debugPrint "computeLayout:done"
+  printLayout(node)
 
 proc printLayoutShort*(node: GridNode, depth = 0) =
   stdout.styledWriteLine(

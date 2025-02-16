@@ -36,6 +36,32 @@ type
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
+proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
+  if calc == MINSZ and f == UiScalar.high:
+    match node.cxSize[dir]:
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            f = coord
+          _: discard
+      _: discard
+  if calc == MAXSZ and f == UiScalar.low:
+    match node.cxSize[dir]:
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            f = coord
+          _: discard
+      _: discard
+  # if calc == WH and f == UiScalar.high:
+  #   match node.cxMin[dir]:
+  #     UiValue(value):
+  #       match value:
+  #         UiFixed(coord):
+  #           f = coord
+  #         _: discard
+  #     _: discard
+
 proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
@@ -112,6 +138,9 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
       return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
+  node.propogateCalcs(dir, calc, f)
+
+
 proc calculateMin(node: GridNode, calc: CalcKind): UiScalar =
   for n in node.children:
     case calc:
@@ -139,12 +168,12 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar
-      debugPrint "calcBasic: ", "val=", val
+      debugPrint "calcBasicPost: ", "val=", val
       match val:
         UiContentMin():
           res = UiScalar.low()
           for child in node.children:
-            debugPrint "calcBasic:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
+            debugPrint "calcBasicPost:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
             res = max(res, child.box.xy[dir] + child.bmin[dir])
         UiContentMax():
           res = UiScalar.low()
@@ -197,14 +226,17 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     UiEnd:
       discard
 
+  node.propogateCalcs(dir, calc, f)
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
 
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   let parentBox = node.getParentBoxOrWindows()
+  node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)
   node.bmin = uiSize(UiScalar.high,UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
+  debugPrint "calcBasicConstraint:start", "name=", node.name
   calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
   calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
   calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)
@@ -213,9 +245,11 @@ proc calcBasicConstraint*(node: GridNode) =
   calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
   calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
+  printLayout(node)
 
 proc calcBasicConstraintPost*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
+  debugPrint "calcBasicConstraintPost:start", "name=", node.name
   calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
   calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
   # w & h need to run after x & y

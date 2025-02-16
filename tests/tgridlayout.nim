@@ -186,8 +186,9 @@ suite "Compute Layout Tests":
       child3.gridItem.row = 1
       
       # Set minimum content size for auto child
-      # child3.box.w = 100  # This should be respected as minimum width
-      computeLayout(parent, 0)
+      child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
+
+      computeLayout(parent)
       
       check child1.box.w == 100  # Fixed width
       check child2.box.w > 100   # Should get remaining space

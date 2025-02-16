@@ -174,17 +174,27 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
     prettyConstraint(constraint, "", mode)
   mode.withStyle(fgWhite, text = "\n")
   
-  # for i, constraint in node.cxMin:
-  #   let dir = if i == dcol: "minX" else: "minY"
-  #   mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-  #   prettyConstraint(constraint, "", mode)
-  # mode.withStyle(fgWhite, text = "\n")
+  var cnt = 0
 
-  # for i, constraint in node.cxMax:
-  #   let dir = if i == dcol: "maxX" else: "maxY"
-  #   mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-  #   prettyConstraint(constraint, "", mode)
-  # mode.withStyle(fgWhite, text = "\n")
+  cnt = 0
+  for i, constraint in node.cxMin:
+    if constraint != csNone():
+      let dir = if i == dcol: "Xmin" else: "Ymin"
+      mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+      prettyConstraint(constraint, "", mode)
+      cnt.inc()
+  if cnt > 0:
+    mode.withStyle(fgWhite, text = "\n")
+
+  cnt = 0
+  for i, constraint in node.cxMax:
+    if constraint != csNone():
+      let dir = if i == dcol: "Xmax" else: "Ymax"
+      mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
+      prettyConstraint(constraint, "", mode)
+      cnt.inc()
+  if cnt > 0:
+    mode.withStyle(fgWhite, text = "\n")
 
   # Grid template
   if not node.gridTemplate.isNil:

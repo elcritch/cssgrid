@@ -107,7 +107,10 @@ proc computeLineLayout*(
     "length=", length,
     "fixed=", fixed,
     "freeSpace=", freeSpace,
-    "remSpace=", remSpace,
+    "remSpace=", remSpace
+  debugPrint "computeLineLayout:metrics",
+    "fracTrackIndices=", fracTrackIndices.len(),
+    "autoTrackIndices=", autoTrackIndices.len(),
     "totalFracMin=", totalFracMin,
     "totalAutoMin=", totalAutoMin
 

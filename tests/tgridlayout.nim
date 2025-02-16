@@ -169,15 +169,8 @@ suite "Compute Layout Tests":
       child21.cxSize = [50'ux, 50'ux]  # set fixed parent
       child31.cxSize = [50'ux, 50'ux]  # set fixed parent
 
-      parent.gridTemplate = newGridTemplate()
-      parent.gridTemplate.lines[dcol] = @[
-        initGridLine(100'ux),  # Fixed width column
-        initGridLine(1'fr),     # Fractional column
-        initGridLine(cx"auto")       # Auto column
-      ]
-      parent.gridTemplate.lines[drow] = @[
-        initGridLine(100'ux)   # Single row
-      ]
+      parseGridTemplateColumns parent.gridTemplate, 100'ux 1'fr auto
+      parseGridTemplateRows parent.gridTemplate, 100'ux
       
       # Place children in grid
       child1.gridItem = newGridItem()

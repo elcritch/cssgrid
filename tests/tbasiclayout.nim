@@ -214,24 +214,32 @@ suite "Basic CSS Layout Tests":
       prettyPrintWriteMode = cmTerminal
       defer: prettyPrintWriteMode = cmNone
       let parent: TestNode = newTestNode("mixed-grid", 0, 0, 400, 300)
-      # let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
+      let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
       let child2 = newTestNode("frac-child", 0, 0, 100, 100)
       let child21 = newTestNode("frac-grandchild", 0, 0, 50, 50)
-      # let child3 = newTestNode("auto-child", 0, 0, 100, 100)
-      # let child31 = newTestNode("auto-grandchild", 0, 0, 50, 50)
+      let child3 = newTestNode("auto-child", 0, 0, 100, 100)
+      let child31 = newTestNode("auto-grandchild", 0, 0, 50, 50)
       
-      # parent.addChild(child1)
+      parent.addChild(child1)
       parent.addChild(child2)
       child2.addChild(child21)
-      # parent.addChild(child3)
-      # child3.addChild(child31)
+      parent.addChild(child3)
+      child3.addChild(child31)
 
       # # Set minimum content size for auto child
-      # child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
+      child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
 
       computeLayout(parent)
 
+      check parent.cxSize[dcol] == 400'ux
+      check parent.bmin.w == 400.UiScalar
+      check parent.bmax.w == 400.UiScalar
+      check child1.cxSize[dcol] == 100'ux
+      check child2.bmin.w == 100.UiScalar
+      check child2.bmax.w == 100.UiScalar
       check child21.cxSize[dcol] == 50'ux
       check child21.bmin.w == 50.UiScalar
-      # check child31.cxSize[dcol] == 50'ux
-      # check child31.bmin.w == 50.UiScalar
+      check child21.bmax.w == 50.UiScalar
+      check child31.cxSize[dcol] == 50'ux
+      check child31.bmin.w == 50.UiScalar
+      check child31.bmax.w == 50.UiScalar

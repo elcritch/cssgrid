@@ -53,6 +53,14 @@ proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScala
             f = coord
           _: discard
       _: discard
+  # if calc == WH and f == UiScalar.high:
+  #   match node.cxMin[dir]:
+  #     UiValue(value):
+  #       match value:
+  #         UiFixed(coord):
+  #           f = coord
+  #         _: discard
+  #     _: discard
 
 proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows

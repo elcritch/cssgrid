@@ -36,6 +36,24 @@ type
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
+proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
+  if calc == MINSZ and f == UiScalar.high:
+    match node.cxSize[dir]:
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            f = coord
+          _: discard
+      _: discard
+  if calc == MAXSZ and f == UiScalar.low:
+    match node.cxSize[dir]:
+      UiValue(value):
+        match value:
+          UiFixed(coord):
+            f = coord
+          _: discard
+      _: discard
+
 proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
@@ -111,6 +129,9 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
     UiEnd:
       return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
+
+  node.propogateCalcs(dir, calc, f)
+
 
 proc calculateMin(node: GridNode, calc: CalcKind): UiScalar =
   for n in node.children:
@@ -197,6 +218,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     UiEnd:
       discard
 
+  node.propogateCalcs(dir, calc, f)
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
 

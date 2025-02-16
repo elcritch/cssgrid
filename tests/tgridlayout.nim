@@ -144,6 +144,8 @@ suite "Compute Layout Tests":
       check child2.box.w == 200  # Half of parent width
       check child1.box.h == 100  # Fixed height from grid
       check child2.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 200  # Fixed height from grid
 
   test "Grid with mixed units":
       prettyPrintWriteMode = cmTerminal

@@ -230,9 +230,8 @@ suite "Basic CSS Layout Tests":
       # child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
 
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
 
       check child21.cxSize[dcol] == 50'ux
-      # check child21.bmin.w == 50.UiScalar
+      check child21.bmin.w == 50.UiScalar
       # check child31.cxSize[dcol] == 50'ux
       # check child31.bmin.w == 50.UiScalar

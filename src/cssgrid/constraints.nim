@@ -31,13 +31,13 @@ type
       discard
 
   Constraints* = enum
+    UiNone
     UiValue
     UiMin
     UiMax
     UiAdd
     UiSub
     UiMinMax
-    UiNone
     UiEnd
 
   Constraint* = object

@@ -205,6 +205,7 @@ proc calcBasicConstraint*(node: GridNode) =
   let parentBox = node.getParentBoxOrWindows()
   node.bmin = uiSize(UiScalar.high,UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
+  debugPrint "calcBasicConstraint:start", "name=", node.name
   calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
   calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
   calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)
@@ -213,9 +214,11 @@ proc calcBasicConstraint*(node: GridNode) =
   calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
   calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
+  printLayout(node)
 
 proc calcBasicConstraintPost*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
+  debugPrint "calcBasicConstraintPost:start", "name=", node.name
   calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
   calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
   # w & h need to run after x & y

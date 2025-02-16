@@ -90,6 +90,30 @@ suite "Compute Layout Tests":
     check child2.box.w == 280  # 70% of 400
     check child2.box.h == 120  # 40% of 300
 
+  test "vertical layout":
+    when false:
+      proc buttonItem(self, this: Figuro, idx: int) =
+        Button.new "button":
+          size 1'fr, 50'ux
+          # this.cxMin = [40'ux, 50'ux]
+          fill rgba(66, 177, 44, 197).to(Color).spin(idx.toFloat*20)
+          if idx in [3, 7]:
+            size 0.9'fr, 120'ux
+
+      proc draw*(self: Main) {.slot.} =
+        withWidget(self):
+          fill css"#0000AA"
+          setTitle("Scrolling example")
+          ScrollPane.new "scroll":
+            offset 2'pp, 2'pp
+            cornerRadius 7.0'ux
+            size 96'pp, 90'pp
+            Vertical.new "":
+              offset 10'ux, 10'ux
+              contentHeight cx"auto"
+              for idx in 0 .. 15:
+                buttonItem(self, this, idx)
+
   test "Simple grid layout":
       prettyPrintWriteMode = cmTerminal
       defer: prettyPrintWriteMode = cmNone

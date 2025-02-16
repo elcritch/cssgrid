@@ -510,6 +510,10 @@ proc computeLayout*(node: GridNode, depth: int) =
     #   for c in n.children:
     #     calcBasicConstraint(c, dcol, isXY = false)
     #     calcBasicConstraint(c, drow, isXY = false)
+    for n in node.children:
+      calcBasicConstraintPost(n)
+      debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
+
     debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:

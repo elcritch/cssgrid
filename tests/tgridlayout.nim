@@ -165,13 +165,9 @@ suite "Compute Layout Tests":
       child3.addChild(child31)
       
       # Setup grid with fixed, fractional and auto tracks
-      parent.cxSize[dcol] = 400'ux  # set fixed parent
-      parent.cxSize[drow] = 300'ux  # set fixed parent
-
-      child21.cxSize[dcol] = 50'ux  # set fixed parent
-      child21.cxSize[drow] = 50'ux  # set fixed parent
-      child31.cxSize[dcol] = 50'ux  # set fixed parent
-      child31.cxSize[drow] = 50'ux  # set fixed parent
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
+      child21.cxSize = [50'ux, 50'ux]  # set fixed parent
+      child31.cxSize = [50'ux, 50'ux]  # set fixed parent
 
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[

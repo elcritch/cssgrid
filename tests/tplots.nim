@@ -22,7 +22,7 @@ type
     parent*: GridNode
     gridItem*: GridItem
     gridTemplate*: GridTemplate
-    cxSize*: array[GridDir, Constraint]  # For width/height
+    cxSize*: array[GridDir, Constraint] = [csAuto(), csAuto()]  # For width/height
     cxOffset*: array[GridDir, Constraint] # For x/y positions
     cxMin*: array[GridDir, Constraint]  # For width/height
     cxMax*: array[GridDir, Constraint] # For x/y positions
@@ -109,12 +109,18 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
 
   var nodes = newSeq[GridNode](cnt)
 
-  var parent = GridNode()
+  var parent = GridNode(name: "parent")
   parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
   assert parent is GridNode
-  parent.box = uiBox(0, 0,
-                  60*(gridTemplate.columns().len().float-1),
-                  33*(gridTemplate.rows().len().float-1))
+  # parent.box = uiBox(0, 0,
+  parent.cxOffset = [
+                  csFixed(0),
+                  csFixed(0)
+  ]
+  parent.cxSize = [
+                  csFixed(60*(gridTemplate.columns().len().float-1)),
+                  csFixed(33*(gridTemplate.rows().len().float-1))
+  ]
 
   # item a
   var itema = newGridItem()
@@ -180,9 +186,14 @@ suite "grids":
 
     var parent = GridNode()
     assert parent is GridNode
-    parent.box = uiBox(0, 0,
-                    60*(gridTemplate.columns().len().float-1),
-                    33*(gridTemplate.rows().len().float-1))
+    parent.cxOffset = [
+                  csFixed(0),
+                  csFixed(0)
+    ]
+    parent.cxSize = [
+                  csFixed(60*(gridTemplate.columns().len().float-1)),
+                  csFixed(33*(gridTemplate.rows().len().float-1))
+    ]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
 
     # item a
@@ -203,7 +214,7 @@ suite "grids":
 
     # ==== process grid ====
     parent.children = nodes
-    parent.computeLayout(0)
+    parent.computeLayout()
 
     printGrid(gridTemplate, cmTerminal)
     printLayout(parent, cmTerminal)

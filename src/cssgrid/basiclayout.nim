@@ -139,12 +139,12 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar
-      debugPrint "calcBasic: ", "val=", val
+      debugPrint "calcBasicPost: ", "val=", val
       match val:
         UiContentMin():
           res = UiScalar.low()
           for child in node.children:
-            debugPrint "calcBasic:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
+            debugPrint "calcBasicPost:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
             res = max(res, child.box.xy[dir] + child.bmin[dir])
         UiContentMax():
           res = UiScalar.low()
@@ -203,6 +203,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   let parentBox = node.getParentBoxOrWindows()
+  node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)
   node.bmin = uiSize(UiScalar.high,UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
   debugPrint "calcBasicConstraint:start", "name=", node.name

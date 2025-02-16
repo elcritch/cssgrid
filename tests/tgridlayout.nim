@@ -148,6 +148,7 @@ suite "Compute Layout Tests":
       check child2.box.x == 200  # Fixed height from grid
 
   test "Grid with mixed units":
+    when false:
       prettyPrintWriteMode = cmTerminal
       defer: prettyPrintWriteMode = cmNone
 

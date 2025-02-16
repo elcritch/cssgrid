@@ -472,8 +472,8 @@ proc computeNodeLayout*(
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
     # prettyLayout(child)
-  debugPrint "COMPUTE POST: "
-  prettyLayout(node)
+  # debugPrint "COMPUTE POST: "
+  # prettyLayout(node)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
@@ -525,6 +525,8 @@ proc computeLayout*(node: GridNode, depth: int) =
 
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)
+  debugPrint "computeLayout:done"
+  printLayout(node)
 
 proc printLayoutShort*(node: GridNode, depth = 0) =
   stdout.styledWriteLine(

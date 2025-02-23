@@ -527,7 +527,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)
-  debugPrint "COMPUTELAYOUT:DONE"
+  debugPrint "COMPUTELAYOUT:done"
   printLayout(node)
 
 proc printLayoutShort*(node: GridNode, depth = 0) =

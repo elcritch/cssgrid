@@ -523,13 +523,11 @@ proc computeLayout*(node: GridNode, depth: int) =
       calcBasicConstraintPost(n)
       debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
-  # debugPrint "computeLayout:post: ",
-  #   name = node.name, box = node.box.repr, prevSize = node.prevSize.repr, children = node.children.mapIt((it.name, it.box.repr))
   calcBasicConstraintPost(node)
 
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)
-  debugPrint "computeLayout:done"
+  debugPrint "COMPUTELAYOUT:done"
   printLayout(node)
 
 proc printLayoutShort*(node: GridNode, depth = 0) =

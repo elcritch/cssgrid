@@ -76,7 +76,12 @@ suite "Compute Layout Tests":
     check node.box.h == 150
 
   test "Parent with basic constrained children":
-    let parent = newTestNode("parent", 0, 0, 400, 300)
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
+    let frame = Frame(windowSize: uiBox(0,0, 400, 300))
+    let parent = newTestNode("parent") #, 0, 0, 400, 300)
+    parent.frame = frame
     let child1 = newTestNode("child1", 10, 10, 100, 100)
     let child2 = newTestNode("child2", 10, 120, 100, 100)
     
@@ -84,8 +89,10 @@ suite "Compute Layout Tests":
     parent.addChild(child2)
     
     # Set fixed-parent constraint
-    parent.cxSize[dcol] = 400'ux  # set fixed parent
-    parent.cxSize[drow] = 300'ux  # set fixed parent
+    parent.cxSize[dcol] = csAuto()
+    parent.cxSize[drow] = csAuto()
+    # parent.cxSize[dcol] = 400'ux  # set fixed parent
+    # parent.cxSize[drow] = 300'ux  # set fixed parent
 
     # Set percentage-based constraints for children
     child1.cxSize[dcol] = 50'pp  # 50% of parent
@@ -94,7 +101,7 @@ suite "Compute Layout Tests":
     child2.cxSize[dcol] = 70'pp  # 70% of parent
     child2.cxSize[drow] = 40'pp  # 40% of parent
     
-    computeLayout(parent, 0)
+    computeLayout(parent)
     
     check child1.box.w == 200  # 50% of 400
     check child1.box.h == 90   # 30% of 300
@@ -297,7 +304,7 @@ suite "Compute Layout Tests":
       for child in children:
         child.gridItem = newGridItem()
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
 
       echo "\nLayout: "
       prettyprints.printLayout(parent)
@@ -465,7 +472,7 @@ suite "Grid alignment and justification tests":
       child.cxSize[dcol] = 100'ux
       child.cxSize[drow] = 100'ux
     
-    computeLayout(parent, 0)
+    computeLayout(parent)
     
     # Check all children maintain their size
     for child in [child1, child2, child3, child4]:
@@ -518,7 +525,7 @@ suite "Grid alignment and justification tests":
       child.cxSize[dcol] = 100'ux
       child.cxSize[drow] = 100'ux
     
-    computeLayout(parent, 0)
+    computeLayout(parent)
     
     # Check all children maintain their size
     for child in [child1, child2, child3, child4]:
@@ -590,7 +597,7 @@ suite "Grid alignment and justification tests":
       child.cxSize[dcol] = 100'ux
       child.cxSize[drow] = 100'ux
     
-    computeLayout(parent, 0)
+    computeLayout(parent)
     
     # Check all children maintain their size
     for child in [child1, child2, child3, child4]:

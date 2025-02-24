@@ -168,18 +168,40 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar
-      debugPrint "calcBasicPost: ", "val=", val
+      debugPrint "calcBasicPost: ", "name=", node.name, "val=", val
       match val:
         UiContentMin():
-          res = UiScalar.low()
-          for child in node.children:
-            debugPrint "calcBasicPost:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
-            res = max(res, child.box.xy[dir] + child.bmin[dir])
+          if not node.gridTemplate.isNil:
+            res = UiScalar.low()
+            for child in node.children:
+              debugPrint "calcBasicPost:grid:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
+              res = max(res, child.box.xy[dir] + child.bmin[dir])
+          else:
+            # I'm not sure about this, it's sorta hacky
+            # but implemtn min/max content for non-grid nodes...
+            res = UiScalar.high()
+            for child in node.children:
+              debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
+              let childScreenSize = child.box.wh[dir]
+              let childScreenMin = child.bmin[dir]
+              debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
+              res = min(res, min(childScreenSize, childScreenMin))
         UiContentMax():
-          res = UiScalar.low()
-          for child in node.children:
-            if child.bmin[dir] != UiScalar.low:
-              res = max(res, child.box.xy[dir] + child.bmax[dir])
+          if not node.gridTemplate.isNil:
+            res = UiScalar.low()
+            for child in node.children:
+              if child.bmin[dir] != UiScalar.low:
+                res = max(res, child.box.xy[dir] + child.bmax[dir])
+          else:
+            # I'm not sure about this, it's sorta hacky
+            # but implemtn min/max content for non-grid nodes...
+            res = UiScalar.low()
+            for child in node.children:
+              debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
+              let childScreenSize = child.box.xy[dir] + child.box.wh[dir]
+              let childScreenMax = child.box.xy[dir] + child.bmax[dir]
+              debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreeMax=", childScreenMax
+              res = max(res, max(childScreenSize, childScreenMax))
         _:
           res = f
       res

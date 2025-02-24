@@ -567,6 +567,8 @@ suite "grids":
     checks nodes[1].box == uiBox(50, 0, 100, 50)
 
   test "compute layout overflow (columns)":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 

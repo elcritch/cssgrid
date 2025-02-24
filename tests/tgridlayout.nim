@@ -123,10 +123,10 @@ suite "Compute Layout Tests":
     scrollpane.cxSize = [96'pp, 90'pp]
 
     scrollbody.cxOffset = [csAuto(), csAuto()]
-    scrollbody.cxSize = [csAuto(), csAuto()]
+    scrollbody.cxSize = [csAuto(), cx"max-content"]
 
     vertical.cxOffset = [10'ux, 10'ux]
-    vertical.cxSize = [csAuto(), cx"max-content"]
+    vertical.cxSize = [csAuto(), cx"min-content"]
     parseGridTemplateColumns vertical.gridTemplate, 1'fr
     vertical.gridTemplate.autoFlow = grRow
     vertical.gridTemplate.autos[drow] = csAuto()
@@ -144,7 +144,7 @@ suite "Compute Layout Tests":
     check scrollpane.box.w == 384
     check scrollpane.box.h == 270
     check scrollbody.box.w == 384
-    check scrollbody.box.h == 270
+    check scrollbody.box.h == 950
     check vertical.box.w == 374
     check vertical.box.h == UiScalar(50*14 + 120*2)
 

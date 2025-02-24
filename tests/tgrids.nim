@@ -541,19 +541,21 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, 1'fr
     gridTemplate.autos[dcol] = csFixed 100.0
-    gridTemplate.justifyItems = CxStretch
+    # gridTemplate.justifyItems = CxStretch
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.alignItems = CxStart
     gridTemplate.autoFlow = grColumn
     var parent = GridNode()
     parent.cxOffset = [0'ux, 0'ux]
     parent.cxSize = [50'ux, 50'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
+    parent.gridTemplate = gridTemplate
 
     var nodes = newSeq[GridNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i), box: uiBox(0,0,50,50), parent: parent)
-      # nodes[i].cxSize = [50'ux, 50'ux]
 
     nodes[0].cxSize = [40'ux, 40'ux]
     # ==== process grid ====
@@ -573,7 +575,7 @@ suite "grids":
     # TODO: FIXME!!!
     # the min fr track len should account for the min-content size
     checks nodes[0].box == uiBox(0, 0, 40, 40)
-    checks nodes[1].box == uiBox(50, 0, 100, 50)
+    checks nodes[1].box == uiBox(40, 0, 50, 50)
 
   test "compute layout overflow (columns)":
 

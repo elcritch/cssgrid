@@ -567,8 +567,8 @@ suite "grids":
     checks nodes[1].box == uiBox(50, 0, 100, 50)
 
   test "compute layout overflow (columns)":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 
@@ -578,8 +578,8 @@ suite "grids":
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
     var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
-    parent.cxSize[dcol] = csContentMin()  # set fixed parent
-    # parent.cxMin[dcol] = csContentMin()  # set fixed parent
+    parent.cxSize[dcol] = cx"max-content" # set fixed parent
+    # parent.cxSize[dcol] = cx"auto" # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
 
@@ -667,7 +667,7 @@ suite "grids":
     gridTemplate.autoFlow = grRow
     var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
-    parent.cxSize[drow] = csContentMin()  # set fixed parent
+    parent.cxSize[drow] = cx"max-content" # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 600, 50))
 
     let contentSize = uiSize(30, 30)
@@ -718,7 +718,8 @@ suite "grids":
     gridTemplate.autoFlow = grRow
     var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
-    parent.cxSize[drow] = csContentMin()  # set fixed parent
+    parent.cxSize[drow] = cx"max-content"  # set fixed parent
+    # parent.cxSize[drow] = cx"auto"  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 50, 400))
 
     var nodes = newSeq[GridNode](8)

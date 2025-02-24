@@ -75,7 +75,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
       match val:
         UiAuto():
           if calc == WH:
-            res = max(pf - f0, 0)
+            res = max(pf - max(f0, 0), 0)
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
@@ -95,7 +95,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
           res = UiScalar.low()
           for child in node.children:
             res = max(res, child.bmax[dir])
-      debugPrint "calcBasic: ", node.name, "calc=", calc, "val: ", val, " res: ", res
+      debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -110,7 +110,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
     of MAXSZ:
       node.cxMax[dir]
 
-  debugPrint "csValue: ", csValue, "calc: ", calc
+  debugPrint "calcBasicCx", "csValue: ", csValue, "dir: ", dir, "calc: ", calc
   match csValue:
     UiNone:
       discard
@@ -171,35 +171,25 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       debugPrint "calcBasicPost: ", "name=", node.name, "val=", val
       match val:
         UiContentMin():
-          if not node.gridTemplate.isNil:
-            res = UiScalar.low()
-            for child in node.children:
-              debugPrint "calcBasicPost:grid:child: ", "xy=", child.box.xy[dir], "bmin=", child.bmin[dir]
-              res = max(res, child.box.xy[dir] + child.bmin[dir])
-          else:
             # I'm not sure about this, it's sorta hacky
             # but implemtn min/max content for non-grid nodes...
             res = UiScalar.high()
             for child in node.children:
               debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
-              let childScreenSize = child.box.wh[dir]
-              let childScreenMin = child.bmin[dir]
+              let childXY = child.box.xy[dir]
+              let childScreenSize = child.box.wh[dir] + childXY
+              let childScreenMin = child.bmin[dir] + childXY
               debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
               res = min(res, min(childScreenSize, childScreenMin))
         UiContentMax():
-          if not node.gridTemplate.isNil:
-            res = UiScalar.low()
-            for child in node.children:
-              if child.bmin[dir] != UiScalar.low:
-                res = max(res, child.box.xy[dir] + child.bmax[dir])
-          else:
             # I'm not sure about this, it's sorta hacky
             # but implemtn min/max content for non-grid nodes...
             res = UiScalar.low()
             for child in node.children:
               debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
-              let childScreenSize = child.box.xy[dir] + child.box.wh[dir]
-              let childScreenMax = child.box.xy[dir] + child.bmax[dir]
+              let childXY =  child.box.xy[dir]
+              let childScreenSize = child.box.wh[dir] + childXY 
+              let childScreenMax = child.bmax[dir] + childXY 
               debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreeMax=", childScreenMax
               res = max(res, max(childScreenSize, childScreenMax))
         _:

@@ -107,8 +107,8 @@ suite "Compute Layout Tests":
     check child2.box.h == 120  # 40% of 300
 
   test "vertical layout":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
 
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
     let scrollpane = newTestNode("scrollpane")
@@ -126,7 +126,7 @@ suite "Compute Layout Tests":
     scrollbody.cxSize = [csAuto(), cx"max-content"]
 
     vertical.cxOffset = [10'ux, 10'ux]
-    vertical.cxSize = [csAuto(), cx"min-content"]
+    vertical.cxSize = [csAuto(), cx"max-content"]
     parseGridTemplateColumns vertical.gridTemplate, 1'fr
     vertical.gridTemplate.autoFlow = grRow
     vertical.gridTemplate.autos[drow] = csAuto()

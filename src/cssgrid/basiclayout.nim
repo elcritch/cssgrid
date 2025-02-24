@@ -110,7 +110,7 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
     of MAXSZ:
       node.cxMax[dir]
 
-  debugPrint "calcBasicCx", "csValue: ", csValue, "dir: ", dir, "calc: ", calc
+  debugPrint "calcBasicCx", "name=", node.name, "csValue: ", csValue, "dir: ", dir, "calc: ", calc
   match csValue:
     UiNone:
       discard

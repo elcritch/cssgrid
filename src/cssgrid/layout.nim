@@ -75,6 +75,8 @@ proc computeLineLayout*(
             if i in computedSizes:
               fixed += computedSizes[i].maxContent
           UiFrac(frac):
+            if i in computedSizes:
+              debugPrint "computeLineLayout", "computedSizes[i]=", computedSizes[i].minContent
             totalFracs += frac
             fracTrackIndices.add(i)
           UiAuto():
@@ -468,6 +470,7 @@ proc computeNodeLayout*(
   let computedSizes = gridTemplate.computeContentSizes(node.children)
 
   debugPrint "GRID:CS: ", "box=", $box
+  debugPrint "GRID:computedContentSizes: ", computedSizes
   printGrid(gridTemplate)
   gridTemplate.computeTracks(box, computedSizes)
   debugPrint "GRID:ComputedTracks: "

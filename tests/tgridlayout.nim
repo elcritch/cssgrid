@@ -106,7 +106,49 @@ suite "Compute Layout Tests":
     check child2.box.w == 280  # 70% of 400
     check child2.box.h == 120  # 40% of 300
 
-  test "vertical layout":
+  test "vertical layout auto":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+
+    let parent = newTestNode("grid-parent", 0, 0, 400, 300)
+    let scrollpane = newTestNode("scrollpane")
+    let scrollbody = newTestNode("scrollbody")
+    let vertical = newTestNode("vertical")
+
+    parent.addChild(scrollpane)
+    scrollpane.addChild(scrollbody)
+    scrollbody.addChild(vertical)
+
+    scrollpane.cxOffset = [2'pp, 2'pp]
+    scrollpane.cxSize = [96'pp, 90'pp]
+
+    scrollbody.cxOffset = [csAuto(), csAuto()]
+    scrollbody.cxSize = [csAuto(), cx"max-content"]
+
+    vertical.cxOffset = [10'ux, 10'ux]
+    vertical.cxSize = [csAuto(), cx"max-content"]
+    parseGridTemplateColumns vertical.gridTemplate, 1'fr
+    vertical.gridTemplate.autoFlow = grRow
+    vertical.gridTemplate.autos[drow] = csAuto()
+
+    for i in 0..15:
+      let child = newTestNode("grid-child-" & $i, 0, 0, 100, 100)
+      child.cxSize = [1'fr, 50'ux]
+      if i in [3, 7]:
+        child.cxSize = [0.9'fr, 120'ux]
+      
+      vertical.addChild(child)
+
+    computeLayout(parent)
+
+    check scrollpane.box.w == 384
+    check scrollpane.box.h == 270
+    check scrollbody.box.w == 384
+    check scrollbody.box.h == 950
+    check vertical.box.w == 374
+    check vertical.box.h == UiScalar(50*14 + 120*2)
+
+  test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
 

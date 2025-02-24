@@ -116,7 +116,7 @@ suite "Compute Layout Tests":
     parent.addChild(vertical)
 
     parseGridTemplateColumns vertical.gridTemplate, 1'fr
-    vertical.cxSize = [75'pp, 100'pp]
+    vertical.cxSize = [75'pp, 80'pp]
     vertical.gridTemplate.autoFlow = grRow
     vertical.gridTemplate.autos[drow] = csAuto()
     vertical.gridTemplate.justifyItems = CxCenter
@@ -130,7 +130,7 @@ suite "Compute Layout Tests":
     computeLayout(parent)
 
     check vertical.box.w == 300
-    check vertical.box.h == 300
+    check vertical.box.h == 240
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

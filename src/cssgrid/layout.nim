@@ -13,13 +13,17 @@ type
   ComputedTrackSize* = object of ComputedSize
 
 proc computeLineOverflow*(
-    lines: var seq[GridLine],
-    computedSizes: Table[int, ComputedTrackSize]
+    dir: GridDir,
+    lines: array[GridDir, seq[GridLine]],
+    computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
 ): UiScalar =
+  let lines = lines[dir]
+  let computedSizes = computedSizes[dir]
   for i, grdLn in lines:
     if grdLn.isAuto:
       match grdLn.track:
         UiValue(value):
+          debugPrint "computeLineOverflow", "trackCxValue=", value
           match value:
             UiFixed(coord):
               result += coord
@@ -38,10 +42,11 @@ proc computeLineOverflow*(
                 result += computedSizes[i].autoSize
         _: discard
 
-  debugPrint "computeLineOverflow:post: ", result
+  debugPrint "computeLineOverflow:post: ", "dir=", dir, "overflow=", result
 
 proc computeLineLayout*(
-    lines: var seq[GridLine],
+    lines: var seq[GridLine];
+    dir: GridDir,
     computedSizes: Table[int, ComputedTrackSize],  # New parameter for computed sizes
     length: UiScalar,
     spacing: UiScalar,
@@ -104,11 +109,13 @@ proc computeLineLayout*(
     remSpace = 0.0.UiScalar
 
   debugPrint "computeLineLayout:metrics",
+    "dir=", dir,
     "length=", length,
     "fixed=", fixed,
     "freeSpace=", freeSpace,
     "remSpace=", remSpace
   debugPrint "computeLineLayout:metrics",
+    "dir=", dir,
     "fracTrackIndices=", fracTrackIndices.len(),
     "autoTrackIndices=", autoTrackIndices.len(),
     "totalFracMin=", totalFracMin,
@@ -170,23 +177,27 @@ proc computeTracks*(
 ) =
   # The free space is calculated after any non-flexible items. In 
   prettyGridTemplate(grid)
-  grid.overflowSizes[dcol] = computeLineOverflow(grid.lines[dcol], computedSizes[dcol])
-  grid.overflowSizes[drow] = computeLineOverflow(grid.lines[drow], computedSizes[drow])
+  grid.overflowSizes[dcol] = computeLineOverflow(dcol, grid.lines, computedSizes)
+  grid.overflowSizes[drow] = computeLineOverflow(drow, grid.lines, computedSizes)
 
   var
     colLen = contentSize.w
     rowLen = contentSize.h
 
-  colLen += grid.overflowSizes[dcol]
-  rowLen += grid.overflowSizes[drow]
+  colLen = max(colLen, grid.overflowSizes[dcol])
+  rowLen = max(rowLen, grid.overflowSizes[drow])
+
+  debugPrint "computeTracks:lengths:", "contentSize=", contentSize, "grid.overflowSizes=", grid.overflowSizes
 
   # Pass computed sizes to layout
   grid.lines[dcol].computeLineLayout(
+    dcol,
     computedSizes[dcol],
     length=colLen,
     spacing=grid.gaps[dcol]
   )
   grid.lines[drow].computeLineLayout(
+    drow,
     computedSizes[drow],
     length=rowLen,
     spacing=grid.gaps[drow]
@@ -268,7 +279,7 @@ proc computeBox*(
     let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
     let cvw = min(contentSize.`v`, rvw)
-    debugPrint "calcBoxFor: ", "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
+    debugPrint "calcBoxFor:", "node=", node.name, "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
     case `axis`:
     of CxStretch:
       result.`v` = rvw
@@ -519,9 +530,9 @@ proc computeLayout*(node: GridNode, depth: int) =
       computeLayout(n, depth + 1)
 
     # update childrens
-    for n in node.children:
-      calcBasicConstraintPost(n)
-      debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
+    # for n in node.children:
+    #   calcBasicConstraintPost(n)
+    #   debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
   calcBasicConstraintPost(node)
 

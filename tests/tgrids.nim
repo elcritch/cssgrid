@@ -534,8 +534,10 @@ suite "grids":
     checks nodes[3].box == uiBox(0, 300, 100, 100)
 
   test "compute layout auto flow overflow (colums)":
-    var gridTemplate: GridTemplate
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
 
+    var gridTemplate: GridTemplate
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, 1'fr
     gridTemplate.autos[dcol] = csFixed 100.0
@@ -551,6 +553,7 @@ suite "grids":
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i), box: uiBox(0,0,50,50))
 
+    nodes[0].cxSize = [50'ux, 50'ux]
     # ==== process grid ====
     parent.children = nodes
     discard gridTemplate.computeNodeLayout(parent)
@@ -567,8 +570,6 @@ suite "grids":
     checks nodes[1].box == uiBox(50, 0, 100, 50)
 
   test "compute layout overflow (columns)":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
 

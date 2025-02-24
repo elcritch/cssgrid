@@ -553,7 +553,7 @@ suite "grids":
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = GridNode(name: "b" & $(i), box: uiBox(0,0,50,50), parent: parent)
-      nodes[i].cxSize = [50'ux, 50'ux]
+      # nodes[i].cxSize = [50'ux, 50'ux]
 
     nodes[0].cxSize = [40'ux, 40'ux]
     # ==== process grid ====

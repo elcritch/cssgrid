@@ -11,74 +11,7 @@ import cssgrid/prettyprints
 import pretty
 import macros
 
-
-proc toVal*[T](v: T): float =
-  when distinctBase(UiScalar) is SomeFloat:
-    v
-  else:
-    trunc(v)
-
-type
-  TestNode* = ref object
-    name: string
-    box: UiBox
-    bmin, bmax: UiSize
-    gridItem: GridItem
-    parent*: TestNode
-    cxSize*: array[GridDir, Constraint] = [cx"auto", csNone()]  # For width/height
-    cxOffset*: array[GridDir, Constraint] = [cx"auto", cx"auto"] # For x/y positions
-    cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    children: seq[TestNode]
-    gridTemplate: GridTemplate
-    frame*: Frame
-
-  Frame = ref object
-    windowSize*: UiBox
-
-proc `box=`*[T](v: T, box: UiBox) = 
-  v.box = box
-
-template getParentBoxOrWindows*(node: TestNode): UiBox =
-  if node.parent.isNil:
-    node.frame.windowSize
-  else:
-    node.parent.box
-
-proc addChild(parent, child: TestNode) =
-  parent.children.add(child)
-  child.parent = parent
-
-template printChildrens(start = 0) =
-  for i in start ..< nodes.len():
-    # echo "child:cols: ", nodes[i].id, " :: ", nodes[i].gridItem.span[dcol].repr, " x ", nodes[i].gridItem.span[drow].repr
-    echo "\tchild:box: ", nodes[i].name, " => ", nodes[i].box, " span: ", nodes[i].gridItem.span.repr
-
-template checkUiFloats(af, bf, ln, ls) =
-  if abs(af.float-bf.float) >= 1.0e-3:
-    checkpoint(`ln` & ":\n\tCheck failed: " & `ls` & "\n\tfield: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
-    fail()
-
-macro checks(args: untyped{nkInfix}) =
-  let a = args[1]
-  let b = args[2]
-  let ln = args.lineinfo()
-  let ls = args.repr()
-  result = quote do:
-
-    when `a` is SomeFloat:
-      if abs(`a`-`b`) >= 1.0e-3:
-        checkpoint(`ln` & ": Check failed: " & `ls` & " value was: " & $`a` & " expected: " & $`b`)
-        fail()
-    when `a` is UiBox:
-      checkUiFloats(`a`.x,`b`.x, `ln`, `ls`)
-      checkUiFloats(`a`.y,`b`.y, `ln`, `ls`)
-      checkUiFloats(`a`.w,`b`.w, `ln`, `ls`)
-      checkUiFloats(`a`.h,`b`.h, `ln`, `ls`)
-    when `a` is UiSize:
-      checkUiFloats(`a`.w,`b`.w, `ln`, `ls`)
-      checkUiFloats(`a`.h,`b`.h, `ln`, `ls`)
-  result.copyLineInfo(args)
+import commontestutils
 
 suite "grids":
 
@@ -185,17 +118,17 @@ suite "grids":
     tmpl.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     let gt = tmpl
     # print "grid template: ", gridTemplate
-    checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 40.0
-    checks gt.lines[dcol][2].start.float == 90.0
-    checks gt.lines[dcol][3].start.float == 910.0
-    checks gt.lines[dcol][4].start.float == 960.0
-    checks gt.lines[dcol][5].start.float == 1000.0
+    checks gt.lines[dcol][0].start.float, 0.0
+    checks gt.lines[dcol][1].start.float, 40.0
+    checks gt.lines[dcol][2].start.float, 90.0
+    checks gt.lines[dcol][3].start.float, 910.0
+    checks gt.lines[dcol][4].start.float, 960.0
+    checks gt.lines[dcol][5].start.float, 1000.0
 
-    checks gt.lines[drow][0].start.float == 0.0
-    checks gt.lines[drow][1].start.float == 250.0
-    checks gt.lines[drow][2].start.float == 350.0
-    checks gt.lines[drow][3].start.float == 1000.0
+    checks gt.lines[drow][0].start.float, 0.0
+    checks gt.lines[drow][1].start.float, 250.0
+    checks gt.lines[drow][2].start.float, 350.0
+    checks gt.lines[drow][3].start.float, 1000.0
     # echo "grid template: ", repr tmpl
     
   test "compute others":
@@ -215,17 +148,17 @@ suite "grids":
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # print "grid template: ", gt
-    checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 50.0
-    checks gt.lines[dcol][2].start.float == 110.0
-    checks gt.lines[dcol][3].start.float == 890.0
-    checks gt.lines[dcol][4].start.float == 950.0
-    checks gt.lines[dcol][5].start.float == 1000.0
+    check gt.lines[dcol][0].start.float == 0.0
+    check gt.lines[dcol][1].start.float == 50.0
+    check gt.lines[dcol][2].start.float == 110.0
+    check gt.lines[dcol][3].start.float == 890.0
+    check gt.lines[dcol][4].start.float == 950.0
+    check gt.lines[dcol][5].start.float == 1000.0
 
-    checks gt.lines[drow][0].start.float == 0.0
-    checks gt.lines[drow][1].start.float == 260.0
-    checks gt.lines[drow][2].start.float == 370.0
-    checks gt.lines[drow][3].start.float == 1000.0
+    check gt.lines[drow][0].start.float == 0.0
+    check gt.lines[drow][1].start.float == 260.0
+    check gt.lines[drow][2].start.float == 370.0
+    check gt.lines[drow][3].start.float == 1000.0
     
   test "compute macro and item layout":
     var gridTemplate: GridTemplate
@@ -253,10 +186,10 @@ suite "grids":
 
     check gridItem.span[dcol].a == 2
     check gridItem.span[dcol].b == 5
-    checks itemBox.x.float == 40.0
-    checks itemBox.w.float == 920.0
-    checks itemBox.y.float == 0.0
-    checks itemBox.h.float == 350.0
+    check itemBox.x.float == 40.0
+    check itemBox.w.float == 920.0
+    check itemBox.y.float == 0.0
+    check itemBox.h.float == 350.0
 
   test "compute macro and item layout":
     var gridTemplate: GridTemplate
@@ -287,21 +220,21 @@ suite "grids":
     gridTemplate.alignItems = CxStretch
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox == uiBox(40, 0, 920, 350)
+    check itemBox == uiBox(40, 0, 920, 350)
 
     ## test start
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStart
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox == uiBox(40, 0, 500, 200)
+    check itemBox == uiBox(40, 0, 500, 200)
 
     ## test end
     gridTemplate.justifyItems = CxEnd
     gridTemplate.alignItems = CxEnd
     itemBox = node.computeBox(gridTemplate)
     # print itemBox
-    checks itemBox == uiBox(460, 150, 500, 200)
+    check itemBox == uiBox(460, 150, 500, 200)
     
     ## test start / stretch
     gridTemplate.justifyItems = CxStart
@@ -309,7 +242,7 @@ suite "grids":
     itemBox = node.computeBox(gridTemplate)
     echo ""
     # print itemBox
-    checks itemBox == uiBox(40, 0, 500, 350)
+    check itemBox == uiBox(40, 0, 500, 350)
 
     ## test stretch / start
     gridTemplate.justifyItems = CxStretch
@@ -317,7 +250,7 @@ suite "grids":
     itemBox = node.computeBox(gridTemplate)
     echo ""
     # print itemBox
-    checks itemBox == uiBox(40, 0, 920, 200)
+    check itemBox == uiBox(40, 0, 920, 200)
     
     ## test stretch / start
     gridTemplate.justifyItems = CxCenter
@@ -327,7 +260,7 @@ suite "grids":
     # print itemBox
     # 920/2-500/2+40
     # 350/2-200/2+0
-    checks itemBox == uiBox(250, 75, 500, 200)
+    check itemBox == uiBox(250, 75, 500, 200)
     
     
   test "compute layout with auto columns":
@@ -374,8 +307,8 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
 
     # echo "gridTemplate: ", gridTemplate
-    checks boxa == uiBox(0, 90, 60, 90)
-    checks boxb == uiBox(120, 90, 00, 90)
+    check boxa == uiBox(0, 90, 60, 90)
+    check boxb == uiBox(120, 90, 00, 90)
 
   test "compute layout with fixed 1x1":
     var gridTemplate: GridTemplate
@@ -400,7 +333,7 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
     let boxa = nodea.computeBox(gridTemplate)
-    checks boxa == uiBox(0, 0, 60, 90)
+    check boxa == uiBox(0, 0, 60, 90)
     
 
   test "compute layout with auto columns with fixed size":
@@ -434,10 +367,10 @@ suite "grids":
     let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
     let nodeb = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itemb)
     let boxa = nodea.computeBox(gridTemplate)
-    checks boxa == uiBox(0, 90, 60, 90)
+    check boxa == uiBox(0, 90, 60, 90)
 
     let boxb = nodeb.computeBox(gridTemplate)
-    checks boxb == uiBox(240, 180, 60, 20)
+    check boxb == uiBox(240, 180, 60, 20)
 
   test "compute layout with auto flow":
     var gridTemplate: GridTemplate
@@ -480,25 +413,32 @@ suite "grids":
 
     # echo "grid template post: ", repr gridTemplate
     # ==== item a ====
-    checks nodes[0].box == uiBox(0, 0, 60, 66)
+    check nodes[0].box == uiBox(0, 0, 60, 66)
 
     # ==== item e ====
     # print nodes[1].box
-    checks nodes[1].box == uiBox(240, 0, 60, 66)
+    check nodes[1].box == uiBox(240, 0, 60, 66)
 
     # ==== item b's ====
     # printChildrens(2)
 
-    checks nodes[2].box.xy == uiSize(60, 0)
-    checks nodes[3].box.xy == uiSize(120, 0)
-    checks nodes[4].box.xy == uiSize(180, 0)
+    check nodes[2].box.x == 60
+    check nodes[2].box.y == 0
+    check nodes[3].box.x == 120
+    check nodes[3].box.y == 0
+    check nodes[4].box.x == 180
+    check nodes[4].box.y == 0
 
-    checks nodes[5].box.xy == uiSize(60, 33)
-    checks nodes[6].box.xy == uiSize(120, 33)
-    checks nodes[7].box.xy == uiSize(180, 33)
+    check nodes[5].box.x == 60
+    check nodes[5].box.y == 33
+    check nodes[6].box.x == 120
+    check nodes[6].box.y == 33
+    check nodes[7].box.x == 180
+    check nodes[7].box.y == 33
 
     for i in 2 ..< nodes.len() - 1:
-      checks nodes[i].box.wh == uiSize(60, 33)
+      check nodes[i].box.w == 60
+      check nodes[i].box.h == 33
 
   test "compute layout auto flow overflow":
     var gridTemplate: GridTemplate
@@ -529,13 +469,11 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    checks nodes[0].box == uiBox(0, 0, 100, 100)
-    checks nodes[1].box == uiBox(0, 100, 100, 100)
-    checks nodes[3].box == uiBox(0, 300, 100, 100)
+    check nodes[0].box == uiBox(0, 0, 100, 100)
+    check nodes[1].box == uiBox(0, 100, 100, 100)
+    check nodes[3].box == uiBox(0, 300, 100, 100)
 
   test "compute layout auto flow overflow (colums)":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -567,15 +505,15 @@ suite "grids":
     # TODO: FIXME!!!
     # check box.w == 750
     check parent.box.h == 50
-    checks nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
-    checks nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
-    checks nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
-    checks nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+    check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
     # TODO: FIXME!!!
     # the min fr track len should account for the min-content size
-    checks nodes[0].box == uiBox(0, 0, 40, 40)
-    checks nodes[1].box == uiBox(40, 0, 50, 50)
+    check nodes[0].box == uiBox(0, 0, 40, 40)
+    check nodes[1].box == uiBox(40, 0, 50, 50)
 
   test "compute layout overflow (columns)":
 
@@ -615,12 +553,13 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
     check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
-    checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(50, 0, 50, 50)
+    check nodes[0].box == uiBox(0, 0, 50, 50)
+    check nodes[1].box == uiBox(50, 0, 50, 50)
     for i in 0..6:
-      checks nodes[i].box.wh == uiSize(50, 50)
+      check nodes[i].box.w == 50
+      check nodes[i].box.h == 50
 
-    checks nodes[7].box == uiBox(350, 0, 150, 50)
+    check nodes[7].box == uiBox(350, 0, 150, 50)
 
   test "compute layout overflow (rows)":
     var gridTemplate: GridTemplate
@@ -656,13 +595,14 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(0, 50, 50, 50)
+    check nodes[0].box == uiBox(0, 0, 50, 50)
+    check nodes[1].box == uiBox(0, 50, 50, 50)
 
     for i in 0..6:
-      checks nodes[i].box.wh == uiSize(50, 50)
+      check nodes[i].box.w == 50
+      check nodes[i].box.h == 50
 
-    checks nodes[7].box == uiBox(0, 350, 50, 50)
+    check nodes[7].box == uiBox(0, 350, 50, 50)
 
   test "compute layout manual overflow (rows)":
     # prettyPrintWriteMode = cmTerminal
@@ -703,16 +643,17 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    checks nodes[0].box == uiBox(0, 0, 50, 50)
-    checks nodes[1].box == uiBox(0, 50, 50, 50)
-    checks nodes[2].box == uiBox(0, 100, 50, 150)
-    checks nodes[3].box == uiBox(0, 250, 50, 50)
+    check nodes[0].box == uiBox(0, 0, 50, 50)
+    check nodes[1].box == uiBox(0, 50, 50, 50)
+    check nodes[2].box == uiBox(0, 100, 50, 150)
+    check nodes[3].box == uiBox(0, 250, 50, 50)
 
     for i in 0..7:
       if i != 2:
-        checks nodes[i].box.wh == uiSize(50, 50)
+        check nodes[i].box.w == 50
+        check nodes[i].box.h == 50
 
-    checks nodes[7].box == uiBox(0, 450, 50, 50)
+    check nodes[7].box == uiBox(0, 450, 50, 50)
 
   test "compute layout manual overflow rows fracs":
     # prettyPrintWriteMode = cmTerminal
@@ -755,17 +696,18 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    checks nodes[0].box == uiBox(0, 0, 50, 50)
+    check nodes[0].box == uiBox(0, 0, 50, 50)
 
-    checks nodes[1].box == uiBox(0, 50, 50, 50)
-    checks nodes[2].box == uiBox(0, 100, 50, 150)
-    checks nodes[3].box == uiBox(0, 250, 50, 50)
+    check nodes[1].box == uiBox(0, 50, 50, 50)
+    check nodes[2].box == uiBox(0, 100, 50, 150)
+    check nodes[3].box == uiBox(0, 250, 50, 50)
 
     for i in 0..7:
       if i != 2:
-        checks nodes[i].box.wh == uiSize(50, 50)
+        check nodes[i].box.w == 50
+        check nodes[i].box.h == 50
 
-    checks nodes[7].box == uiBox(0, 450, 50, 50)
+    check nodes[7].box == uiBox(0, 450, 50, 50)
     # echo "nodes[7]: ", nodes[7].box
 
   test "compute layout auto only":

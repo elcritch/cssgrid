@@ -12,51 +12,7 @@ import cssgrid/prettyprints
 
 import pretty
 
-type
-  TestNode = ref object
-    box*: UiBox
-    bmin*, bmax*: UiSize
-    name*: string
-    parent*: TestNode
-    children*: seq[TestNode]
-    cxSize*: array[GridDir, Constraint] = [csAuto(), csNone()]  # For width/height
-    cxOffset*: array[GridDir, Constraint] # For x/y positions
-    cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    gridItem*: GridItem
-    gridTemplate*: GridTemplate
-    frame*: Frame
-
-  Frame = ref object
-    windowSize*: UiBox
-
-template getParentBoxOrWindows*(node: GridNode): UiBox =
-  if node.parent.isNil:
-    node.frame.windowSize
-  else:
-    node.parent.box
-
-proc newTestNode(name: string): TestNode =
-  result = TestNode(
-    name: name,
-    box: uiBox(0, 0, 0, 0),
-    children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
-  )
-
-proc newTestNode(name: string, x, y, w, h: float32): TestNode =
-  result = TestNode(
-    name: name,
-    box: uiBox(0, 0, 0, 0),
-    cxOffset: [csFixed(x), csFixed(y)],
-    cxSize: [csFixed(w), csFixed(h)],
-    children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
-  )
-
-proc addChild(parent, child: TestNode) =
-  parent.children.add(child)
-  child.parent = parent
+import commontestutils
 
 suite "Basic CSS Layout Tests":
   test "Fixed size constraints":

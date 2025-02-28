@@ -16,6 +16,7 @@ type
     UiFixed
     UiContentMin
     UiContentMax
+    UiContentFit
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
@@ -25,7 +26,7 @@ type
       perc*: UiScalar ## set percentage of parent box or grid
     of UiFixed:
       coord*: UiScalar ## set fixed coordinate size
-    of UiContentMin, UiContentMax:
+    of UiContentMin, UiContentMax, UiContentFit:
       discard
     of UiAuto:
       discard
@@ -73,11 +74,13 @@ proc csContentMin*(): Constraint =
   csValue(ConstraintSize(kind: UiContentMin))
 proc csContentMax*(): Constraint =
   csValue(ConstraintSize(kind: UiContentMax))
+proc csContentFit*(): Constraint =
+  csValue(ConstraintSize(kind: UiContentFit))
 
 proc isContentSized*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiAuto, UiFrac] 
+  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac] 
 proc isBasicContentSized*(cs: ConstraintSize): bool =
-  cs.kind in [UiContentMin, UiContentMax]
+  cs.kind in [UiContentMin, UiContentMax, UiContentFit]
 proc isAuto*(cx: Constraint): bool =
   cx.kind == UiValue and cx.value.kind in [UiAuto, UiFrac]
 
@@ -155,6 +158,7 @@ proc `==`*(a, b: ConstraintSize): bool =
       UiFixed(coord): return coord == b.coord
       UiContentMin(): return true
       UiContentMax(): return true
+      UiContentFit(): return true
       UiAuto(): return true
 
 proc `==`*(a, b: Constraint): bool =
@@ -176,6 +180,7 @@ proc `$`*(a: ConstraintSize): string =
     UiPerc(perc): result = $perc & "'perc"
     UiContentMin(): result = "cx'content-min"
     UiContentMax(): result = "cx'content-max"
+    UiContentFit(): result = "cx'fit-content"
     UiAuto(): result = "cx'auto"
 
 proc `$`*(a: Constraint): string =
@@ -211,5 +216,7 @@ template `cx`*(n: static string): auto =
     csContentMin()
   elif n == "max-content":
     csContentMax()
+  elif n == "fit-content":
+    csContentFit()
   else:
     {.error: "unknown constraint constant: " & n.}

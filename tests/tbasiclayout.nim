@@ -12,51 +12,7 @@ import cssgrid/prettyprints
 
 import pretty
 
-type
-  TestNode = ref object
-    box*: UiBox
-    bmin*, bmax*: UiSize
-    name*: string
-    parent*: TestNode
-    children*: seq[TestNode]
-    cxSize*: array[GridDir, Constraint] = [csAuto(), csNone()]  # For width/height
-    cxOffset*: array[GridDir, Constraint] # For x/y positions
-    cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    gridItem*: GridItem
-    gridTemplate*: GridTemplate
-    frame*: Frame
-
-  Frame = ref object
-    windowSize*: UiBox
-
-template getParentBoxOrWindows*(node: GridNode): UiBox =
-  if node.parent.isNil:
-    node.frame.windowSize
-  else:
-    node.parent.box
-
-proc newTestNode(name: string): TestNode =
-  result = TestNode(
-    name: name,
-    box: uiBox(0, 0, 0, 0),
-    children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
-  )
-
-proc newTestNode(name: string, x, y, w, h: float32): TestNode =
-  result = TestNode(
-    name: name,
-    box: uiBox(0, 0, 0, 0),
-    cxOffset: [csFixed(x), csFixed(y)],
-    cxSize: [csFixed(w), csFixed(h)],
-    children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
-  )
-
-proc addChild(parent, child: TestNode) =
-  parent.children.add(child)
-  child.parent = parent
+import commontestutils
 
 suite "Basic CSS Layout Tests":
   test "Fixed size constraints":
@@ -88,7 +44,7 @@ suite "Basic CSS Layout Tests":
     parent.children.add(child)
     
     child.cxSize[dcol] = cx"auto"
-    child.cxSize[drow] = csAuto()
+    child.cxSize[drow] = cx"auto"
     
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
@@ -108,11 +64,8 @@ suite "Basic CSS Layout Tests":
 
   test "Complex nested constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child1 = newTestNode("child1", 10, 10, 100, 100)
-    let child2 = newTestNode("child2", 10, 120, 100, 100)
-    parent.children = @[child1, child2]
-    child1.parent = parent
-    child2.parent = parent
+    let child1 = newTestNode("child1", 10, 10, 100, 100, parent)
+    let child2 = newTestNode("child2", 10, 120, 100, 100, parent)
     
     # Child1: 50% of parent width, min 100px
     child1.cxSize[dcol] = max(50'pp, 100'ux) # same as csMax(csPerc(50), csFixed(100))
@@ -128,16 +81,11 @@ suite "Basic CSS Layout Tests":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child = newTestNode("child", 0, 0, 100, 100)
-    let grandchild = newTestNode("grandchild", 0, 0, 150, 80)
+    let child = newTestNode("child", 0, 0, 100, 100, parent)
+    let grandchild = newTestNode("grandchild", 0, 0, 150, 80, child)
     
     grandchild.cxMin = [100'ux, 40'ux]
     grandchild.cxMax = [200'ux, 200'ux]
-
-    parent.children.add(child)
-    child.parent = parent
-    child.children.add(grandchild)
-    grandchild.parent = child
     
     # Set child width to fit content
     child.cxSize[dcol] = csContentMin()
@@ -213,18 +161,28 @@ suite "Basic CSS Layout Tests":
   test "grand child":
       # prettyPrintWriteMode = cmTerminal
       # defer: prettyPrintWriteMode = cmNone
-      let parent: TestNode = newTestNode("mixed-grid", 0, 0, 400, 300)
-      let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
-      let child2 = newTestNode("frac-child", 0, 0, 100, 100)
-      let child21 = newTestNode("frac-grandchild", 0, 0, 50, 50)
-      let child3 = newTestNode("auto-child", 0, 0, 100, 100)
-      let child31 = newTestNode("auto-grandchild", 0, 0, 50, 50)
       
-      parent.addChild(child1)
-      parent.addChild(child2)
-      child2.addChild(child21)
-      parent.addChild(child3)
-      child3.addChild(child31)
+      # Create the entire hierarchy in a single statement
+      let parent = newTestTree("mixed-grid", 
+        newTestNode("fixed-child", 0, 0, 100, 100),
+        newTestTree("frac-child", 0, 0, 100, 100,
+          newTestNode("frac-grandchild", 0, 0, 50, 50)
+        ),
+        newTestTree("auto-child", 0, 0, 100, 100,
+          newTestNode("auto-grandchild", 0, 0, 50, 50)
+        )
+      )
+      
+      # Set fixed size constraints for parent
+      parent.cxSize[dcol] = 400'ux
+      parent.cxSize[drow] = 300'ux
+      
+      # Access children by index
+      let child1 = parent.children[0]
+      let child2 = parent.children[1]
+      let child21 = child2.children[0]
+      let child3 = parent.children[2]
+      let child31 = child3.children[0]
 
       # # Set minimum content size for auto child
       child3.cxMin[dcol] = 100'ux # This should be respected as minimum width

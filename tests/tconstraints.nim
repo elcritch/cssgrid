@@ -12,6 +12,7 @@ suite "constraints":
     check csPerc(50) == Constraint(kind: UiValue, value: ConstraintSize(kind: UiPerc, perc: 50.UiScalar))
     check csContentMin() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentMin))
     check csContentMax() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentMax))
+    check csContentFit() == Constraint(kind: UiValue, value: ConstraintSize(kind: UiContentFit))
 
   test "constraint helpers":
     check 1'ux == csFixed(1)
@@ -25,6 +26,7 @@ suite "constraints":
     check cx"auto" == csAuto()
     check cx"min-content" == csContentMin()
     check cx"max-content" == csContentMax()
+    check cx"fit-content" == csContentFit()
 
   test "constraint algebras":
     let minSize = min(100'ux, 100'pp)
@@ -68,8 +70,17 @@ suite "constraints":
     check isContentSized(csFrac(1))
     check isContentSized(csContentMin())
     check isContentSized(csContentMax())
+    check isContentSized(csContentFit())
     check not isContentSized(csFixed(100))
     check not isContentSized(csPerc(50))
+    
+  test "basic content sizing checks":
+    check isBasicContentSized(ConstraintSize(kind: UiContentMin))
+    check isBasicContentSized(ConstraintSize(kind: UiContentMax))
+    check isBasicContentSized(ConstraintSize(kind: UiContentFit))
+    check not isBasicContentSized(ConstraintSize(kind: UiAuto))
+    check not isBasicContentSized(ConstraintSize(kind: UiFrac))
+    check not isBasicContentSized(ConstraintSize(kind: UiFixed))
 
   test "auto sizing checks":
     check isAuto(csAuto())
@@ -98,4 +109,8 @@ suite "constraints":
     check $ConstraintSize(kind: UiFrac, frac: 1.UiScalar) == "1.0'fr"
     check $ConstraintSize(kind: UiFixed, coord: 100.UiScalar) == "100.0'ux"
     check $ConstraintSize(kind: UiPerc, perc: 50.UiScalar) == "50.0'perc"
+    check $ConstraintSize(kind: UiContentMin) == "cx'content-min"
+    check $ConstraintSize(kind: UiContentMax) == "cx'content-max"
+    check $ConstraintSize(kind: UiContentFit) == "cx'fit-content"
+    check $ConstraintSize(kind: UiAuto) == "cx'auto"
 

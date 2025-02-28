@@ -117,13 +117,9 @@ suite "Nested Content Size Tests":
       
     test "Multiple nested children in content-fit track":
       let parent = newTestNode("parent", 0, 0, 400, 300)
-      let fitContentChild = newTestNode("fit-content-child")
-      let grandchild1 = newTestNode("grandchild1", 0, 0, 100, 50)  # Set explicit size
-      let grandchild2 = newTestNode("grandchild2", 0, 0, 220, 70)  # Set explicit size
-      
-      parent.addChild(fitContentChild)
-      fitContentChild.addChild(grandchild1)
-      fitContentChild.addChild(grandchild2)
+      let fitContentChild = newTestNode("fit-content-child", parent)
+      let grandchild1 = newTestNode("grandchild1", 0, 0, 100, 50, fitContentChild)  # Set explicit size
+      let grandchild2 = newTestNode("grandchild2", 0, 0, 220, 70, fitContentChild)  # Set explicit size
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()

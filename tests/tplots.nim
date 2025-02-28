@@ -26,6 +26,8 @@ type
     cxOffset*: array[GridDir, Constraint] = [csAuto(), csAuto()] # For x/y positions
     cxMin*: array[GridDir, Constraint]  # For width/height
     cxMax*: array[GridDir, Constraint] # For x/y positions
+    cxPaddingOffset*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding x/y positions
+    cxPaddingSize*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding width/height
     children*: seq[GridNode]
     frame*: Frame
 

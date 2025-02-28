@@ -30,6 +30,8 @@ type
     typeof(node.cxOffset) is array[GridDir, Constraint]
     typeof(node.cxMin) is array[GridDir, Constraint]
     typeof(node.cxMax) is array[GridDir, Constraint]
+    typeof(node.cxPaddingOffset) is array[GridDir, Constraint]
+    typeof(node.cxPaddingSize) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem
     typeof(node.parent)
 
@@ -39,6 +41,7 @@ type
   GridDir* = enum
     dcol
     drow
+
 
   GridFlow* = enum
     grRow

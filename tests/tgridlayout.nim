@@ -35,11 +35,8 @@ suite "Compute Layout Tests":
     let frame = Frame(windowSize: uiBox(0,0, 400, 300))
     let parent = newTestNode("parent") #, 0, 0, 400, 300)
     parent.frame = frame
-    let child1 = newTestNode("child1", 10, 10, 100, 100)
-    let child2 = newTestNode("child2", 10, 120, 100, 100)
-    
-    parent.addChild(child1)
-    parent.addChild(child2)
+    let child1 = newTestNode("child1", 10, 10, 100, 100, parent)
+    let child2 = newTestNode("child2", 10, 120, 100, 100, parent)
     
     # Set fixed-parent constraint
     parent.cxSize[dcol] = csAuto()
@@ -66,9 +63,7 @@ suite "Compute Layout Tests":
     defer: prettyPrintWriteMode = cmNone
 
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
-    let vertical = newTestNode("vertical")
-
-    parent.addChild(vertical)
+    let vertical = newTestNode("vertical", parent)
 
     parseGridTemplateColumns vertical.gridTemplate, 1'fr
     vertical.cxSize = [75'pp, 80'pp]
@@ -78,9 +73,8 @@ suite "Compute Layout Tests":
     vertical.gridTemplate.alignItems = CxCenter
 
     for i in 0..3:
-      let child = newTestNode("grid-child-" & $i)
+      let child = newTestNode("grid-child-" & $i, vertical)
       child.cxSize = [50'ux, 50'ux]
-      vertical.addChild(child)
 
     computeLayout(parent)
 
@@ -92,13 +86,9 @@ suite "Compute Layout Tests":
     # defer: prettyPrintWriteMode = cmNone
 
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
-    let scrollpane = newTestNode("scrollpane")
-    let scrollbody = newTestNode("scrollbody")
-    let vertical = newTestNode("vertical")
-
-    parent.addChild(scrollpane)
-    scrollpane.addChild(scrollbody)
-    scrollbody.addChild(vertical)
+    let scrollpane = newTestNode("scrollpane", parent)
+    let scrollbody = newTestNode("scrollbody", scrollpane)
+    let vertical = newTestNode("vertical", scrollbody)
 
     scrollpane.cxOffset = [2'pp, 2'pp]
     scrollpane.cxSize = [96'pp, 90'pp]
@@ -113,12 +103,10 @@ suite "Compute Layout Tests":
     vertical.gridTemplate.autos[drow] = csAuto()
 
     for i in 0..15:
-      let child = newTestNode("grid-child-" & $i, 0, 0, 100, 100)
+      let child = newTestNode("grid-child-" & $i, 0, 0, 100, 100, vertical)
       child.cxSize = [1'fr, 50'ux]
       if i in [3, 7]:
         child.cxSize = [0.9'fr, 120'ux]
-      
-      vertical.addChild(child)
 
     computeLayout(parent)
 
@@ -131,11 +119,8 @@ suite "Compute Layout Tests":
 
   test "Simple grid layout":
       let parent = newTestNode("grid-parent", 0, 0, 400, 300)
-      let child1 = newTestNode("grid-child1", 0, 0, 100, 100)
-      let child2 = newTestNode("grid-child2", 0, 0, 100, 100)
-      
-      parent.addChild(child1)
-      parent.addChild(child2)
+      let child1 = newTestNode("grid-child1", 0, 0, 100, 100, parent)
+      let child2 = newTestNode("grid-child2", 0, 0, 100, 100, parent)
       
       # Setup grid template
       parent.cxSize = [400'ux, 300'ux]  # set fixed parent
@@ -215,11 +200,8 @@ suite "Compute Layout Tests":
   test "Grid with content sizing":
     when true:
       let parent = newTestNode("content-grid", 0, 0, 400, 300)
-      let child1 = newTestNode("content-child1", 0, 0, 150, 100)
-      let child2 = newTestNode("content-child2", 0, 0, 100, 100)
-      
-      parent.addChild(child1)
-      parent.addChild(child2)
+      let child1 = newTestNode("content-child1", 0, 0, 150, 100, parent)
+      let child2 = newTestNode("content-child2", 0, 0, 100, 100, parent)
       
       parent.gridTemplate = newGridTemplate()
       parent.gridTemplate.lines[dcol] = @[
@@ -249,11 +231,8 @@ suite "Compute Layout Tests":
       # defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("nested-grid", 0, 0, 400, 300)
-      let gridChild = newTestNode("grid-child", 0, 0, 200, 200)
-      let innerChild = newTestNode("inner-child")
-      
-      parent.addChild(gridChild)
-      gridChild.addChild(innerChild)
+      let gridChild = newTestNode("grid-child", 0, 0, 200, 200, parent)
+      let innerChild = newTestNode("inner-child", gridChild)
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -289,9 +268,8 @@ suite "Compute Layout Tests":
 
       # Create 4 children
       for i in 1..4:
-        let child = newTestNode("child" & $i, 0, 0, 100, 100)
+        let child = newTestNode("child" & $i, 0, 0, 100, 100, parent)
         children.add(child)
-        parent.addChild(child)
       
       # Setup grid with 2 columns
       parent.gridTemplate = newGridTemplate()
@@ -331,15 +309,10 @@ suite "Grid alignment and justification tests":
   test "Grid child positioning - stretch behavior in 2x2 grid":
     # Create a grid with 2x2 cells and test children stretching to fill them
     let parent = newTestNode("stretch-grid", 0, 0, 400, 400)
-    let child1 = newTestNode("stretch-child1", 0, 0, 50, 50)
-    let child2 = newTestNode("stretch-child2", 0, 0, 50, 50)
-    let child3 = newTestNode("stretch-child3", 0, 0, 50, 50)
-    let child4 = newTestNode("stretch-child4", 0, 0, 50, 50)
-    
-    parent.addChild(child1)
-    parent.addChild(child2)
-    parent.addChild(child3)
-    parent.addChild(child4)
+    let child1 = newTestNode("stretch-child1", 0, 0, 50, 50, parent)
+    let child2 = newTestNode("stretch-child2", 0, 0, 50, 50, parent)
+    let child3 = newTestNode("stretch-child3", 0, 0, 50, 50, parent)
+    let child4 = newTestNode("stretch-child4", 0, 0, 50, 50, parent)
     
     # Set up fixed parent size
     parent.cxSize[dcol] = 400'ux
@@ -386,15 +359,10 @@ suite "Grid alignment and justification tests":
 
   test "Grid child positioning - start alignment in 2x2 grid":
     let parent = newTestNode("start-grid", 0, 0, 400, 400)
-    let child1 = newTestNode("start-child1", 0, 0, 100, 100)
-    let child2 = newTestNode("start-child2", 0, 0, 100, 100)
-    let child3 = newTestNode("start-child3", 0, 0, 100, 100)
-    let child4 = newTestNode("start-child4", 0, 0, 100, 100)
-    
-    parent.addChild(child1)
-    parent.addChild(child2)
-    parent.addChild(child3)
-    parent.addChild(child4)
+    let child1 = newTestNode("start-child1", 0, 0, 100, 100, parent)
+    let child2 = newTestNode("start-child2", 0, 0, 100, 100, parent)
+    let child3 = newTestNode("start-child3", 0, 0, 100, 100, parent)
+    let child4 = newTestNode("start-child4", 0, 0, 100, 100, parent)
     
     parent.cxSize[dcol] = 400'ux
     parent.cxSize[drow] = 400'ux
@@ -440,15 +408,10 @@ suite "Grid alignment and justification tests":
 
   test "Grid child positioning - end alignment in 2x2 grid":
     let parent = newTestNode("end-grid", 0, 0, 400, 400)
-    let child1 = newTestNode("end-child1", 0, 0, 100, 100)
-    let child2 = newTestNode("end-child2", 0, 0, 100, 100)
-    let child3 = newTestNode("end-child3", 0, 0, 100, 100)
-    let child4 = newTestNode("end-child4", 0, 0, 100, 100)
-    
-    parent.addChild(child1)
-    parent.addChild(child2)
-    parent.addChild(child3)
-    parent.addChild(child4)
+    let child1 = newTestNode("end-child1", 0, 0, 100, 100, parent)
+    let child2 = newTestNode("end-child2", 0, 0, 100, 100, parent)
+    let child3 = newTestNode("end-child3", 0, 0, 100, 100, parent)
+    let child4 = newTestNode("end-child4", 0, 0, 100, 100, parent)
     
     parent.cxSize[dcol] = 400'ux
     parent.cxSize[drow] = 400'ux
@@ -493,15 +456,10 @@ suite "Grid alignment and justification tests":
 
   test "Grid child positioning - center alignment in 2x2 grid":
     let parent = newTestNode("center-grid", 0, 0, 400, 400)
-    let child1 = newTestNode("center-child1", 0, 0, 100, 100)
-    let child2 = newTestNode("center-child2", 0, 0, 100, 100)
-    let child3 = newTestNode("center-child3", 0, 0, 100, 100)
-    let child4 = newTestNode("center-child4", 0, 0, 100, 100)
-    
-    parent.addChild(child1)
-    parent.addChild(child2)
-    parent.addChild(child3)
-    parent.addChild(child4)
+    let child1 = newTestNode("center-child1", 0, 0, 100, 100, parent)
+    let child2 = newTestNode("center-child2", 0, 0, 100, 100, parent)
+    let child3 = newTestNode("center-child3", 0, 0, 100, 100, parent)
+    let child4 = newTestNode("center-child4", 0, 0, 100, 100, parent)
     
     parent.cxSize[dcol] = 400'ux
     parent.cxSize[drow] = 400'ux
@@ -546,15 +504,10 @@ suite "Grid alignment and justification tests":
 
   test "Grid child positioning - mixed alignments in 2x2 grid":
     let parent = newTestNode("mixed-grid", 0, 0, 400, 400)
-    let child1 = newTestNode("mixed-child1", 0, 0, 100, 100)
-    let child2 = newTestNode("mixed-child2", 0, 0, 100, 100)
-    let child3 = newTestNode("mixed-child3", 0, 0, 100, 100)
-    let child4 = newTestNode("mixed-child4", 0, 0, 100, 100)
-    
-    parent.addChild(child1)
-    parent.addChild(child2)
-    parent.addChild(child3)
-    parent.addChild(child4)
+    let child1 = newTestNode("mixed-child1", 0, 0, 100, 100, parent)
+    let child2 = newTestNode("mixed-child2", 0, 0, 100, 100, parent)
+    let child3 = newTestNode("mixed-child3", 0, 0, 100, 100, parent)
+    let child4 = newTestNode("mixed-child4", 0, 0, 100, 100, parent)
     
     parent.cxSize[dcol] = 400'ux
     parent.cxSize[drow] = 400'ux

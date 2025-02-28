@@ -19,17 +19,17 @@ proc toVal*[T](v: T): float =
     trunc(v)
 
 type
-  GridNode* = ref object
+  TestNode* = ref object
     name: string
     box: UiBox
     bmin, bmax: UiSize
     gridItem: GridItem
-    parent*: GridNode
+    parent*: TestNode
     cxSize*: array[GridDir, Constraint] = [cx"auto", csNone()]  # For width/height
     cxOffset*: array[GridDir, Constraint] = [cx"auto", cx"auto"] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    children: seq[GridNode]
+    children: seq[TestNode]
     gridTemplate: GridTemplate
     frame*: Frame
 
@@ -39,13 +39,13 @@ type
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box
 
-template getParentBoxOrWindows*(node: GridNode): UiBox =
+template getParentBoxOrWindows*(node: TestNode): UiBox =
   if node.parent.isNil:
     node.frame.windowSize
   else:
     node.parent.box
 
-proc addChild(parent, child: GridNode) =
+proc addChild(parent, child: TestNode) =
   parent.children.add(child)
   child.parent = parent
 
@@ -244,7 +244,7 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     # print gridItem
-    let node = GridNode(box: uiBox(0, 0, 0, 0), gridItem: gridItem)
+    let node = TestNode(box: uiBox(0, 0, 0, 0), gridItem: gridItem)
     gridItem.setGridSpans(gridTemplate, node.box.wh)
 
     let itemBox = node.computeBox(gridTemplate)
@@ -278,7 +278,7 @@ suite "grids":
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
     gridItem.setGridSpans(gridTemplate, contentSize)
-    let node = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: gridItem)
+    let node = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: gridItem)
     echo gridTemplate
 
     ## test stretch
@@ -361,9 +361,9 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     ## computes
     ## 
-    let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+    let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
                          gridItem: itema)
-    let nodeb = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+    let nodeb = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
                          gridItem: itemb)
 
     echo "BOXA: ", nodea.gridItem
@@ -398,7 +398,7 @@ suite "grids":
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
 
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
+    let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
     let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 0, 60, 90)
     
@@ -431,8 +431,8 @@ suite "grids":
 
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    let nodea = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
-    let nodeb = GridNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itemb)
+    let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
+    let nodeb = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itemb)
     let boxa = nodea.computeBox(gridTemplate)
     checks boxa == uiBox(0, 90, 60, 90)
 
@@ -452,27 +452,27 @@ suite "grids":
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # echo "grid template: ", repr gridTemplate
-    var parent = GridNode()
+    var parent = TestNode()
 
     let contentSize = uiSize(30, 30)
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # item a
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 1 // 3
     # let boxa = itema.computeTracks(gridTemplate, contentSize)
-    nodes[0] = GridNode(name: "a", gridItem: itema)
+    nodes[0] = TestNode(name: "a", gridItem: itema)
 
     # ==== item e ====
     var iteme = newGridItem()
     iteme.column = 5 // 6
     iteme.row = 1 // 3
-    nodes[1] = GridNode(name: "e", gridItem: iteme)
+    nodes[1] = TestNode(name: "e", gridItem: iteme)
 
     # ==== item b's ====
     for i in 2 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i-2))
+      nodes[i] = TestNode(name: "b" & $(i-2))
 
     # ==== process grid ====
     parent.children = nodes
@@ -509,13 +509,13 @@ suite "grids":
     gridTemplate.justifyItems = CxStretch
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    var parent = GridNode()
+    var parent = TestNode()
 
-    var nodes = newSeq[GridNode](4)
+    var nodes = newSeq[TestNode](4)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i))
+      nodes[i] = TestNode(name: "b" & $(i))
 
     # ==== process grid ====
     parent.children = nodes
@@ -545,17 +545,17 @@ suite "grids":
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStart
     gridTemplate.autoFlow = grColumn
-    var parent = GridNode()
+    var parent = TestNode()
     parent.cxOffset = [0'ux, 0'ux]
     parent.cxSize = [50'ux, 50'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
     parent.gridTemplate = gridTemplate
 
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i), box: uiBox(0,0,50,50), parent: parent)
+      nodes[i] = TestNode(name: "b" & $(i), box: uiBox(0,0,50,50), parent: parent)
 
     nodes[0].cxSize = [40'ux, 40'ux]
     # ==== process grid ====
@@ -586,17 +586,17 @@ suite "grids":
     gridTemplate.autos[dcol] = csAuto()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grColumn
-    var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
+    var parent = TestNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = cx"max-content" # set fixed parent
     # parent.cxSize[dcol] = cx"auto" # set fixed parent
     parent.cxSize[drow] = csFixed(50)  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
 
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i),
+      nodes[i] = TestNode(name: "b" & $(i),
                           cxMin: [50'ux, 50'ux],
                           gridItem: GridItem())
       nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
@@ -630,16 +630,16 @@ suite "grids":
     gridTemplate.autos[drow] = 50'ux
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
-    var parent = GridNode()
+    var parent = TestNode()
     parent.box.w = 50
     parent.box.h = 50
 
     let contentSize = uiSize(30, 30)
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i),
+      nodes[i] = TestNode(name: "b" & $(i),
                           box: uiBox(0,0,50,50),
                           gridItem: nil)
       # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
@@ -674,17 +674,17 @@ suite "grids":
     gridTemplate.autos[drow] = csAuto()
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
-    var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
+    var parent = TestNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
     parent.cxSize[drow] = cx"max-content" # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 600, 50))
 
     let contentSize = uiSize(30, 30)
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i),
+      nodes[i] = TestNode(name: "b" & $(i),
                           cxMin: [50'ux, 50'ux],
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
@@ -725,17 +725,17 @@ suite "grids":
     gridTemplate.autos[drow] = 1'fr
     gridTemplate.justifyItems = CxStart
     gridTemplate.autoFlow = grRow
-    var parent = GridNode(name: "parent", gridTemplate: gridTemplate)
+    var parent = TestNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
     parent.cxSize[drow] = cx"max-content"  # set fixed parent
     # parent.cxSize[drow] = cx"auto"  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 50, 400))
 
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i),
+      nodes[i] = TestNode(name: "b" & $(i),
                           cxMin: [50'ux, 50'ux],
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
@@ -776,15 +776,15 @@ suite "grids":
     gridTemplate.autos[drow] = 90'ux
     gridTemplate.justifyItems = CxStart
     gridTemplate.autoFlow = grRow
-    var parent = GridNode()
+    var parent = TestNode()
     parent.box.w = 50
     parent.box.h = 400
 
-    var nodes = newSeq[GridNode](8)
+    var nodes = newSeq[TestNode](8)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = GridNode(name: "b" & $(i),
+      nodes[i] = TestNode(name: "b" & $(i),
                           box: uiBox(0,0,200,200),
                           gridItem: GridItem())
       # nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)

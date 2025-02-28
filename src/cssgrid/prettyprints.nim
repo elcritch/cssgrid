@@ -47,6 +47,8 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
     mode.withStyle(fgBlue, text = "min-content")
   of UiContentMax:
     mode.withStyle(fgBlue, text = "max-content")
+  of UiContentFit:
+    mode.withStyle(fgBlue, text = "fit-content")
 
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
   case c.kind

@@ -95,6 +95,13 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
           res = UiScalar.low()
           for child in node.children:
             res = max(res, child.bmax[dir])
+        UiContentFit():
+          # fit-content - calculate as max-content but clamped by available space
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
+          # Clamp to available width (pf is parent width)
+          res = min(res, pf)
       debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, " res: ", res
       res
 

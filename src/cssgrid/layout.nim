@@ -34,6 +34,9 @@ proc computeLineOverflow*(
             UiContentMin():
               if i in computedSizes:
                 result += computedSizes[i].minContent
+            UiContentFit():
+              if i in computedSizes:
+                result += computedSizes[i].contentFit
             UiFrac(): 
               if i in computedSizes:
                 result += computedSizes[i].fracMinSize
@@ -47,7 +50,7 @@ proc computeLineOverflow*(
 proc computeLineLayout*(
     lines: var seq[GridLine];
     dir: GridDir,
-    computedSizes: Table[int, ComputedTrackSize],  # New parameter for computed sizes
+    computedSizes: Table[int, ComputedTrackSize],
     length: UiScalar,
     spacing: UiScalar,
 ) =
@@ -74,6 +77,9 @@ proc computeLineLayout*(
           UiContentMax():
             if i in computedSizes:
               fixed += computedSizes[i].maxContent
+          UiContentFit():
+            if i in computedSizes:
+              fixed += computedSizes[i].contentFit
           UiFrac(frac):
             if i in computedSizes:
               debugPrint "computeLineLayout", "computedSizes[i]=", computedSizes[i].minContent
@@ -138,6 +144,10 @@ proc computeLineLayout*(
       of UiContentMin:
         if i in computedSizes:
           grdLn.width = computedSizes[i].minContent
+      of UiContentFit:
+        if i in computedSizes:
+          # For fit-content, use min(maxContent, available space)
+          grdLn.width = min(computedSizes[i].maxContent, length)
       of UiFrac:
         if totalFracs > 0:
           let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
@@ -423,6 +433,10 @@ proc computeContentSizes*(
         of UiContentMin:
           computed.minContent = contentSize
         of UiContentMax:
+          computed.maxContent = contentSize
+        of UiContentFit:
+          # For fit-content, we just need to set the maxContent value
+          # The clamping to available space happens during layout
           computed.maxContent = contentSize
         else: discard
         

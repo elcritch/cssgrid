@@ -20,11 +20,8 @@ import commontestutils
 suite "Nested Content Size Tests":
     test "Auto grid track with nested fixed content":
       let parent = newTestNode("parent", 0, 0, 400, 300)
-      let autoChild = newTestNode("auto-child", 0, 0, 0, 0)
-      let fixedGrandchild = newTestNode("fixed-grandchild", 0, 0, 0, 0)
-      
-      parent.addChild(autoChild)
-      autoChild.addChild(fixedGrandchild)
+      let autoChild = newTestNode("auto-child", 0, 0, 0, 0, parent)
+      let fixedGrandchild = newTestNode("fixed-grandchild", 0, 0, 0, 0, autoChild)
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -53,11 +50,8 @@ suite "Nested Content Size Tests":
       
     test "Content-fit grid track with nested fixed content":
       let parent = newTestNode("parent", 0, 0, 400, 300)
-      let fitContentChild = newTestNode("fit-content-child", 0, 0, 0, 0)
-      let fixedGrandchild = newTestNode("fixed-grandchild", 0, 0, 150, 80)  # Set explicit size
-      
-      parent.addChild(fitContentChild)
-      fitContentChild.addChild(fixedGrandchild)
+      let fitContentChild = newTestNode("fit-content-child", 0, 0, 0, 0, parent)
+      let fixedGrandchild = newTestNode("fixed-grandchild", 0, 0, 150, 80, fitContentChild)  # Set explicit size
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()

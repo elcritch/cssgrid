@@ -92,13 +92,9 @@ suite "Nested Content Size Tests":
 
     test "Multiple nested children in auto track":
       let parent = newTestNode("parent", 0, 0, 400, 300)
-      let autoChild = newTestNode("auto-child", 0, 0, 0, 0)
-      let grandchild1 = newTestNode("grandchild1", 0, 0, 0, 0)
-      let grandchild2 = newTestNode("grandchild2", 0, 0, 0, 0)
-      
-      parent.addChild(autoChild)
-      autoChild.addChild(grandchild1)
-      autoChild.addChild(grandchild2)
+      let autoChild = newTestNode("auto-child", 0, 0, 0, 0, parent)
+      let grandchild1 = newTestNode("grandchild1", 0, 0, 0, 0, autoChild)
+      let grandchild2 = newTestNode("grandchild2", 0, 0, 0, 0, autoChild)
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -176,23 +172,15 @@ suite "Nested Content Size Tests":
       
       # Create auto child
       let autoChild = newTestNode("auto-child", 0, 0, 0, 0)
-      let autoGrandchild = newTestNode("auto-grandchild", 0, 0, 0, 0)
-      autoChild.addChild(autoGrandchild)
+      let autoGrandchild = newTestNode("auto-grandchild", 0, 0, 0, 0, autoChild)
       
       # Create fit-content child
-      let fitContentChild = newTestNode("fit-content-child", 0, 0, 0, 0)
-      let fitContentGrandchild = newTestNode("fit-content-grandchild", 0, 0, 0, 0)
-      fitContentChild.addChild(fitContentGrandchild)
+      let fitContentChild = newTestNode("fit-content-child", 0, 0, 0, 0, parent)
+      let fitContentGrandchild = newTestNode("fit-content-grandchild", 0, 0, 0, 0, fitContentChild)
       
       # Create max-content child for comparison
-      let maxContentChild = newTestNode("max-content-child", 0, 0, 0, 0)
-      let maxContentGrandchild = newTestNode("max-content-grandchild", 0, 0, 0, 0)
-      maxContentChild.addChild(maxContentGrandchild)
-      
-      # Add all to parent
-      parent.addChild(autoChild)
-      parent.addChild(fitContentChild)
-      parent.addChild(maxContentChild)
+      let maxContentChild = newTestNode("max-content-child", 0, 0, 0, 0, parent)
+      let maxContentGrandchild = newTestNode("max-content-grandchild", 0, 0, 0, 0, maxContentChild)
       
       # Setup grid with different constraints per row
       parent.gridTemplate = newGridTemplate()

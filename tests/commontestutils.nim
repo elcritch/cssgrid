@@ -34,27 +34,48 @@ template getParentBoxOrWindows*(node: GridNode): UiBox =
   else:
     node.parent.box
 
-proc newTestNode*(name: string): TestNode =
+proc newTestNode*(name: string, parent: TestNode = nil): TestNode =
   result = TestNode(
     name: name,
     box: uiBox(0, 0, 0, 0),
     children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
+    frame: Frame(windowSize: uiBox(0, 0, 800, 600)),
+    parent: parent
   )
+  if parent != nil:
+    parent.children.add(result)
 
-proc newTestNode*(name: string, x, y, w, h: float32): TestNode =
+proc newTestNode*(name: string, x, y, w, h: float32, parent: TestNode = nil): TestNode =
   result = TestNode(
     name: name,
     box: uiBox(0, 0, 0, 0),
     cxOffset: [csFixed(x), csFixed(y)],
     cxSize: [csFixed(w), csFixed(h)],
     children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600))
+    frame: Frame(windowSize: uiBox(0, 0, 800, 600)),
+    parent: parent
   )
+  if parent != nil:
+    parent.children.add(result)
 
+# For backward compatibility
 proc addChild*(parent, child: TestNode) =
   parent.children.add(child)
   child.parent = parent
+
+# Convenience function to create a node with children
+proc newTestTree*(name: string, children: varargs[TestNode]): TestNode =
+  result = newTestNode(name)
+  for child in children:
+    result.children.add(child)
+    child.parent = result
+
+# Convenience function to create a positioned node with children
+proc newTestTree*(name: string, x, y, w, h: float32, children: varargs[TestNode]): TestNode =
+  result = newTestNode(name, x, y, w, h)
+  for child in children:
+    result.children.add(child)
+    child.parent = result
 
 proc toVal*[T](v: T): float =
   when distinctBase(UiScalar) is SomeFloat:

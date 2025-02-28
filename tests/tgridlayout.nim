@@ -164,18 +164,23 @@ suite "Compute Layout Tests":
 
   test "Grid with mixed units":
     when true:
-      let parent = newTestNode("mixed-grid", 0, 0, 400, 300)
-      let child1 = newTestNode("fixed-child", 0, 0, 100, 100)
-      let child2 = newTestNode("frac-child", 0, 0, 100, 100)
-      let child21 = newTestNode("frac-grandchild", 0, 0, 50, 50)
-      let child3 = newTestNode("auto-child", 0, 0, 100, 100)
-      let child31 = newTestNode("auto-grandchild", 0, 0, 50, 50)
+      # Create all nodes with parent-child relationships in a more concise way
+      let parent = newTestTree("mixed-grid", 0, 0, 400, 300, 
+        newTestNode("fixed-child", 0, 0, 100, 100),
+        newTestTree("frac-child", 0, 0, 100, 100,
+          newTestNode("frac-grandchild", 0, 0, 50, 50)
+        ),
+        newTestTree("auto-child", 0, 0, 100, 100,
+          newTestNode("auto-grandchild", 0, 0, 50, 50)
+        )
+      )
       
-      parent.addChild(child1)
-      parent.addChild(child2)
-      child2.addChild(child21)
-      parent.addChild(child3)
-      child3.addChild(child31)
+      # Access child nodes by index for further configuration
+      let child1 = parent.children[0]
+      let child2 = parent.children[1]
+      let child21 = child2.children[0]
+      let child3 = parent.children[2]
+      let child31 = child3.children[0]
       
       # Setup grid with fixed, fractional and auto tracks
       parent.cxSize = [400'ux, 300'ux]  # set fixed parent

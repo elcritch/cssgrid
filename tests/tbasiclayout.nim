@@ -73,6 +73,11 @@ suite "Basic CSS Layout Tests":
     computeLayout(parent)
     printLayout(parent, cmTerminal)
 
+    check parent.bpad.x == 10
+    check parent.bpad.y == 10
+    check parent.bpad.w == 10
+    check parent.bpad.h == 10
+
     check child1.box.x == 10
     check child1.box.y == 10
     check child1.box.w == 380

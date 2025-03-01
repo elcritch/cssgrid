@@ -9,7 +9,7 @@ import cssgrid/prettyprints
 
 type
   TestNode* = ref object
-    box*: UiBox
+    box*, bpad*: UiBox
     bmin*, bmax*: UiSize
     name*: string
     parent*: TestNode

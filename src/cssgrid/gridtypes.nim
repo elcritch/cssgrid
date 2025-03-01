@@ -24,6 +24,7 @@ type
 
   GridNode* = concept node
     typeof(node.box) is UiBox
+    typeof(node.bpad) is UiBox
     typeof(node.bmin) is UiSize
     typeof(node.bmax) is UiSize
     typeof(node.cxSize) is array[GridDir, Constraint]

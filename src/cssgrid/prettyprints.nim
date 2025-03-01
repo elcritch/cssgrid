@@ -155,14 +155,6 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   mode.withStyle(fgWhite, {styleBright}, text = indent & "Node: ")
   mode.withStyle(fgGreen, text = node.name & "\n")
   
-  # Box dimensions
-  mode.withStyle(fgWhite, {styleBright}, text = indent & "  box: ")
-  mode.withStyle(fgYellow, text = &"[x: {node.box.x.float:.2f}, y: {node.box.y.float:.2f}, w: {node.box.w.float:.2f}, h: {node.box.h.float:.2f}]\n")
-  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmin: ")
-  mode.withStyle(fgYellow, text = &"[x: {node.bmin.w.float:.2f}, y: {node.bmin.h.float:.2f}]\n")
-  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmax: ")
-  mode.withStyle(fgYellow, text = &"[x: {node.bmax.w.float:.2f}, y: {node.bmax.h.float:.2f}]\n")
-  
   # Constraints
   for i, constraint in node.cxSize:
     let dir = if i == dcol: "W" else: "H"
@@ -198,6 +190,16 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   if cnt > 0:
     mode.withStyle(fgWhite, text = "\n")
 
+  # Box dimensions
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  box: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.box.x.float:.2f}, y: {node.box.y.float:.2f}, w: {node.box.w.float:.2f}, h: {node.box.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmin: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bmin.w.float:.2f}, y: {node.bmin.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bmax: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bmax.w.float:.2f}, y: {node.bmax.h.float:.2f}]\n")
+  mode.withStyle(fgWhite, {styleBright}, text = indent & "  bpad: ")
+  mode.withStyle(fgYellow, text = &"[x: {node.bpad.x.float:.2f}, y: {node.bpad.y.float:.2f}, w: {node.bpad.w.float:.2f}, h: {node.bpad.h.float:.2f}]\n")
+  
   # Grid template
   if not node.gridTemplate.isNil:
     prettyGridTemplate(node.gridTemplate, indent & "  ", mode)

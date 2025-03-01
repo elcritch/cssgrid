@@ -69,15 +69,21 @@ suite "Basic CSS Layout Tests":
     parent.cxPadOffset = [10'ux, 10'ux]
     parent.cxPadSize = [10'ux, 10'ux]
     child1.cxSize = [cx"auto", cx"auto"]
-
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
 
-    check parent.bpad.x == 10
-    check parent.bpad.y == 10
-    check parent.bpad.w == 10
-    check parent.bpad.h == 10
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 380
+    check child1.box.h == 280
 
+    child1.cxSize = [100'pp, 100'pp]
+
+    # prettyPrintWriteMode = cmTerminal
+    computeLayout(parent)
+    # prettyPrintWriteMode = cmNone
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
     check child1.box.x == 10
     check child1.box.y == 10
     check child1.box.w == 380

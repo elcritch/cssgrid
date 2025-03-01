@@ -39,7 +39,15 @@ proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScala
           _: discard
       _: discard
 
-proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
+proc calcBasicConstraintImpl(
+    node: GridNode,
+    dir: GridDir,
+    calc: CalcKind,
+    f: var UiScalar,
+    pf: UiScalar,
+    f0 = 0.UiScalar, # starting point for field, e.g. for WH it'll be node XY's
+    pad = 0.UiScalar, # margin
+) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -56,10 +64,9 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
-          res = frac.UiScalar * pf
+          res = frac.UiScalar * pf - pad
         UiPerc(perc):
-          let ppval = pf
-          res = perc.UiScalar / 100.0.UiScalar * ppval
+          res = perc.UiScalar / 100.0.UiScalar * pf - pad
         UiContentMin():
           res = UiScalar.high()
           for child in node.children:
@@ -120,9 +127,15 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
       return
     UiEnd:
       return
-  # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
+  # debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
   node.propogateCalcs(dir, calc, f)
+
+  if calc == XY:
+    f += pad
+
+  debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
+
 
 
 proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
@@ -214,19 +227,23 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
-  let parentBox = node.getParentBoxOrWindows()
+  var parentBox = node.getParentBoxOrWindows()
+  var parentPad = if node.parent != nil: node.parent.bpad else: uiBox(0,0,0,0)
+
   node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)
   node.bmin = uiSize(UiScalar.high,UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
-  debugPrint "calcBasicConstraint:start", "name=", node.name
-  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
-  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
-  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)
-  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y)
-  calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.w)
-  calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.h)
-  calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w)
-  calcBasicConstraintImpl(node, drow, PADWH, node.bpad.h, parentBox.h)
+  debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox
+  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
+  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.y, parentPad.w)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y, parentPad.h)
+
+  calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, parentPad.x)
+  calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, parentPad.y)
+  calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w, parentPad.w)
+  calcBasicConstraintImpl(node, drow, PADWH, node.bpad.h, parentBox.h, parentPad.h)
+
   calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
   calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)

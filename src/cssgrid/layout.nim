@@ -152,7 +152,7 @@ proc computeLineLayout*(
         if totalFracs > 0:
           let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
           grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
-          debugPrint "computeLineLayout:frac: ", "remSpace=", remSpace, "width=", grdLn.width
+          debugPrint "computeLineLayout:frac: ", "dcol=", dcol, "remSpace=", remSpace, "width=", grdLn.width
           # remSpace -= grdLn.width
       of UiAuto:
         let minSize =
@@ -164,7 +164,7 @@ proc computeLineLayout*(
             remSpace / autoTrackIndices.len.UiScalar
           else:
             0.UiScalar
-        debugPrint "computeLineLayout:auto: ", "autoshare=", autoShare, "minsize=", minsize
+        debugPrint "computeLineLayout:auto: ", "dcol=", dcol, "autoshare=", autoShare, "minsize=", minsize
         grdLn.width = minSize + autoShare
 
   # Final pass: calculate positions
@@ -290,8 +290,9 @@ proc computeBox*(
     result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
     let spanEnd = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let spanWidth = (spanEnd - result.`f`) - grid.gaps[`dir`]
-    let contentView = min(contentSize.`v`, spanWidth)
-    debugPrint "calcBoxFor:", "node=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView
+    let contentSizeDir = contentSize.`v`
+    let contentView = min(contentSizeDir, spanWidth)
+    debugPrint "calcBoxFor:", "node=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
     case `axis`:
     of CxStretch:
       result.`v` = spanWidth
@@ -411,7 +412,6 @@ proc computeContentSizes*(
 
   # Process each child and track
   for child in children:
-    debugPrint "computeContentSizes: ", "child=", child.name
     let cspan = child.gridItem.span
     for dir in [dcol, drow]:
       if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
@@ -421,7 +421,11 @@ proc computeContentSizes*(
         # Calculate size recursively including nested children
         # let contentSize = calculateContentSize(child, dir)
         var contentSize = child.bmin[dir]
+        if child.box.wh[dir] != 0.UiScalar:
+          contentSize = min(contentSize, child.box.wh[dir])
+
         if contentSize == UiScalar.high: contentSize = 0.UiScalar
+        debugPrint "computeContentSizes: ", "child=", child.name, "dir=", dir, "contentSize=", contentSize, "chBmin=", child.bmin[dir], "chBox=", child.box.wh[dir]
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)

@@ -60,37 +60,38 @@ proc calcBasicConstraintImpl(
       match val:
         UiAuto():
           if calc == WH:
-            res = max(pf - max(f0, 0), 0)
+            # res = max(pf - max(f0, 0), 0)
+            res = pf - f0
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
           res = frac.UiScalar * pf
         UiPerc(perc):
           res = perc.UiScalar / 100.0.UiScalar * pf
-        # UiContentMin():
-        #   res = UiScalar.high()
-        #   for child in node.children:
-        #     res = min(res, child.bmin[dir])
-        #   if res == UiScalar.high():
-        #     res = 0.0.UiScalar
-        # UiContentMax():
-        #   res = UiScalar.low()
-        #   for child in node.children:
-        #     res = max(res, child.bmax[dir])
-        #   if res == UiScalar.low():
-        #     res = 0.0.UiScalar
-        # UiContentFit():
-        #   # fit-content - calculate as max-content but clamped by available space
-        #   res = UiScalar.low()
-        #   for child in node.children:
-        #     res = max(res, child.bmax[dir])
-        #   # Clamp to available width (pf is parent width)
-        #   res = min(res, pf)
-        #   if res == UiScalar.low():
-        #     res = 0.0.UiScalar
+        UiContentMin():
+          res = UiScalar.high()
+          for child in node.children:
+            res = min(res, child.bmin[dir])
+          # if res == UiScalar.high():
+          #   res = 0.0.UiScalar
+        UiContentMax():
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
+          # if res == UiScalar.low():
+          #   res = 0.0.UiScalar
+        UiContentFit():
+          # fit-content - calculate as max-content but clamped by available space
+          res = UiScalar.low()
+          for child in node.children:
+            res = max(res, child.bmax[dir])
+          # Clamp to available width (pf is parent width)
+          res = min(res, pf)
+          # if res == UiScalar.low():
+          #   res = 0.0.UiScalar
         _:
           discard
-      debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, " res: ", res
+      debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, "kind=", val.kind, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -265,9 +266,12 @@ proc calcBasicConstraint*(node: GridNode) =
   node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)
   node.bmin = uiSize(UiScalar.high,UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
-  debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox
+  debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
+  printLayout(node)
+
   calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
   calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
+  debugPrint "calcBasicConstraint:start:wh", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
   calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w)
   calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y-parentPad.y, -parentPad.h)
 
@@ -280,6 +284,7 @@ proc calcBasicConstraint*(node: GridNode) =
   calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
   calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
+
   printLayout(node)
 
 proc calcBasicConstraintPost*(node: GridNode) =

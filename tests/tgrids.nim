@@ -544,7 +544,10 @@ suite "grids":
     nodes[7].cxMin[dcol] = csFixed(150)
 
     # ==== process grid ====
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
+
 
     check parent.box.w == 500
     check parent.box.h == 50

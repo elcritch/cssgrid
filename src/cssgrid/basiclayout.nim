@@ -130,13 +130,6 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
       return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
 
-  # if calc == MINSZ and f == UiScalar.high or calc == MAXSZ and f == UiScalar.low:
-  #   match node.cxSize[dir]:
-  #     UiValue(value):
-  #       f = calcBasic(value)
-  #     _:
-  #       discard
-
   node.propogateCalcs(dir, calc, f)
 
 

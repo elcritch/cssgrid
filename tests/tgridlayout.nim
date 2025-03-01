@@ -84,7 +84,7 @@ suite "Compute Layout Tests":
       let basicText = newTestNode("text-" & $i, text)
 
       child.cxSize = [1'fr, 40'ux]
-      child.cxSize = [1'fr, max(40'ux, cx"min-content")]
+      child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
       child.cxPadOffset[drow] = 20'ux
       child.cxPadSize[drow] = 20'ux
 
@@ -103,8 +103,8 @@ suite "Compute Layout Tests":
 
     computeLayout(parent)
 
-    # check items.box.w == 300
-    # check items.box.h == 240
+    check items.children[0].box.w == 768
+    check items.children[0].box.h == 62.299999.UiScalar
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

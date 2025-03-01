@@ -153,7 +153,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       match val:
         UiContentMin():
             # I'm not sure about this, it's sorta hacky
-            # but implemtn min/max content for non-grid nodes...
+            # but implement min/max content for non-grid nodes...
             res = UiScalar.high()
             for child in node.children:
               debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
@@ -164,7 +164,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               res = min(res, min(childScreenSize, childScreenMin))
         UiContentMax():
             # I'm not sure about this, it's sorta hacky
-            # but implemtn min/max content for non-grid nodes...
+            # but implement min/max content for non-grid nodes...
             res = UiScalar.low()
             for child in node.children:
               debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]

@@ -67,27 +67,29 @@ proc calcBasicConstraintImpl(
           res = frac.UiScalar * pf
         UiPerc(perc):
           res = perc.UiScalar / 100.0.UiScalar * pf
-        UiContentMin():
-          res = UiScalar.high()
-          for child in node.children:
-            res = min(res, child.bmin[dir])
-          if res == UiScalar.high():
-            res = 0.0.UiScalar
-        UiContentMax():
-          res = UiScalar.low()
-          for child in node.children:
-            res = max(res, child.bmax[dir])
-          if res == UiScalar.low():
-            res = 0.0.UiScalar
-        UiContentFit():
-          # fit-content - calculate as max-content but clamped by available space
-          res = UiScalar.low()
-          for child in node.children:
-            res = max(res, child.bmax[dir])
-          # Clamp to available width (pf is parent width)
-          res = min(res, pf)
-          if res == UiScalar.low():
-            res = 0.0.UiScalar
+        # UiContentMin():
+        #   res = UiScalar.high()
+        #   for child in node.children:
+        #     res = min(res, child.bmin[dir])
+        #   if res == UiScalar.high():
+        #     res = 0.0.UiScalar
+        # UiContentMax():
+        #   res = UiScalar.low()
+        #   for child in node.children:
+        #     res = max(res, child.bmax[dir])
+        #   if res == UiScalar.low():
+        #     res = 0.0.UiScalar
+        # UiContentFit():
+        #   # fit-content - calculate as max-content but clamped by available space
+        #   res = UiScalar.low()
+        #   for child in node.children:
+        #     res = max(res, child.bmax[dir])
+        #   # Clamp to available width (pf is parent width)
+        #   res = min(res, pf)
+        #   if res == UiScalar.low():
+        #     res = 0.0.UiScalar
+        _:
+          discard
       debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, " res: ", res
       res
 
@@ -183,6 +185,22 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               res = max(res, max(childScreenSize, childScreenMax))
             if res == UiScalar.low():
               res = 0.0.UiScalar
+        UiContentFit():
+            # I'm not sure about this, it's sorta hacky
+            # but implement min/max content for non-grid nodes...
+            res = UiScalar.low()
+            for child in node.children:
+              debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
+              let childXY =  child.box.xy[dir]
+              let childScreenSize = child.box.wh[dir] + childXY 
+              debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize
+              res = max(res, childScreenSize)
+            if res == UiScalar.low():
+              res = 0.0.UiScalar
+            #   # Clamp to available width (pf is parent width)
+            #   res = min(res, pf)
+            #   if res == UiScalar.low():
+            #     res = 0.0.UiScalar
         _:
           res = f
       res

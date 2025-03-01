@@ -61,14 +61,12 @@ proc calcBasicConstraintImpl(
         UiAuto():
           if calc == WH:
             res = max(pf - max(f0, 0), 0)
-          elif calc == XY:
-            res = pad
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
-          res = frac.UiScalar * pf + pad
+          res = frac.UiScalar * pf
         UiPerc(perc):
-          res = perc.UiScalar / 100.0.UiScalar * pf + pad
+          res = perc.UiScalar / 100.0.UiScalar * pf
         UiContentMin():
           res = UiScalar.high()
           for child in node.children:
@@ -84,7 +82,7 @@ proc calcBasicConstraintImpl(
             res = max(res, child.bmax[dir])
           # Clamp to available width (pf is parent width)
           res = min(res, pf)
-      debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, " res: ", res
+      debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -133,8 +131,10 @@ proc calcBasicConstraintImpl(
   # debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
   node.propogateCalcs(dir, calc, f)
 
-  # if calc == XY:
-  #   f += pad
+  if calc == XY:
+    f += pad
+  elif calc == WH:
+    f += pad
 
   debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
 
@@ -239,8 +239,8 @@ proc calcBasicConstraint*(node: GridNode) =
   debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox
   calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
   calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
-  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x, -parentPad.w)
-  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y, -parentPad.h)
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y-parentPad.y, -parentPad.h)
 
   calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, parentPad.x)
   calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, parentPad.y)

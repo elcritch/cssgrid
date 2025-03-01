@@ -258,7 +258,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   var parentBox = node.getParentBoxOrWindows()
-  var parentPad = if node.parent == nil: uiBox(0,0,0,0) else: node.parent.bpad
+  var parentPad = if node.parent.isNil: uiBox(0,0,0,0) else: node.parent.bpad
   parentBox.wh = parentBox.wh - parentPad.wh
 
   node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)

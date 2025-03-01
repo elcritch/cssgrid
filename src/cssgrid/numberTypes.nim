@@ -229,6 +229,13 @@ proc y*(r: var UiPos): var UiScalar = GVec2[UiScalar](r)[1]
 proc `x=`*(r: var UiPos, v: UiScalar) = r[0] = v
 proc `y=`*(r: var UiPos, v: UiScalar) = r[1] = v
 
+proc `xy=`*(r: var UiBox, p: UiPos) =
+  r.x= p.x
+  r.y= p.y
+proc `wh=`*(r: var UiBox, p: UiSize) =
+  r.w = p.w
+  r.h = p.h
+
 proc bounding*(rect: UiBox): UiSize =
   result.w = rect.x + rect.w
   result.h = rect.y + rect.h

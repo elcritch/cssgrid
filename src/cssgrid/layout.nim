@@ -288,21 +288,21 @@ proc computeBox*(
   # set columns
   template calcBoxFor(f, v, dir, axis) =
     result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
-    let rfw = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
-    let rvw = (rfw - result.`f`) - grid.gaps[`dir`]
-    let cvw = min(contentSize.`v`, rvw)
-    debugPrint "calcBoxFor:", "node=", node.name, "rfw=", rfw, "rvw=", rvw, "cvw=", cvw
+    let spanEnd = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
+    let spanWidth = (spanEnd - result.`f`) - grid.gaps[`dir`]
+    let contentView = min(contentSize.`v`, spanWidth)
+    debugPrint "calcBoxFor:", "node=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView
     case `axis`:
     of CxStretch:
-      result.`v` = rvw
+      result.`v` = spanWidth
     of CxCenter:
-      result.`f` = (rvw/2 - cvw/2) + result.`f`
-      result.`v` = cvw
+      result.`f` = (spanWidth/2 - contentView/2) + result.`f`
+      result.`v` = contentView
     of CxStart:
-      result.`v` = cvw
+      result.`v` = contentView
     of CxEnd:
-      result.`f` = rfw - cvw
-      result.`v` = cvw
+      result.`f` = spanEnd - contentView
+      result.`v` = contentView
 
   let justify = node.gridItem.justify.get(grid.justifyItems)
   let align = node.gridItem.align.get(grid.alignItems)

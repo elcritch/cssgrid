@@ -129,6 +129,7 @@ proc calcBasicConstraintImpl(
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
       f = max(lv, rv)
+      debugPrint "calcBasicCx:max: ", " name= ", node.name, " lv= ", lv, "rv= ", rv, "rs= ", rs
     UiValue(value):
       f = calcBasic(value)
     UiMinMax(ls, rs):
@@ -243,6 +244,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
         let rv = rs.calcBasic()
+        debugPrint "calcBasicPost:max: ", " name= ", node.name, " lv= ", lv, "rv= ", rv, "rs= ", rs
         f = max(lv, rv)
     UiMinMax(ls, rs):
       return # doesn't make sense here

@@ -66,15 +66,17 @@ suite "Basic CSS Layout Tests":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", parent)
 
-    parent.cxPadOffset = [10'ux, 10'ux]
-    parent.cxPadSize = [10'ux, 10'ux]
+    parent.cxPadXY = [10'ux, 10'ux]
+    parent.cxPadWH = [10'ux, 10'ux]
     child1.cxSize = [cx"auto", cx"auto"]
 
     computeLayout(parent)
     printLayout(parent, cmTerminal)
 
-    check child1.box.w == 400
-    check child1.box.h == 300
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 380
+    check child1.box.h == 280
 
   test "Complex nested constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)

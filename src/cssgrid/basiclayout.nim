@@ -4,7 +4,7 @@ import prettyprints
 
 type
   CalcKind* {.pure.} = enum
-    XY, WH, MINSZ, MAXSZ
+    PADXY, PADWH, XY, WH, MINSZ, MAXSZ
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
@@ -89,6 +89,10 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
       node.cxMin[dir]
     of MAXSZ:
       node.cxMax[dir]
+    of PADXY:
+      node.cxPadXY[dir]
+    of PADWH:
+      node.cxPadWH[dir]
 
   debugPrint "calcBasicCx", "name=", node.name, "csValue: ", csValue, "dir: ", dir, "calc: ", calc
   match csValue:
@@ -168,6 +172,10 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       node.cxMin[dir]
     of MAXSZ:
       node.cxMax[dir]
+    of PADXY:
+      node.cxPadXY[dir]
+    of PADWH:
+      node.cxPadWH[dir]
   
   debugPrint "CONTENT csValue:post", "node =", node.name, "calc=", calc, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:
@@ -211,6 +219,8 @@ proc calcBasicConstraint*(node: GridNode) =
   node.bmin = uiSize(UiScalar.high,UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
   debugPrint "calcBasicConstraint:start", "name=", node.name
+  calcBasicConstraintImpl(node, dcol, PADXY, node.box.x, parentBox.w)
+  calcBasicConstraintImpl(node, drow, PADXY, node.box.y, parentBox.h)
   calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w)
   calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h)
   calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x)

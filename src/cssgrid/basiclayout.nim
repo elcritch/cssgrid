@@ -181,7 +181,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               let childXY =  child.box.xy[dir]
               let childScreenSize = child.box.wh[dir] + childXY 
               let childScreenMax = child.bmax[dir] + childXY 
-              debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreeMax=", childScreenMax
+              debugPrint "calcBasicPost:max-content: ", "childScreenSize=", childScreenSize, "childScreeMax=", childScreenMax
               res = max(res, max(childScreenSize, childScreenMax))
             if res == UiScalar.low():
               res = 0.0.UiScalar
@@ -193,7 +193,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
               let childXY =  child.box.xy[dir]
               let childScreenSize = child.box.wh[dir] + childXY 
-              debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize
+              debugPrint "calcBasicPost:fit-content: ", "childScreenSize=", childScreenSize
               res = max(res, childScreenSize)
             if res == UiScalar.low():
               res = 0.0.UiScalar

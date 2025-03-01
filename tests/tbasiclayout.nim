@@ -169,6 +169,29 @@ suite "Basic CSS Layout Tests":
     # check child.bmin == uiSize(100, 40)
     check child.bmax == uiSize(UiScalar.low, 200)
 
+  test "Content based constraints":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100, parent)
+    let grandchild = newTestNode("grandchild", 0, 0, 150, 80, child)
+    
+    grandchild.cxMin = [100'ux, 40'ux]
+    grandchild.cxSize = [150'ux, 80'ux]
+    grandchild.cxMax = [200'ux, 200'ux]
+    
+    # Set child width to fit content
+    child.cxSize[dcol] = csContentFit()
+    child.cxSize[drow] = csContentFit()
+    # calcBasicConstraint(child, dcol, isXY = false)
+    computeLayout(parent)
+    
+    check grandchild.bmin == uiSize(100, 40)
+    check child.box.w == 150
+    check child.box.h == 80
+    # check child.bmin == uiSize(100, 40)
+    # check child.bmax == uiSize(UiScalar.low, 200)
+
   test "Position constraints":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone

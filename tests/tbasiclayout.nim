@@ -62,6 +62,20 @@ suite "Basic CSS Layout Tests":
     computeLayout(node)
     check node.box.h == 200
 
+  test "Padding":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child1 = newTestNode("child1", parent)
+
+    parent.cxPadOffset = [10'ux, 10'ux]
+    parent.cxPadSize = [10'ux, 10'ux]
+    child1.cxSize = [cx"auto", cx"auto"]
+
+    computeLayout(parent)
+    printLayout(parent, cmTerminal)
+
+    check child1.box.w == 400
+    check child1.box.h == 300
+
   test "Complex nested constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", 10, 10, 100, 100, parent)
@@ -120,7 +134,7 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child)
     calcBasicConstraintPost(child)
     
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check child.box.x == 20
     check child.box.y == 30 # 10% of 300

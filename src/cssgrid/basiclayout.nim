@@ -38,14 +38,6 @@ proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScala
             f = coord
           _: discard
       _: discard
-  # if calc == WH and f == UiScalar.high:
-  #   match node.cxMin[dir]:
-  #     UiValue(value):
-  #       match value:
-  #         UiFixed(coord):
-  #           f = coord
-  #         _: discard
-  #     _: discard
 
 proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, pf: UiScalar, f0 = 0.UiScalar) =
   mixin getParentBoxOrWindows
@@ -68,10 +60,6 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
         UiPerc(perc):
           let ppval = pf
           res = perc.UiScalar / 100.0.UiScalar * ppval
-        # UiContentMin():
-        #   return # run as post
-        # UiContentMax():
-        #   return # run as post
         UiContentMin():
           res = UiScalar.high()
           for child in node.children:
@@ -132,24 +120,6 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
 
   node.propogateCalcs(dir, calc, f)
 
-
-proc calculateMin(node: GridNode, calc: CalcKind): UiScalar =
-  for n in node.children:
-    case calc:
-    of WH:
-      result = max(n.box.x + n.box.w, result)
-      result = min(n.box.y + n.box.h, result)
-    of XY:
-      result = max(n.box.x + n.box.w, result)
-      result = min(n.box.y + n.box.h, result)
-
-    #   else:
-    #     result = min(n.box.x + n.box.w, result)
-    # elif fs == "h":
-    #   when doMax:
-    #     result = max(n.box.y + n.box.h, result)
-    #   else:
-    #     result = min(n.box.y + n.box.h, result)
 
 proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set

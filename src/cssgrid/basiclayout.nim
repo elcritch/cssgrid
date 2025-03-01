@@ -71,10 +71,14 @@ proc calcBasicConstraintImpl(
           res = UiScalar.high()
           for child in node.children:
             res = min(res, child.bmin[dir])
+          if res == UiScalar.high():
+            res = 0.0.UiScalar
         UiContentMax():
           res = UiScalar.low()
           for child in node.children:
             res = max(res, child.bmax[dir])
+          if res == UiScalar.low():
+            res = 0.0.UiScalar
         UiContentFit():
           # fit-content - calculate as max-content but clamped by available space
           res = UiScalar.low()
@@ -82,6 +86,8 @@ proc calcBasicConstraintImpl(
             res = max(res, child.bmax[dir])
           # Clamp to available width (pf is parent width)
           res = min(res, pf)
+          if res == UiScalar.low():
+            res = 0.0.UiScalar
       debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, " res: ", res
       res
 
@@ -162,6 +168,8 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               let childScreenMin = child.bmin[dir] + childXY
               debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
               res = min(res, min(childScreenSize, childScreenMin))
+            if res == UiScalar.high():
+              res = 0.0.UiScalar
         UiContentMax():
             # I'm not sure about this, it's sorta hacky
             # but implement min/max content for non-grid nodes...
@@ -173,6 +181,8 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               let childScreenMax = child.bmax[dir] + childXY 
               debugPrint "calcBasicPost:min-content: ", "childScreenSize=", childScreenSize, "childScreeMax=", childScreenMax
               res = max(res, max(childScreenSize, childScreenMax))
+            if res == UiScalar.low():
+              res = 0.0.UiScalar
         _:
           res = f
       res

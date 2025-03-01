@@ -69,9 +69,7 @@ suite "Basic CSS Layout Tests":
     parent.cxPadOffset = [10'ux, 10'ux]
     parent.cxPadSize = [10'ux, 10'ux]
     child1.cxSize = [cx"auto", cx"auto"]
-    prettyPrintWriteMode = cmTerminal
     computeLayout(parent)
-    prettyPrintWriteMode = cmNone
 
     check parent.bpad == uiBox(10, 10, 10, 10)
     check child1.box.x == 10
@@ -80,7 +78,6 @@ suite "Basic CSS Layout Tests":
     check child1.box.h == 280
 
     child1.cxSize = [100'pp, 100'pp]
-
     computeLayout(parent)
 
     check parent.bpad == uiBox(10, 10, 10, 10)
@@ -89,16 +86,34 @@ suite "Basic CSS Layout Tests":
     check child1.box.w == 380
     check child1.box.h == 280
 
-  test "Padding":
+    child1.cxSize = [1'fr, 1'fr]
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 380
+    check child1.box.h == 280
+
+    child1.cxSize = [cx"min-content", cx"min-content"]
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 0
+    check child1.box.h == 0
+
+  test "Padding mixed":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", parent)
 
     parent.cxPadOffset = [0'ux, 10'ux]
     parent.cxPadSize = [0'ux, 10'ux]
     child1.cxSize = [cx"auto", cx"auto"]
-    prettyPrintWriteMode = cmTerminal
+    # prettyPrintWriteMode = cmTerminal
     computeLayout(parent)
-    prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmNone
 
     check parent.bpad == uiBox(0, 10, 0, 10)
     check child1.box.x == 0

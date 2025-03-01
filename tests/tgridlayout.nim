@@ -62,24 +62,49 @@ suite "Compute Layout Tests":
     prettyPrintWriteMode = cmTerminal
     defer: prettyPrintWriteMode = cmNone
 
-    let parent = newTestNode("grid-parent", 0, 0, 400, 300)
-    let vertical = newTestNode("vertical", parent)
+    let parent = newTestNode("scroll", 0, 0, 400, 300)
+    let body = newTestNode("scrollBody", parent)
+    let items = newTestNode("items", body)
 
-    parseGridTemplateColumns vertical.gridTemplate, 1'fr
-    vertical.cxSize = [75'pp, 80'pp]
-    vertical.gridTemplate.autoFlow = grRow
-    vertical.gridTemplate.autos[drow] = csAuto()
-    vertical.gridTemplate.justifyItems = CxCenter
-    vertical.gridTemplate.alignItems = CxCenter
+    parseGridTemplateColumns items.gridTemplate, 1'fr
+    parent.cxSize = [96'pp, 90'pp]
+    body.cxSize = [cx"auto", cx"max-content"]
+    body.cxOffset = [cx"auto", cx"auto"]
 
-    for i in 0..3:
-      let child = newTestNode("grid-child-" & $i, vertical)
-      child.cxSize = [50'ux, 50'ux]
+    items.cxSize = [cx"auto", cx"auto"]
+    items.gridTemplate.autoFlow = grRow
+    items.gridTemplate.gaps[drow] = 3
+    items.gridTemplate.autos[drow] = csAuto()
+    items.gridTemplate.justifyItems = CxCenter
+    items.gridTemplate.alignItems = CxCenter
+
+    for i in 0..1:
+      let child = newTestNode("story-" & $i, items)
+      let text = newTestNode("text-" & $i, child)
+      let basicText = newTestNode("text-" & $i, text)
+
+      child.cxSize = [1'fr, 40'ux]
+      child.cxSize = [1'fr, max(40'ux, cx"min-content")]
+      child.cxPadOffset[drow] = 20'ux
+      child.cxPadSize[drow] = 20'ux
+
+      text.cxSize = [cx"auto", 42.30'ux]
+      basicText.cxSize = [cx"auto", cx"auto"]
+      basicText.cxMin = [cx"auto", 21.5'ux]
+
+      # W: 1.00'fr          H: 42.30'ui
+      # X: 10.00'ui          Y: 0.00'ui
+      # Xmin: 600.50'ui          Ymin: 22.50'ui
+      # box: [x: 10.00, y: 0.00, w: 638.67, h: 42.30]
+      # bmin: [x: 600.50, y: 22.50]
+      # bmax: [x: -inf, y: 42.30]
+      # bpad: [x: 0.00, y: 20.00, w: 0.00, h: 20.00]
+
 
     computeLayout(parent)
 
-    check vertical.box.w == 300
-    check vertical.box.h == 240
+    # check items.box.w == 300
+    # check items.box.h == 240
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

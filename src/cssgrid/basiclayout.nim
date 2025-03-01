@@ -6,21 +6,6 @@ type
   CalcKind* {.pure.} = enum
     XY, WH, MINSZ, MAXSZ
 
-# template XY*(node: GridNode, fs: static string): UiScalar =
-#   when fs == "x": node.box.x
-#   elif fs == "y": node.box.y
-#   else: {.error: "invalid field".}
-
-# template WH*(node: GridNode, fs: static string): UiScalar =
-#   when fs == "w": node.box.w
-#   elif fs == "h": node.box.h
-#   else: {.error: "invalid field".}
-
-# template WH*(node: GridNode, dir: GridDir): UiScalar =
-#   case dir
-#   of dcol: WH(node, "w")
-#   of drow: WH(node, "h")
-
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
 # For children with fixed heights (like height: 100px), those values are used
@@ -144,6 +129,13 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
     UiEnd:
       return
   # debugPrint "calcBasicConstraintImpl:done: ", " name= ", node.name, " boxH= ", node.box.h
+
+  # if calc == MINSZ and f == UiScalar.high or calc == MAXSZ and f == UiScalar.low:
+  #   match node.cxSize[dir]:
+  #     UiValue(value):
+  #       f = calcBasic(value)
+  #     _:
+  #       discard
 
   node.propogateCalcs(dir, calc, f)
 

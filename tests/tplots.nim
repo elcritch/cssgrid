@@ -13,33 +13,7 @@ import cssgrid/prettyprints
 import pretty
 import pixie
 
-
-type
-  GridNode* = ref object
-    name*: string
-    box*: UiBox
-    bmin*, bmax*: UiSize
-    parent*: GridNode
-    gridItem*: GridItem
-    gridTemplate*: GridTemplate
-    cxSize*: array[GridDir, Constraint] = [csAuto(), csAuto()]  # For width/height
-    cxOffset*: array[GridDir, Constraint] = [csAuto(), csAuto()] # For x/y positions
-    cxMin*: array[GridDir, Constraint]  # For width/height
-    cxMax*: array[GridDir, Constraint] # For x/y positions
-    children*: seq[GridNode]
-    frame*: Frame
-
-  Frame = ref object
-    windowSize*: UiBox
-
-template getParentBoxOrWindows*(node: GridNode): UiBox =
-  if node.parent.isNil:
-    node.frame.windowSize
-  else:
-    node.parent.box
-
-proc `box=`*[T](v: T, box: UiBox) = 
-  v.box = box
+import commontestutils
 
 var imageFiles: seq[string]
 
@@ -81,7 +55,7 @@ proc writeHtmlSummary() =
   writeFile("tests/tlayout.html", md)
   echo("open tests/tlayout.html")
 
-proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], prefix = "") =
+proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[TestNode], prefix = "") =
   # echo "grid template post: ", repr gridTemplate
   # echo "grid template post: ", repr box
   # ==== item a ====
@@ -100,18 +74,18 @@ proc saveImage(gridTemplate: GridTemplate, box: UiBox, nodes: seq[GridNode], pre
   imageFiles.add(file)
   image.writeFile("tests" / file)
 
-proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], UiBox) =
+proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[TestNode], UiBox) =
   # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
   # parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
   parseGridTemplateColumns gridTemplate, 1'fr 1'fr 1'fr 1'fr 1'fr 
   parseGridTemplateRows gridTemplate, 33'ux 33'ux
   gridTemplate.justifyItems = CxStretch
 
-  var nodes = newSeq[GridNode](cnt)
+  var nodes = newSeq[TestNode](cnt)
 
-  var parent = GridNode(name: "parent")
+  var parent = TestNode(name: "parent")
   parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
-  assert parent is GridNode
+  assert parent is TestNode
   # parent.box = uiBox(0, 0,
   parent.cxOffset = [
                   csFixed(0),
@@ -126,17 +100,17 @@ proc makeGrid1(gridTemplate: var GridTemplate, cnt: int = 6): (seq[GridNode], Ui
   var itema = newGridItem()
   itema.column = 1 // 2
   itema.row = 1 // 3
-  nodes[0] = GridNode(name: "a", gridItem: itema, frame: parent.frame)
+  nodes[0] = TestNode(name: "a", gridItem: itema, frame: parent.frame)
 
   # ==== item e ====
   var iteme = newGridItem()
   iteme.column = 5 // 6
   iteme.row = 1 // 3
-  nodes[1] = GridNode(name: "e", gridItem: iteme, frame: parent.frame)
+  nodes[1] = TestNode(name: "e", gridItem: iteme, frame: parent.frame)
 
   # ==== item b's ====
   for i in 2 ..< nodes.len():
-    nodes[i] = GridNode(name: "b" & $(i-2), frame: parent.frame)
+    nodes[i] = TestNode(name: "b" & $(i-2), frame: parent.frame)
     nodes[i].parent = parent
 
   # ==== process grid ====
@@ -182,10 +156,10 @@ suite "grids":
     parseGridTemplateRows gridTemplate, 50'ux 50'ux
     gridTemplate.justifyItems = CxStretch
 
-    var nodes = newSeq[GridNode](cnt)
+    var nodes = newSeq[TestNode](cnt)
 
-    var parent = GridNode(gridTemplate: gridTemplate)
-    assert parent is GridNode
+    var parent = TestNode(gridTemplate: gridTemplate)
+    assert parent is TestNode
     parent.cxSize = [300'ux, 100'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 100))
 
@@ -193,18 +167,18 @@ suite "grids":
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 1 // 3
-    nodes[0] = GridNode(name: "a", gridItem: itema, frame: parent.frame)
+    nodes[0] = TestNode(name: "a", gridItem: itema, frame: parent.frame)
 
     # ==== item e ====
     var iteme = newGridItem()
     iteme.column = 5 // 6
     iteme.row = 1 // 3
-    nodes[1] = GridNode(name: "e", gridItem: iteme, frame: parent.frame)
+    nodes[1] = TestNode(name: "e", gridItem: iteme, frame: parent.frame)
 
     # ==== item b's ====
     for i in 2 ..< nodes.len():
       let gi = newGridItem()
-      nodes[i] = GridNode(name: "b" & $(i-2), gridItem: gi, frame: parent.frame)
+      nodes[i] = TestNode(name: "b" & $(i-2), gridItem: gi, frame: parent.frame)
       nodes[i].cxSize = [33'ux, 33'ux]
       nodes[i].parent = parent
       nodes[i].gridItem.justify = some(CxCenter)

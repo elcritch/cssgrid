@@ -9,7 +9,7 @@ import cssgrid/prettyprints
 
 type
   TestNode* = ref object
-    box*: UiBox
+    box*, bpad*: UiBox
     bmin*, bmax*: UiSize
     name*: string
     parent*: TestNode
@@ -18,6 +18,8 @@ type
     cxOffset*: array[GridDir, Constraint] = [csAuto(), csAuto()] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
+    cxPadOffset*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding x/y positions
+    cxPadSize*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding width/height
     gridItem*: GridItem
     gridTemplate*: GridTemplate
     frame*: Frame
@@ -58,10 +60,7 @@ proc newTestNode*(name: string, x, y, w, h: float32, parent: TestNode = nil): Te
   if parent != nil:
     parent.children.add(result)
 
-# For backward compatibility
-proc addChild*(parent, child: TestNode) =
-  parent.children.add(child)
-  child.parent = parent
+# addChild proc removed to enforce the use of parent parameter in constructors
 
 # Convenience function to create a node with children
 proc newTestTree*(name: string, children: varargs[TestNode]): TestNode =

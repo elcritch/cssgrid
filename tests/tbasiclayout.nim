@@ -62,6 +62,75 @@ suite "Basic CSS Layout Tests":
     computeLayout(node)
     check node.box.h == 200
 
+  test "Padding":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child1 = newTestNode("child1", parent)
+
+    parent.cxPadOffset = [10'ux, 10'ux]
+    parent.cxPadSize = [10'ux, 10'ux]
+    child1.cxSize = [cx"auto", cx"auto"]
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 380
+    check child1.box.h == 280
+
+    child1.cxSize = [100'pp, 100'pp]
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 380
+    check child1.box.h == 280
+
+    child1.cxSize = [1'fr, 1'fr]
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 380
+    check child1.box.h == 280
+
+    child1.cxSize = [cx"min-content", cx"min-content"]
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(10, 10, 10, 10)
+    check child1.box.x == 10
+    check child1.box.y == 10
+    check child1.box.w == 0
+    check child1.box.h == 0
+
+  test "Padding mixed":
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child1 = newTestNode("child1", parent)
+
+    parent.cxPadOffset = [0'ux, 10'ux]
+    parent.cxPadSize = [0'ux, 10'ux]
+    child1.cxSize = [cx"auto", cx"auto"]
+    # prettyPrintWriteMode = cmTerminal
+    computeLayout(parent)
+    # prettyPrintWriteMode = cmNone
+
+    check parent.bpad == uiBox(0, 10, 0, 10)
+    check child1.box.x == 0
+    check child1.box.y == 10
+    check child1.box.w == 400
+    check child1.box.h == 280
+
+    child1.cxSize = [100'pp, 100'pp]
+
+    computeLayout(parent)
+
+    check parent.bpad == uiBox(0, 10, 0, 10)
+    check child1.box.x == 0
+    check child1.box.y == 10
+    check child1.box.w == 400
+    check child1.box.h == 280
+
   test "Complex nested constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", 10, 10, 100, 100, parent)
@@ -100,6 +169,29 @@ suite "Basic CSS Layout Tests":
     # check child.bmin == uiSize(100, 40)
     check child.bmax == uiSize(UiScalar.low, 200)
 
+  test "Content based constraints":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    let parent = newTestNode("parent", 0, 0, 400, 300)
+    let child = newTestNode("child", 0, 0, 100, 100, parent)
+    let grandchild = newTestNode("grandchild", 0, 0, 150, 80, child)
+    
+    grandchild.cxMin = [100'ux, 40'ux]
+    grandchild.cxSize = [150'ux, 80'ux]
+    grandchild.cxMax = [200'ux, 200'ux]
+    
+    # Set child width to fit content
+    child.cxSize[dcol] = csContentFit()
+    child.cxSize[drow] = csContentFit()
+    # calcBasicConstraint(child, dcol, isXY = false)
+    computeLayout(parent)
+    
+    check grandchild.bmin == uiSize(100, 40)
+    check child.box.w == 150
+    check child.box.h == 80
+    # check child.bmin == uiSize(100, 40)
+    # check child.bmax == uiSize(UiScalar.low, 200)
+
   test "Position constraints":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
@@ -120,15 +212,14 @@ suite "Basic CSS Layout Tests":
     calcBasicConstraint(child)
     calcBasicConstraintPost(child)
     
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check child.box.x == 20
     check child.box.y == 30 # 10% of 300
 
   test "Post-process auto sizing with grid":
     let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child = newTestNode("child", 50, 50, 200, 150)
-    parent.addChild(child)
+    let child = newTestNode("child", 50, 50, 200, 150, parent)
     
     parent.cxOffset = [csFixed(400), csFixed(300)]
 
@@ -145,8 +236,7 @@ suite "Basic CSS Layout Tests":
 
   test "Post-process auto sizing with grid":
     let parent = newTestNode("parent", 0, 0, 400, 300)
-    let child = newTestNode("child", 50, 50, 0, 0)
-    parent.addChild(child)
+    let child = newTestNode("child", 50, 50, 0, 0, parent)
     
     parent.cxSize = [csFixed(400), csFixed(300)]
     child.cxSize = [csAuto(), csAuto()]

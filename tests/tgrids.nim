@@ -539,7 +539,8 @@ suite "grids":
                           gridItem: GridItem())
       nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
-      parent.addChild(nodes[i])
+      parent.children.add(nodes[i])
+      nodes[i].parent = parent
     nodes[7].cxMin[dcol] = csFixed(150)
 
     # ==== process grid ====
@@ -581,9 +582,10 @@ suite "grids":
       nodes[i] = TestNode(name: "b" & $(i),
                           box: uiBox(0,0,50,50),
                           gridItem: nil)
+      parent.children.add(nodes[i])
+      nodes[i].parent = parent
       # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
       # nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
-      parent.addChild(nodes[i])
     # nodes[7].box.w = 150
     check gridTemplate.lines[dcol][0].track == 1'fr
 
@@ -629,7 +631,8 @@ suite "grids":
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-      parent.addChild(nodes[i])
+      parent.children.add(nodes[i])
+      nodes[i].parent = parent
     nodes[2].cxMin[drow] = csFixed(150)
     check gridTemplate.lines[dcol][0].track == csAuto()
 
@@ -681,7 +684,8 @@ suite "grids":
                           gridItem: GridItem())
       nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
-      parent.addChild(nodes[i])
+      parent.children.add(nodes[i])
+      nodes[i].parent = parent
       
     nodes[2].cxMin[drow] = csFixed(150)
     check gridTemplate.lines[dcol][0].track == 1'fr

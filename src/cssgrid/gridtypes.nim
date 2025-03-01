@@ -30,8 +30,8 @@ type
     typeof(node.cxOffset) is array[GridDir, Constraint]
     typeof(node.cxMin) is array[GridDir, Constraint]
     typeof(node.cxMax) is array[GridDir, Constraint]
-    typeof(node.cxPadXY) is array[GridDir, Constraint]
-    typeof(node.cxPadWH) is array[GridDir, Constraint]
+    typeof(node.cxPadOffset) is array[GridDir, Constraint]
+    typeof(node.cxPadSize) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem
     typeof(node.parent)
 

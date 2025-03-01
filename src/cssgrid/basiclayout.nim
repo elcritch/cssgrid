@@ -90,9 +90,9 @@ proc calcBasicConstraintImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: va
     of MAXSZ:
       node.cxMax[dir]
     of PADXY:
-      node.cxPadXY[dir]
+      node.cxPadOffset[dir]
     of PADWH:
-      node.cxPadWH[dir]
+      node.cxPadSize[dir]
 
   debugPrint "calcBasicCx", "name=", node.name, "csValue: ", csValue, "dir: ", dir, "calc: ", calc
   match csValue:
@@ -173,9 +173,9 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     of MAXSZ:
       node.cxMax[dir]
     of PADXY:
-      node.cxPadXY[dir]
+      node.cxPadOffset[dir]
     of PADWH:
-      node.cxPadWH[dir]
+      node.cxPadSize[dir]
   
   debugPrint "CONTENT csValue:post", "node =", node.name, "calc=", calc, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
   match csValue:

@@ -18,8 +18,8 @@ type
     cxOffset*: array[GridDir, Constraint] = [csAuto(), csAuto()] # For x/y positions
     cxMin*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
     cxMax*: array[GridDir, Constraint] = [csNone(), csNone()] # For x/y positions
-    cxPadXY*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding x/y positions
-    cxPadWH*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding width/height
+    cxPadOffset*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding x/y positions
+    cxPadSize*: array[GridDir, Constraint] = [csNone(), csNone()] # For padding width/height
     gridItem*: GridItem
     gridTemplate*: GridTemplate
     frame*: Frame

@@ -66,8 +66,8 @@ suite "Basic CSS Layout Tests":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", parent)
 
-    parent.cxPadXY = [10'ux, 10'ux]
-    parent.cxPadWH = [10'ux, 10'ux]
+    parent.cxPadOffset = [10'ux, 10'ux]
+    parent.cxPadSize = [10'ux, 10'ux]
     child1.cxSize = [cx"auto", cx"auto"]
 
     computeLayout(parent)

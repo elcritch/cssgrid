@@ -290,7 +290,7 @@ proc computeBox*(
     result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
     let spanEnd = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
     let spanWidth = (spanEnd - result.`f`) - grid.gaps[`dir`]
-    let contentSizeDir = contentSize.`v`
+    let contentSizeDir = contentSize.`v` + node.bpad.wh[`dir`]
     let contentView = min(contentSizeDir, spanWidth)
     debugPrint "calcBoxFor:", "node=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
     case `axis`:
@@ -398,6 +398,7 @@ proc computeAutoFlow(
 
 proc computeContentSizes*(
     grid: GridTemplate,
+    padding: UiBox,
     children: seq[GridNode]
 ): array[GridDir, Table[int, ComputedTrackSize]] =
   ## Returns computed sizes for each track that needs content sizing
@@ -423,9 +424,10 @@ proc computeContentSizes*(
         var contentSize = child.bmin[dir]
         if child.box.wh[dir] != 0.UiScalar:
           contentSize = min(contentSize, child.box.wh[dir])
+        contentSize += child.bpad.wh[dir] # TODO: que?
 
         if contentSize == UiScalar.high: contentSize = 0.UiScalar
-        debugPrint "computeContentSizes: ", "child=", child.name, "dir=", dir, "contentSize=", contentSize, "chBmin=", child.bmin[dir], "chBox=", child.box.wh[dir]
+        debugPrint "computeContentSizes: ", "child=", child.name, "dir=", dir, "contentSize=", contentSize, "chBmin=", child.bmin[dir], "chBox=", child.box.wh[dir], "pad=", child.bpad.wh[dir]
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)
@@ -485,7 +487,7 @@ proc computeNodeLayout*(
   debugPrint "COMPUTE node layout: "
   prettyLayout(node)
 
-  let computedSizes = gridTemplate.computeContentSizes(node.children)
+  let computedSizes = gridTemplate.computeContentSizes(node.bpad, node.children)
 
   debugPrint "GRID:CS: ", "box=", $box
   debugPrint "GRID:computedContentSizes: ", computedSizes

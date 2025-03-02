@@ -108,12 +108,6 @@ proc computeLineLayout*(
       debugPrint "computeLineLayout:metrics", "dir=", dir, "fracmin= ", computedSizes[trk].fracMinSize
       totalFracMin += computedSizes[trk].fracMinSize.clamp(0.UiScalar, UiScalar.high)
 
-  debugPrint "computeLineLayout:metrics",
-    "dir=", dir,
-    "length=", length,
-    "fixed=", fixed,
-    "totalFracMin=", totalFracMin,
-    "totalAutoMin=", totalAutoMin
   # Calculate available free space
   let
     freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
@@ -436,6 +430,7 @@ proc computeContentSizes*(
         contentSize += child.bpad.wh[dir] # TODO: que?
 
         if contentSize == UiScalar.high: contentSize = 0.UiScalar
+        if contentSize == UiScalar.low: contentSize = 0.UiScalar
         debugPrint "computeContentSizes: ", "child=", child.name, "dir=", dir, "contentSize=", contentSize, "chBmin=", child.bmin[dir], "chBox=", child.box.wh[dir], "pad=", child.bpad.wh[dir]
         
         # Update track's computed size based on its type

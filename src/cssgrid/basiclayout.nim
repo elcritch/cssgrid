@@ -164,8 +164,6 @@ proc calcBasicConstraintImpl(
 
   debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
 
-
-
 proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)

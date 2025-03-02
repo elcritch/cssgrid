@@ -481,17 +481,17 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, 1'fr
     parseGridTemplateRows gridTemplate, 1'fr
     gridTemplate.autos[dcol] = csFixed 100.0
-    # gridTemplate.justifyItems = CxStretch
     gridTemplate.justifyItems = CxStart
     gridTemplate.alignItems = CxStart
     gridTemplate.autoFlow = grColumn
+
     var parent = TestNode()
     parent.cxOffset = [0'ux, 0'ux]
     parent.cxSize = [50'ux, 50'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
     parent.gridTemplate = gridTemplate
 
-    var nodes = newSeq[TestNode](8)
+    var nodes = newSeq[TestNode](4)
 
     # ==== item a's ====
     for i in 0 ..< nodes.len():

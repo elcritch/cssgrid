@@ -212,6 +212,8 @@ proc `'pp`*(n: string): Constraint =
 template `cx`*(n: static string): auto =
   when n == "auto":
     csAuto()
+  elif n == "none":
+    csNone()
   elif n == "min-content":
     csContentMin()
   elif n == "max-content":

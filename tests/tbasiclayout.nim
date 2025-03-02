@@ -33,6 +33,8 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = 50'pp # 50% of parent width
     child.cxSize[drow] = 25'pp # 25% of parent height
     
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
@@ -46,6 +48,8 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = cx"auto"
     child.cxSize[drow] = cx"auto"
     
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10
@@ -278,6 +282,7 @@ suite "Basic CSS Layout Tests":
       child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
 
       computeLayout(parent)
+      # printLayout(parent, cmTerminal)
 
       check parent.cxSize[dcol] == 400'ux
       check parent.bmin.w == 400.UiScalar
@@ -285,9 +290,63 @@ suite "Basic CSS Layout Tests":
       check child1.cxSize[dcol] == 100'ux
       check child2.bmin.w == 100.UiScalar
       check child2.bmax.w == 100.UiScalar
+      check child3.bmin.w == 100.UiScalar
       check child21.cxSize[dcol] == 50'ux
       check child21.bmin.w == 50.UiScalar
       check child21.bmax.w == 50.UiScalar
       check child31.cxSize[dcol] == 50'ux
       check child31.bmin.w == 50.UiScalar
       check child31.bmax.w == 50.UiScalar
+
+  test "grand child min propogates":
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
+
+      # Create the entire hierarchy in a single statement
+      let parent = newTestNode("mixed-grid", 0, 0, 400, 100) 
+      let child1 = newTestNode("fixed-child", 0, 0, 400, 50, parent)
+      let child11 = newTestNode("fixed-grandchild", child1)
+      let child2 = newTestNode("auto-child", parent)
+      let child21 = newTestNode("auto-grandchild", child2)
+
+      child11.cxMin = [100'ux, 60'ux]
+      child21.cxMin = [100'ux, 70'ux]
+      # child2.cxSize = [cx"auto", cx"none"]
+      # child21.cxSize = [cx"auto", cx"none"]
+
+      computeLayout(parent)
+      printLayout(parent, cmTerminal)
+
+      check child1.box == uiBox(0, 0, 400, 50)
+      check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent
+
+      # check child2.box.y == 50
+      check child2.box.h == 70
+      check child21.box.h == 70
+
+  test "grand child min propogates with padding":
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
+
+      # Create the entire hierarchy in a single statement
+      let parent = newTestNode("mixed-grid", 0, 0, 400, 100) 
+      let child1 = newTestNode("fixed-child", 0, 0, 400, 50, parent)
+      let child11 = newTestNode("fixed-grandchild", child1)
+      let child2 = newTestNode("auto-child", parent)
+      let child21 = newTestNode("auto-grandchild", child2)
+
+      child11.cxMin = [100'ux, 60'ux]
+      child21.cxMin = [100'ux, 70'ux]
+      child2.cxPadSize[drow] = 10'ux
+      child2.cxPadOffset[drow] = 10'ux
+      # child21.cxSize = [cx"auto", cx"none"]
+
+      computeLayout(parent)
+      printLayout(parent, cmTerminal)
+
+      check child1.box == uiBox(0, 0, 400, 50)
+      check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent
+
+      # check child2.box.y == 50
+      check child2.box.h == 90
+      check child21.box.h == 70

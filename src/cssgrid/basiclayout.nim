@@ -21,6 +21,33 @@ type
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
+proc childBMins(node: GridNode, dir: GridDir): UiScalar =
+  result = UiScalar.low()
+  for child in node.children:
+    result = max(result, child.bmin[dir])
+  # if result == UiScalar.high():
+  #   result = 0.0.UiScalar
+
+proc childBMaxs(node: GridNode, dir: GridDir): UiScalar =
+  result = UiScalar.low()
+  for child in node.children:
+    result = max(result, child.bmax[dir])
+  # if result == UiScalar.low():
+  #   result = 0.0.UiScalar
+
+proc childBMinsPost(node: GridNode, dir: GridDir): UiScalar =
+  # I'm not sure about this, it's sorta hacky
+  # but implement min/max content for non-grid nodes...
+  result = UiScalar.high()
+  for child in node.children:
+    let childXY = child.box.xy[dir]
+    let childScreenSize = child.box.wh[dir] + childXY
+    let childScreenMin = child.bmin[dir] + childXY
+    result = min(result, min(childScreenSize, childScreenMin))
+    debugPrint "calcBasicPost:min-content: ", "res=", result, "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
+  if result == UiScalar.high():
+    result = 0.0.UiScalar
+
 proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   if calc == MINSZ and f == UiScalar.high:
     match node.cxSize[dir]:
@@ -60,7 +87,6 @@ proc calcBasicConstraintImpl(
       match val:
         UiAuto():
           if calc == WH:
-            # res = max(pf - max(f0, 0), 0)
             res = pf - f0
         UiFixed(coord):
           res = coord.UiScalar
@@ -69,26 +95,13 @@ proc calcBasicConstraintImpl(
         UiPerc(perc):
           res = perc.UiScalar / 100.0.UiScalar * pf
         UiContentMin():
-          res = UiScalar.high()
-          for child in node.children:
-            res = min(res, child.bmin[dir])
-          # if res == UiScalar.high():
-          #   res = 0.0.UiScalar
+          res = node.childBMins(dir)
         UiContentMax():
-          res = UiScalar.low()
-          for child in node.children:
-            res = max(res, child.bmax[dir])
-          # if res == UiScalar.low():
-          #   res = 0.0.UiScalar
+          res = node.childBMaxs(dir)
         UiContentFit():
           # fit-content - calculate as max-content but clamped by available space
-          res = UiScalar.low()
-          for child in node.children:
-            res = max(res, child.bmax[dir])
-          # Clamp to available width (pf is parent width)
+          res = node.childBMins(dir)
           res = min(res, pf)
-          # if res == UiScalar.low():
-          #   res = 0.0.UiScalar
         _:
           discard
       debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, "kind=", val.kind, " res: ", res
@@ -113,6 +126,9 @@ proc calcBasicConstraintImpl(
   debugPrint "calcBasicCx", "name=", node.name, "csValue: ", csValue, "dir: ", dir, "calc: ", calc
   match csValue:
     UiNone:
+      # # handle UiNone for height to account for minimum sizes of contents
+      # if calc == WH and dir == drow:
+      #   f = node.bmin.h
       discard
     UiAdd(ls, rs):
       let lv = ls.calcBasic()
@@ -148,8 +164,6 @@ proc calcBasicConstraintImpl(
 
   debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
 
-
-
 proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -162,18 +176,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       debugPrint "calcBasicPost: ", "name=", node.name, "val=", val
       match val:
         UiContentMin():
-            # I'm not sure about this, it's sorta hacky
-            # but implement min/max content for non-grid nodes...
-            res = UiScalar.high()
-            for child in node.children:
-              debugPrint "calcBasicPost:regular:child: ", "xy=", child.box.xy[dir], "wh=", child.box.wh[dir], "bmin=", child.bmin[dir]
-              let childXY = child.box.xy[dir]
-              let childScreenSize = child.box.wh[dir] + childXY
-              let childScreenMin = child.bmin[dir] + childXY
-              res = min(res, min(childScreenSize, childScreenMin))
-              debugPrint "calcBasicPost:min-content: ", "res=", res, "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
-            if res == UiScalar.high():
-              res = 0.0.UiScalar
+          res = node.childBMinsPost(dir)
         UiContentMax():
             # I'm not sure about this, it's sorta hacky
             # but implement min/max content for non-grid nodes...
@@ -226,6 +229,9 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   match csValue:
     UiNone:
       discard
+      # # handle UiNone for height to account for minimum sizes of contents
+      if calc == WH and dir == drow:
+        f = node.bmin.h
     UiAdd(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
@@ -255,16 +261,27 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       discard
 
   node.propogateCalcs(dir, calc, f)
+
+  if calc == MINSZ and f == UiScalar.high:
+    f = node.childBMins(dir) + node.bpad.xy[dir] + node.bpad.wh[dir]
+
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
+import std/typetraits
 
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
-  var (parentBox, parentPad) = node.getParentBoxOrWindows()
-  parentBox.wh = parentBox.wh - parentPad.wh
+  var pboxes = node.getParentBoxOrWindows()
+  var parentBox = pboxes.box
+  var parentPad = pboxes.padding
 
-  node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)
-  node.bmin = uiSize(UiScalar.high,UiScalar.high)
+  when distinctBase(UiScalar) is SomeInteger:
+    parentBox.wh = parentBox.wh.clamp(0) - parentPad.wh
+  else:
+    parentBox.wh = parentBox.wh - parentPad.wh
+
+  node.box = uiBox(UiScalar.low, UiScalar.low, UiScalar.low, UiScalar.low)
+  node.bmin = uiSize(UiScalar.high, UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
   debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
   printLayout(node)
@@ -292,12 +309,12 @@ proc calcBasicConstraintPost*(node: GridNode) =
   debugPrint "calcBasicConstraintPost:start", "name=", node.name
   calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
   calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
-  # w & h need to run after x & y
-  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
-  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
 
   calcBasicConstraintPostImpl(node, dcol, MINSZ, node.bmin.w)
   calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h)
   calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w)
   calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h)
+  # w & h need to run after x & y
+  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
+  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
   debugPrint "calcBasicConstraintPost:done", "name=", node.name, "box=", node.box, "bmin=", node.bmin

@@ -25,7 +25,6 @@ proc childBMins(node: GridNode, dir: GridDir): UiScalar =
   result = UiScalar.low()
   for child in node.children:
     result = max(result, child.bmin[dir])
-    echo "childBMins= ", child.name, " dir: ", dir, " ", result, " ", child.bmin
   # if result == UiScalar.high():
   #   result = 0.0.UiScalar
 
@@ -266,7 +265,6 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   node.propogateCalcs(dir, calc, f)
 
   if calc == MINSZ and f == UiScalar.high:
-    echo "propogateCalcs:MINSZ:post: ", node.name, " mins: ", node.childBMins(dir)
     f = node.childBMins(dir)
 
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f

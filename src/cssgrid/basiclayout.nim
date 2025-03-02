@@ -265,7 +265,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   node.propogateCalcs(dir, calc, f)
 
   if calc == MINSZ and f == UiScalar.high:
-    f = node.childBMins(dir)
+    f = node.childBMins(dir) + node.bpad.xy[dir] + node.bpad.wh[dir]
 
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 

@@ -46,6 +46,8 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = cx"auto"
     child.cxSize[drow] = cx"auto"
     
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10
@@ -278,6 +280,7 @@ suite "Basic CSS Layout Tests":
       child3.cxMin[dcol] = 100'ux # This should be respected as minimum width
 
       computeLayout(parent)
+      # printLayout(parent, cmTerminal)
 
       check parent.cxSize[dcol] == 400'ux
       check parent.bmin.w == 400.UiScalar
@@ -294,37 +297,27 @@ suite "Basic CSS Layout Tests":
       check child31.bmax.w == 50.UiScalar
 
   test "grand child min propogates":
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
-      
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
+
       # Create the entire hierarchy in a single statement
-      let parent = newTestTree("mixed-grid", 
-        newTestTree("fixed-child", 0, 0, 100, 100,
-          newTestNode("auto-grandchild")
-        ),
-        newTestTree("auto-child",
-          newTestNode("auto-grandchild")
-        )
-      )
-      
-      # Set fixed size constraints for parent
-      parent.cxSize[dcol] = 400'ux
-      parent.cxSize[drow] = 300'ux
-      
-      # Access children by index
-      let child1 = parent.children[0]
-      let child11 = child1.children[0]
-      let child2 = parent.children[1]
-      let child21 = child2.children[0]
+      let parent = newTestNode("mixed-grid", 0, 0, 400, 100) 
+      let child1 = newTestNode("fixed-child", 0, 0, 400, 50, parent)
+      let child11 = newTestNode("auto-grandchild", child1)
+      let child2 = newTestNode("auto-child", parent)
+      let child21 = newTestNode("auto-grandchild", child2)
+
+      child11.cxMin = [100'ux, 60'ux]
+      child21.cxMin = [100'ux, 70'ux]
+      # child2.cxSize = [cx"auto", cx"none"]
+      # child21.cxSize = [cx"auto", cx"none"]
 
       computeLayout(parent)
+      printLayout(parent, cmTerminal)
 
-      check parent.cxSize[dcol] == 400'ux
-      check parent.bmin.w == 400.UiScalar
-      check parent.bmax.w == 400.UiScalar
-      check child1.cxSize[dcol] == 100'ux
-      check child2.bmin.w == 100.UiScalar
-      check child2.bmax.w == 100.UiScalar
-      check child21.cxSize[dcol] == 50'ux
-      check child21.bmin.w == 50.UiScalar
-      check child21.bmax.w == 50.UiScalar
+      check child1.box == uiBox(0, 0, 400, 50)
+      check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent
+
+      check child2.box.y == 50
+      check child2.box.h == 70
+      check child21.box.h == 70

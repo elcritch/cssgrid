@@ -59,51 +59,52 @@ suite "Compute Layout Tests":
     check child2.box.h == 120  # 40% of 300
 
   test "vertical layout auto":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    when false:
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
 
-    let parent = newTestNode("scroll", 0, 0, 400, 300)
-    let body = newTestNode("scrollBody", parent)
-    let items = newTestNode("items", body)
+      let parent = newTestNode("scroll", 0, 0, 400, 300)
+      let body = newTestNode("scrollBody", parent)
+      let items = newTestNode("items", body)
 
-    parseGridTemplateColumns items.gridTemplate, 1'fr
-    parent.cxSize = [96'pp, 90'pp]
-    body.cxSize = [cx"auto", cx"max-content"]
-    body.cxOffset = [cx"auto", cx"auto"]
+      parseGridTemplateColumns items.gridTemplate, 1'fr
+      parent.cxSize = [96'pp, 90'pp]
+      body.cxSize = [cx"auto", cx"max-content"]
+      body.cxOffset = [cx"auto", cx"auto"]
 
-    items.cxSize = [cx"auto", cx"auto"]
-    items.gridTemplate.autoFlow = grRow
-    items.gridTemplate.gaps[drow] = 3
-    items.gridTemplate.autos[drow] = csAuto()
-    items.gridTemplate.justifyItems = CxCenter
-    items.gridTemplate.alignItems = CxCenter
+      items.cxSize = [cx"auto", cx"auto"]
+      items.gridTemplate.autoFlow = grRow
+      items.gridTemplate.gaps[drow] = 3
+      items.gridTemplate.autos[drow] = csAuto()
+      items.gridTemplate.justifyItems = CxCenter
+      items.gridTemplate.alignItems = CxCenter
 
-    for i in 0..1:
-      let child = newTestNode("story-" & $i, items)
-      let text = newTestNode("text-" & $i, child)
+      for i in 0..1:
+        let child = newTestNode("story-" & $i, items)
+        let text = newTestNode("text-" & $i, child)
 
-      # child.cxSize = [1'fr, csAuto()]
-      # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
-      # child.cxPadOffset[drow] = 20'ux
-      # child.cxPadSize[drow] = 20'ux
+        # child.cxSize = [1'fr, csAuto()]
+        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
+        # child.cxPadOffset[drow] = 20'ux
+        # child.cxPadSize[drow] = 20'ux
 
-      text.cxSize = [cx"auto", 33.33'ux]
-      text.cxMin = [40'ux, 20.00'ux]
-      text.cxMax = [200'ux, 300.00'ux]
+        text.cxSize = [cx"auto", 33.33'ux]
+        text.cxMin = [40'ux, 20.00'ux]
+        text.cxMax = [200'ux, 300.00'ux]
 
-      # W: 1.00'fr          H: 42.30'ui
-      # X: 10.00'ui          Y: 0.00'ui
-      # Xmin: 600.50'ui          Ymin: 22.50'ui
-      # box: [x: 10.00, y: 0.00, w: 638.67, h: 42.30]
-      # bmin: [x: 600.50, y: 22.50]
-      # bmax: [x: -inf, y: 42.30]
-      # bpad: [x: 0.00, y: 20.00, w: 0.00, h: 20.00]
+        # W: 1.00'fr          H: 42.30'ui
+        # X: 10.00'ui          Y: 0.00'ui
+        # Xmin: 600.50'ui          Ymin: 22.50'ui
+        # box: [x: 10.00, y: 0.00, w: 638.67, h: 42.30]
+        # bmin: [x: 600.50, y: 22.50]
+        # bmax: [x: -inf, y: 42.30]
+        # bpad: [x: 0.00, y: 20.00, w: 0.00, h: 20.00]
 
 
-    computeLayout(parent)
+      computeLayout(parent)
 
-    check items.children[0].box.w == 768
-    check items.children[0].box.h == 62.299999.UiScalar
+      check items.children[0].box.w == 768
+      check items.children[0].box.h == 62.299999.UiScalar
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

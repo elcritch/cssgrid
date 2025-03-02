@@ -60,7 +60,6 @@ proc calcBasicConstraintImpl(
       match val:
         UiAuto():
           if calc == WH:
-            # res = max(pf - max(f0, 0), 0)
             res = pf - f0
         UiFixed(coord):
           res = coord.UiScalar
@@ -72,14 +71,14 @@ proc calcBasicConstraintImpl(
           res = UiScalar.high()
           for child in node.children:
             res = min(res, child.bmin[dir])
-          # if res == UiScalar.high():
-          #   res = 0.0.UiScalar
+          if res == UiScalar.high():
+            res = 0.0.UiScalar
         UiContentMax():
           res = UiScalar.low()
           for child in node.children:
             res = max(res, child.bmax[dir])
-          # if res == UiScalar.low():
-          #   res = 0.0.UiScalar
+          if res == UiScalar.low():
+            res = 0.0.UiScalar
         UiContentFit():
           # fit-content - calculate as max-content but clamped by available space
           res = UiScalar.low()
@@ -87,8 +86,8 @@ proc calcBasicConstraintImpl(
             res = max(res, child.bmax[dir])
           # Clamp to available width (pf is parent width)
           res = min(res, pf)
-          # if res == UiScalar.low():
-          #   res = 0.0.UiScalar
+          if res == UiScalar.low():
+            res = 0.0.UiScalar
         _:
           discard
       debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, "kind=", val.kind, " res: ", res
@@ -113,6 +112,9 @@ proc calcBasicConstraintImpl(
   debugPrint "calcBasicCx", "name=", node.name, "csValue: ", csValue, "dir: ", dir, "calc: ", calc
   match csValue:
     UiNone:
+      # # handle UiNone for height to account for minimum sizes of contents
+      # if calc == WH and dir == drow:
+      #   f = node.bmin.h
       discard
     UiAdd(ls, rs):
       let lv = ls.calcBasic()
@@ -226,6 +228,9 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   match csValue:
     UiNone:
       discard
+      # # handle UiNone for height to account for minimum sizes of contents
+      if calc == WH and dir == drow:
+        f = node.bmin.h
     UiAdd(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()
@@ -263,8 +268,8 @@ proc calcBasicConstraint*(node: GridNode) =
   var (parentBox, parentPad) = node.getParentBoxOrWindows()
   parentBox.wh = parentBox.wh - parentPad.wh
 
-  node.box = uiBox(UiScalar.low,UiScalar.low, UiScalar.high,UiScalar.high)
-  node.bmin = uiSize(UiScalar.high,UiScalar.high)
+  node.box = uiBox(UiScalar.low, UiScalar.low, UiScalar.low, UiScalar.low)
+  node.bmin = uiSize(UiScalar.high, UiScalar.high)
   node.bmax = uiSize(UiScalar.low,UiScalar.low)
   debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
   printLayout(node)
@@ -292,12 +297,12 @@ proc calcBasicConstraintPost*(node: GridNode) =
   debugPrint "calcBasicConstraintPost:start", "name=", node.name
   calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
   calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
-  # w & h need to run after x & y
-  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
-  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
 
   calcBasicConstraintPostImpl(node, dcol, MINSZ, node.bmin.w)
   calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h)
   calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w)
   calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h)
+  # w & h need to run after x & y
+  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
+  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
   debugPrint "calcBasicConstraintPost:done", "name=", node.name, "box=", node.box, "bmin=", node.bmin

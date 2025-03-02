@@ -269,11 +269,15 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
+import std/typetraits
 
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   var (parentBox, parentPad) = node.getParentBoxOrWindows()
-  parentBox.wh = parentBox.wh - parentPad.wh
+  when distinctBase(UiScalar) is SomeInteger:
+    parentBox.wh = parentBox.wh - parentPad.wh
+  else:
+    parentBox.wh = parentBox.wh - parentPad.wh
 
   node.box = uiBox(UiScalar.low, UiScalar.low, UiScalar.low, UiScalar.low)
   node.bmin = uiSize(UiScalar.high, UiScalar.high)

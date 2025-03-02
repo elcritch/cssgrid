@@ -474,6 +474,8 @@ suite "grids":
     check nodes[3].box == uiBox(0, 300, 100, 100)
 
   test "compute layout auto flow overflow (colums)":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
     parseGridTemplateColumns gridTemplate, 1'fr

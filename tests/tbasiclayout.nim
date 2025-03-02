@@ -33,6 +33,8 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = 50'pp # 50% of parent width
     child.cxSize[drow] = 25'pp # 25% of parent height
     
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
@@ -323,8 +325,8 @@ suite "Basic CSS Layout Tests":
       check child21.box.h == 70
 
   test "grand child min propogates with padding":
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
 
       # Create the entire hierarchy in a single statement
       let parent = newTestNode("mixed-grid", 0, 0, 400, 100) 

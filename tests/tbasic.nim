@@ -39,6 +39,10 @@ suite "grids":
     echo "x:hash: ", hash(x)
     echo "x:toPos: ", x.toPos()
 
+    echo "clamp: ", x.clamp(0.UiScalar, 13.UiScalar)
+    check x.clamp(0.UiScalar, 13.UiScalar).w == 12.1.UiScalar
+    check x.clamp(0.UiScalar, 13.UiScalar).h == 13.UiScalar
+
   test "UiPos":
     type FF = float64
     let f1: FF = 1.1
@@ -71,6 +75,8 @@ suite "grids":
     z = gvec2[UiScalar](1.0.UiScalar, 1.0.UiScalar).UiPos
     echo "z: ", repr(-z)
     # echo "z: ", repr(sin(z))
+    check x.clamp(0.UiScalar, 13.UiScalar).x == 12.1.UiScalar
+    check x.clamp(0.UiScalar, 13.UiScalar).y == 13.UiScalar
   
   test "box ":
     let x = uiBox(1.0, 2.0, 3.0, 4.0)
@@ -111,6 +117,11 @@ suite "grids":
     check z.y == x.y + y.y
     check z.w == x.w
     check z.h == x.h
+
+    check x.clamp(0.UiScalar, 3.UiScalar).x == 1.0.UiScalar
+    check x.clamp(0.UiScalar, 3.UiScalar).y == 2.0.UiScalar
+    check x.clamp(0.UiScalar, 3.UiScalar).w == 3.0.UiScalar
+    check x.clamp(0.UiScalar, 3.UiScalar).h == 3.0.UiScalar
 
   test "example static dispatch":
     type Url[T: static string] = distinct void

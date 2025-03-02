@@ -257,6 +257,20 @@ proc sum*(rect: UiBox): UiScalar =
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
+proc clamp*(box: UiBox, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
+  result.x = max(minval, box.x).min(maxval)
+  result.y = max(minval, box.y).min(maxval)
+  result.w = max(minval, box.w).min(maxval)
+  result.h = max(minval, box.h).min(maxval)
+
+proc clamp*(pos: UiPos, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
+  result.x = max(minval, pos.x).min(maxval)
+  result.y = max(minval, pos.y).min(maxval)
+
+proc clamp*(sz: UiSize, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
+  result.w = max(minval, sz.w).min(maxval)
+  result.h = max(minval, sz.h).min(maxval)
+
 # proc totalWH*(rect: UiBox): UiScalar =
 #   result = rect.x + rect.y + rect.w + rect.h
 

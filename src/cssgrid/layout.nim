@@ -106,7 +106,7 @@ proc computeLineLayout*(
   for trk in fracTrackIndices:
     if trk in computedSizes:
       debugPrint "computeLineLayout:metrics", "dir=", dir, "fracmin= ", computedSizes[trk].fracMinSize
-      totalFracMin += computedSizes[trk].fracMinSize
+      totalFracMin += computedSizes[trk].fracMinSize.clamp(0.UiScalar, UiScalar.high)
 
   debugPrint "computeLineLayout:metrics",
     "dir=", dir,

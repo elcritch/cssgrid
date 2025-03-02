@@ -273,9 +273,12 @@ import std/typetraits
 
 proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
-  var (parentBox, parentPad) = node.getParentBoxOrWindows()
+  var pboxes = node.getParentBoxOrWindows()
+  var parentBox = pboxes.box
+  var parentPad = pboxes.padding
+
   when distinctBase(UiScalar) is SomeInteger:
-    parentBox.wh = parentBox.wh - parentPad.wh
+    parentBox.wh = parentBox.wh.clamp(0) - parentPad.wh
   else:
     parentBox.wh = parentBox.wh - parentPad.wh
 

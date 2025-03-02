@@ -263,11 +263,11 @@ proc clamp*(box: UiBox, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
   result.w = max(minval, box.w).min(maxval)
   result.h = max(minval, box.h).min(maxval)
 
-proc clamp*(pos: UiPos, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
+proc clamp*(pos: UiPos, minval=UiScalar.low, maxval=UiScalar.high): UiPos =
   result.x = max(minval, pos.x).min(maxval)
   result.y = max(minval, pos.y).min(maxval)
 
-proc clamp*(sz: UiSize, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
+proc clamp*(sz: UiSize, minval=UiScalar.low, maxval=UiScalar.high): UiSize =
   result.w = max(minval, sz.w).min(maxval)
   result.h = max(minval, sz.h).min(maxval)
 

@@ -81,16 +81,15 @@ suite "Compute Layout Tests":
     for i in 0..1:
       let child = newTestNode("story-" & $i, items)
       let text = newTestNode("text-" & $i, child)
-      let basicText = newTestNode("text-" & $i, text)
 
-      child.cxSize = [1'fr, 40'ux]
-      child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
-      child.cxPadOffset[drow] = 20'ux
-      child.cxPadSize[drow] = 20'ux
+      # child.cxSize = [1'fr, csAuto()]
+      # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
+      # child.cxPadOffset[drow] = 20'ux
+      # child.cxPadSize[drow] = 20'ux
 
-      text.cxSize = [cx"auto", 42.30'ux]
-      basicText.cxSize = [cx"auto", cx"auto"]
-      basicText.cxMin = [cx"auto", 21.5'ux]
+      text.cxSize = [cx"auto", 33.33'ux]
+      text.cxMin = [40'ux, 20.00'ux]
+      text.cxMax = [200'ux, 300.00'ux]
 
       # W: 1.00'fr          H: 42.30'ui
       # X: 10.00'ui          Y: 0.00'ui

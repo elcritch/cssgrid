@@ -285,9 +285,46 @@ suite "Basic CSS Layout Tests":
       check child1.cxSize[dcol] == 100'ux
       check child2.bmin.w == 100.UiScalar
       check child2.bmax.w == 100.UiScalar
+      check child3.bmin.w == 100.UiScalar
       check child21.cxSize[dcol] == 50'ux
       check child21.bmin.w == 50.UiScalar
       check child21.bmax.w == 50.UiScalar
       check child31.cxSize[dcol] == 50'ux
       check child31.bmin.w == 50.UiScalar
       check child31.bmax.w == 50.UiScalar
+
+  test "grand child min propogates":
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
+      
+      # Create the entire hierarchy in a single statement
+      let parent = newTestTree("mixed-grid", 
+        newTestTree("fixed-child", 0, 0, 100, 100,
+          newTestNode("auto-grandchild")
+        ),
+        newTestTree("auto-child",
+          newTestNode("auto-grandchild")
+        )
+      )
+      
+      # Set fixed size constraints for parent
+      parent.cxSize[dcol] = 400'ux
+      parent.cxSize[drow] = 300'ux
+      
+      # Access children by index
+      let child1 = parent.children[0]
+      let child11 = child1.children[0]
+      let child2 = parent.children[1]
+      let child21 = child2.children[0]
+
+      computeLayout(parent)
+
+      check parent.cxSize[dcol] == 400'ux
+      check parent.bmin.w == 400.UiScalar
+      check parent.bmax.w == 400.UiScalar
+      check child1.cxSize[dcol] == 100'ux
+      check child2.bmin.w == 100.UiScalar
+      check child2.bmax.w == 100.UiScalar
+      check child21.cxSize[dcol] == 50'ux
+      check child21.bmin.w == 50.UiScalar
+      check child21.bmax.w == 50.UiScalar

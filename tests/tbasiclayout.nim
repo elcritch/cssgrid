@@ -36,7 +36,7 @@ suite "Basic CSS Layout Tests":
     
     child.cxSize = [50'pp, 25'pp]
     
-    # prettyPrintWriteMode = cmTerminal
+    # setPrettyPrintMode(cmTerminal)
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     check child.box.w == 200 # 50% of 400
@@ -50,13 +50,14 @@ suite "Basic CSS Layout Tests":
     
     child.cxSize = [cx"auto", cx"auto"]
     
-    # prettyPrintWriteMode = cmTerminal
+    # setPrettyPrintMode(cmTerminal)
     # addPrettyPrintFilter("dir", "drow")
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10
-    check child.box.h == 0 # 300 - 10
+    check child.box.h == 290 # 300 - 10
 
+    child.cxSize[drow] = cx"none"
     child.cxMin[drow] = 100'ux
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
@@ -78,7 +79,7 @@ suite "Basic CSS Layout Tests":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", parent)
 
-    # prettyPrintWriteMode = cmTerminal
+    # setPrettyPrintMode(cmTerminal)
     # addPrettyPrintFilter("dir", "drow")
 
     parent.cxPadOffset = [10'ux, 10'ux]
@@ -92,7 +93,7 @@ suite "Basic CSS Layout Tests":
     check child1.box.x == 10
     check child1.box.y == 10
     check child1.box.w == 380
-    check child1.box.h == 0
+    check child1.box.h == 280
 
     child1.cxSize = [100'pp, 100'pp]
     computeLayout(parent)
@@ -127,8 +128,8 @@ suite "Basic CSS Layout Tests":
 
     parent.cxPadOffset = [0'ux, 10'ux]
     parent.cxPadSize = [0'ux, 10'ux]
-    child1.cxSize = [cx"auto", cx"auto"]
-    # prettyPrintWriteMode = cmTerminal
+    child1.cxSize = [cx"auto", cx"none"]
+    # setPrettyPrintMode(cmTerminal)
     computeLayout(parent)
     # prettyPrintWriteMode = cmNone
 
@@ -164,7 +165,7 @@ suite "Basic CSS Layout Tests":
     check child2.box.w == 150 # (25% of 400) + 50
 
   test "Content based constraints":
-    # prettyPrintWriteMode = cmTerminal
+    # setPrettyPrintMode(cmTerminal)
     # defer: prettyPrintWriteMode = cmNone
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child = newTestNode("child", 0, 0, 100, 100, parent)
@@ -178,7 +179,7 @@ suite "Basic CSS Layout Tests":
     child.cxSize[drow] = csContentMin()
     child.cxMax[drow] = csContentMax()
     # calcBasicConstraint(child, dcol, isXY = false)
-    setPrettyPrintMode(cmTerminal)
+    # setPrettyPrintMode(cmTerminal)
     computeLayout(parent)
     
     check grandchild.bmin == uiSize(111, 44)
@@ -188,7 +189,7 @@ suite "Basic CSS Layout Tests":
     check child.bmax == uiSize(UiScalar.low, 200)
 
   test "Content based constraints":
-    # prettyPrintWriteMode = cmTerminal
+    # setPrettyPrintMode(cmTerminal)
     # defer: prettyPrintWriteMode = cmNone
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child = newTestNode("child", 0, 0, 100, 100, parent)
@@ -211,7 +212,7 @@ suite "Basic CSS Layout Tests":
     # check child.bmax == uiSize(UiScalar.low, 200)
 
   test "Position constraints":
-    # prettyPrintWriteMode = cmTerminal
+    # setPrettyPrintMode(cmTerminal)
     # defer: prettyPrintWriteMode = cmNone
 
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -269,15 +270,16 @@ suite "Basic CSS Layout Tests":
     check child.box.x == 50
     check child.box.y == 50
     check child.box.w == 350
-    check child.box.h == 0
+    check child.box.h == 250
 
+    child.cxSize[drow] = cx"none"
     child.cxMin = [100'ux, 100'ux]
     computeLayout(parent)
     check child.box.w == 350
     check child.box.h == 100
 
   test "grand child":
-      # prettyPrintWriteMode = cmTerminal
+      # setPrettyPrintMode(cmTerminal)
       # defer: prettyPrintWriteMode = cmNone
       
       # Create the entire hierarchy in a single statement
@@ -323,7 +325,7 @@ suite "Basic CSS Layout Tests":
       check child31.bmax.w == 50.UiScalar
 
   test "grand child min propogates":
-      # prettyPrintWriteMode = cmTerminal
+      # setPrettyPrintMode(cmTerminal)
       # defer: prettyPrintWriteMode = cmNone
 
       # Create the entire hierarchy in a single statement
@@ -349,7 +351,7 @@ suite "Basic CSS Layout Tests":
       check child21.box.h == 70
 
   test "grand child min propogates with padding":
-      # prettyPrintWriteMode = cmTerminal
+      # setPrettyPrintMode(cmTerminal)
       # defer: prettyPrintWriteMode = cmNone
 
       # Create the entire hierarchy in a single statement

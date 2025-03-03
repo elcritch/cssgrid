@@ -13,6 +13,17 @@ type ColorMode* = enum
   cmTerminal
 
 var prettyPrintWriteMode* = cmNone
+var filterFields: Table[string, string]
+
+proc setPrettyPrintMode*(mode: ColorMode) =
+  prettyPrintWriteMode = mode
+proc clearPrettyPrintWriteMode*() =
+  filterFields.clear()
+
+proc addPrettyPrintFilter*(field, value: string) =
+  filterFields[field] = value
+  filterFields[field&"="] = value
+  filterFields[field&":"] = value
 
 template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {}, text: string) =
   if mode == cmTerminal or prettyPrintWriteMode == cmTerminal:
@@ -22,7 +33,20 @@ template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {},
   else:
     discard
 
-template debugPrint*(args: varargs[string, `$`]) =
+proc debugPrint*(args: varargs[string, `$`]) =
+  if filterFields.len() > 0:
+    var reject = false
+    for idx in countup(1, args.len()-2 div 2, 2):
+      let arg = args[idx]
+      if arg in filterFields:
+        if filterFields[arg] == args[idx+1]:
+          reject = false
+        else:
+          reject = true
+  
+    if reject:
+      return
+
   if args.len() >= 1:
     prettyPrintWriteMode.withStyle(fgGreen, text = args[0] & " ")
   if args.len() >= 2:

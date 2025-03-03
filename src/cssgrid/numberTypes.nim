@@ -257,6 +257,8 @@ proc sum*(rect: UiBox): UiScalar =
 proc sum*(rect: (UiScalar, UiScalar, UiScalar, UiScalar)): UiScalar =
   result = rect[0] + rect[1] + rect[2] + rect[3]
 
+proc clamp*(v: UiScalar, minval: UiScalar, maxval: UiScalar): UiScalar {.borrow.}
+
 proc clamp*(box: UiBox, minval=UiScalar.low, maxval=UiScalar.high): UiBox =
   result.x = max(minval, box.x).min(maxval)
   result.y = max(minval, box.y).min(maxval)

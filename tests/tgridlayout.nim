@@ -32,13 +32,12 @@ suite "Compute Layout Tests":
 
   test "Parent with basic constrained children":
 
-    let frame = Frame(windowSize: uiBox(0,0, 400, 300))
     let parent = newTestNode("parent") #, 0, 0, 400, 300)
-    parent.frame = frame
     let child1 = newTestNode("child1", 10, 10, 100, 100, parent)
     let child2 = newTestNode("child2", 10, 120, 100, 100, parent)
     
     # Set fixed-parent constraint
+    parent.frame.windowSize = uiBox(0,0, 400, 300)
     parent.cxSize[dcol] = csAuto()
     parent.cxSize[drow] = csAuto()
     # parent.cxSize[dcol] = 400'ux  # set fixed parent
@@ -51,6 +50,15 @@ suite "Compute Layout Tests":
     child2.cxSize[dcol] = 70'pp  # 70% of parent
     child2.cxSize[drow] = 40'pp  # 40% of parent
     
+    computeLayout(parent)
+    
+    check child1.box.w == 200  # 50% of 400
+    check child1.box.h == 0   # 30% of 300
+    check child2.box.w == 280  # 70% of 400
+    check child2.box.h == 0  # 40% of 300
+
+    # now test with settings
+    parent.cxSize[drow] = 300'ux
     computeLayout(parent)
     
     check child1.box.w == 200  # 50% of 400

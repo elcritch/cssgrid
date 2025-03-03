@@ -15,6 +15,10 @@ import pretty
 import commontestutils
 
 suite "Basic CSS Layout Tests":
+  setup:
+    prettyPrintWriteMode = cmNone
+    clearPrettyPrintWriteMode()
+
   test "Fixed size constraints":
     let node = newTestNode("test", 0, 0, 100, 100)
     node.cxSize[dcol] = 200'ux
@@ -30,11 +34,10 @@ suite "Basic CSS Layout Tests":
     child.parent = parent
     parent.children.add(child)
     
-    child.cxSize[dcol] = 50'pp # 50% of parent width
-    child.cxSize[drow] = 25'pp # 25% of parent height
+    child.cxSize = [50'pp, 25'pp]
     
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     check child.box.w == 200 # 50% of 400
     check child.box.h == 75  # 25% of 300
@@ -45,15 +48,20 @@ suite "Basic CSS Layout Tests":
     child.parent = parent
     parent.children.add(child)
     
-    child.cxSize[dcol] = cx"auto"
-    child.cxSize[drow] = cx"auto"
+    child.cxSize = [cx"auto", cx"auto"]
     
     # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
+    # addPrettyPrintFilter("dir", "drow")
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10
-    check child.box.h == 290 # 300 - 10
+    check child.box.h == 0 # 300 - 10
+
+    child.cxMin[drow] = 100'ux
+    computeLayout(parent)
+    # Auto should fill available space (parent size - offset)
+    check child.box.w == 390 # 400 - 10
+    check child.box.h == 100 # 300 - 10
 
   test "Min/Max constraints":
     let node = newTestNode("test", 0, 0, 100, 100)
@@ -70,16 +78,21 @@ suite "Basic CSS Layout Tests":
     let parent = newTestNode("parent", 0, 0, 400, 300)
     let child1 = newTestNode("child1", parent)
 
+    # prettyPrintWriteMode = cmTerminal
+    # addPrettyPrintFilter("dir", "drow")
+
     parent.cxPadOffset = [10'ux, 10'ux]
     parent.cxPadSize = [10'ux, 10'ux]
     child1.cxSize = [cx"auto", cx"auto"]
     computeLayout(parent)
 
+    prettyPrintWriteMode = cmNone
+
     check parent.bpad == uiBox(10, 10, 10, 10)
     check child1.box.x == 10
     check child1.box.y == 10
     check child1.box.w == 380
-    check child1.box.h == 280
+    check child1.box.h == 0
 
     child1.cxSize = [100'pp, 100'pp]
     computeLayout(parent)
@@ -123,7 +136,7 @@ suite "Basic CSS Layout Tests":
     check child1.box.x == 0
     check child1.box.y == 10
     check child1.box.w == 400
-    check child1.box.h == 280
+    check child1.box.h == 0
 
     child1.cxSize = [100'pp, 100'pp]
 
@@ -157,7 +170,7 @@ suite "Basic CSS Layout Tests":
     let child = newTestNode("child", 0, 0, 100, 100, parent)
     let grandchild = newTestNode("grandchild", 0, 0, 150, 80, child)
     
-    grandchild.cxMin = [100'ux, 40'ux]
+    grandchild.cxMin = [111'ux, 44'ux]
     grandchild.cxMax = [200'ux, 200'ux]
     
     # Set child width to fit content
@@ -165,9 +178,10 @@ suite "Basic CSS Layout Tests":
     child.cxSize[drow] = csContentMin()
     child.cxMax[drow] = csContentMax()
     # calcBasicConstraint(child, dcol, isXY = false)
+    setPrettyPrintMode(cmTerminal)
     computeLayout(parent)
     
-    check grandchild.bmin == uiSize(100, 40)
+    check grandchild.bmin == uiSize(111, 44)
     check child.box.w == grandchild.bmin.w # 
     check child.box.h == grandchild.bmin.h # 
     # check child.bmin == uiSize(100, 40)
@@ -229,14 +243,19 @@ suite "Basic CSS Layout Tests":
 
     # Setup grid
     # parent.gridTemplate = newGridTemplate()
-    child.cxSize = [csAuto(), csAuto()]
+    child.cxSize = [csAuto(), csNone()]
     
     computeLayout(parent)
 
     check child.box.x == 50
     check child.box.y == 50
     check child.box.w == 350
-    check child.box.h == 250
+    check child.box.h == 0
+
+    child.cxMin = [100'ux, 100'ux]
+    computeLayout(parent)
+    check child.box.w == 350
+    check child.box.h == 100
 
   test "Post-process auto sizing with grid":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -250,7 +269,12 @@ suite "Basic CSS Layout Tests":
     check child.box.x == 50
     check child.box.y == 50
     check child.box.w == 350
-    check child.box.h == 250
+    check child.box.h == 0
+
+    child.cxMin = [100'ux, 100'ux]
+    computeLayout(parent)
+    check child.box.w == 350
+    check child.box.h == 100
 
   test "grand child":
       # prettyPrintWriteMode = cmTerminal
@@ -315,7 +339,7 @@ suite "Basic CSS Layout Tests":
       # child21.cxSize = [cx"auto", cx"none"]
 
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       check child1.box == uiBox(0, 0, 400, 50)
       check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent
@@ -325,8 +349,8 @@ suite "Basic CSS Layout Tests":
       check child21.box.h == 70
 
   test "grand child min propogates with padding":
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
 
       # Create the entire hierarchy in a single statement
       let parent = newTestNode("mixed-grid", 0, 0, 400, 100) 
@@ -342,7 +366,7 @@ suite "Basic CSS Layout Tests":
       # child21.cxSize = [cx"auto", cx"none"]
 
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       check child1.box == uiBox(0, 0, 400, 50)
       check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent

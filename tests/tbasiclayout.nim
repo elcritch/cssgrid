@@ -368,7 +368,7 @@ suite "Basic CSS Layout Tests":
       # child21.cxSize = [cx"auto", cx"none"]
 
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
 
       check child1.box == uiBox(0, 0, 400, 50)
       check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent

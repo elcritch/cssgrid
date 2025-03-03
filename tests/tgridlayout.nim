@@ -67,7 +67,7 @@ suite "Compute Layout Tests":
     check child2.box.h == 120  # 40% of 300
 
   test "vertical layout auto":
-    when false:
+    when true:
       prettyPrintWriteMode = cmTerminal
       defer: prettyPrintWriteMode = cmNone
 
@@ -93,8 +93,8 @@ suite "Compute Layout Tests":
 
         # child.cxSize = [1'fr, csAuto()]
         # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
-        # child.cxPadOffset[drow] = 20'ux
-        # child.cxPadSize[drow] = 20'ux
+        child.cxPadOffset[drow] = 21.01'ux
+        child.cxPadSize[drow] = 22.20'ux
 
         text.cxSize = [cx"auto", 33.33'ux]
         text.cxMin = [40'ux, 20.00'ux]
@@ -108,11 +108,11 @@ suite "Compute Layout Tests":
         # bmax: [x: -inf, y: 42.30]
         # bpad: [x: 0.00, y: 20.00, w: 0.00, h: 20.00]
 
-
       computeLayout(parent)
+      # printLayout(parent, cmTerminal)
 
       check items.children[0].box.w == 768
-      check items.children[0].box.h == 62.299999.UiScalar
+      check abs(items.children[0].box.h - 63.21.UiScalar).float < 1.0e-3
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

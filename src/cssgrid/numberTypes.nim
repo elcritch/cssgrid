@@ -31,6 +31,8 @@ template borrowMaths*(typ, base: typedesc) =
   when base is SomeFloat:
     proc `~=` * (x, y: typ): bool {.borrow.}
 
+  proc `abs` *(x: typ): typ {.borrow.}
+
   proc `+=` * (x: var typ, y: typ) {.borrow.}
   proc `-=` * (x: var typ, y: typ) {.borrow.}
   when base is SomeFloat:

@@ -48,8 +48,8 @@ suite "Basic CSS Layout Tests":
     child.cxSize[dcol] = cx"auto"
     child.cxSize[drow] = cx"auto"
     
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # Auto should fill available space (parent size - offset)
     check child.box.w == 390 # 400 - 10

@@ -86,8 +86,11 @@ proc calcBasicConstraintImpl(
       var res: UiScalar
       match val:
         UiAuto():
-          if calc == WH:
+          if calc == WH and dir == dcol:
             res = pf - f0
+          elif calc == WH and dir == drow:
+            let mins = node.childBMins(dir)
+            res = mins
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):

@@ -25,15 +25,15 @@ proc childBMins(node: GridNode, dir: GridDir): UiScalar =
   result = UiScalar.low()
   for child in node.children:
     result = max(result, child.bmin[dir])
-  # if result == UiScalar.high():
-  #   result = 0.0.UiScalar
+  if result == UiScalar.low():
+    result = 0.0.UiScalar
 
 proc childBMaxs(node: GridNode, dir: GridDir): UiScalar =
   result = UiScalar.low()
   for child in node.children:
     result = max(result, child.bmax[dir])
-  # if result == UiScalar.low():
-  #   result = 0.0.UiScalar
+  if result == UiScalar.low():
+    result = 0.0.UiScalar
 
 proc childBMinsPost(node: GridNode, dir: GridDir): UiScalar =
   # I'm not sure about this, it's sorta hacky
@@ -49,6 +49,10 @@ proc childBMinsPost(node: GridNode, dir: GridDir): UiScalar =
     result = 0.0.UiScalar
 
 proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
+  if calc == WH and node.bmin[dir] != UiScalar.high:
+    debugPrint "calcBasicCx:propogateCalcs", "name=", node.name, "dir=", dir, "calc=", calc, "val=", f, "bmin=", node.bmin[dir]
+    f = max(f, node.bmin[dir])
+
   if calc == MINSZ and f == UiScalar.high:
     match node.cxSize[dir]:
       UiValue(value):
@@ -73,7 +77,7 @@ proc calcBasicConstraintImpl(
     f: var UiScalar,
     pf: UiScalar,
     f0 = 0.UiScalar, # starting point for field, e.g. for WH it'll be node XY's
-    pad = 0.UiScalar, # margin
+    ppad = 0.UiScalar, # padding
 ) =
   mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
@@ -105,9 +109,8 @@ proc calcBasicConstraintImpl(
           # fit-content - calculate as max-content but clamped by available space
           res = node.childBMins(dir)
           res = min(res, pf)
-        _:
-          discard
-      debugPrint "calcBasicCx:basic",  "name=", node.name, "dir=", dir, "calc=", calc, "val: ", val, "pf=", pf, "f0=", f0, "pad=", pad, "kind=", val.kind, " res: ", res
+      debugPrint "calcBasicCx:basic", "name=", node.name, "dir=", dir, "calc=", calc,
+                  "val: ", val, "pf=", pf, "f0=", f0, "ppad=", ppad, "kind=", val.kind, " res: ", res
       res
 
   # debugPrint "CONTENT csValue: ", "node = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
@@ -161,9 +164,11 @@ proc calcBasicConstraintImpl(
   node.propogateCalcs(dir, calc, f)
 
   if calc == XY:
-    f += pad
-  elif calc == WH:
-    f += pad
+    debugPrint "calcBasicCx:calcXY:pad", "name=", node.name, "val=", f, "ppad=", ppad
+    f += ppad
+  # elif calc == WH:
+  #   debugPrint "calcBasicCx:calcWH:pad", "name=", node.name, "val=", f, "ppad=", ppad
+  #   f -= node.bpad.wh[dir]
 
   debugPrint "calcBasicCx:done: ", " name= ", node.name, "dir=", dir, "calc=", calc, " val= ", f
 
@@ -266,7 +271,9 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   node.propogateCalcs(dir, calc, f)
 
   if calc == MINSZ and f == UiScalar.high:
-    f = node.childBMins(dir) + node.bpad.xy[dir] + node.bpad.wh[dir]
+    let v = node.childBMins(dir).clamp(0.UiScalar, UiScalar.high)
+    f = clamp(v + node.bpad.xy[dir] + node.bpad.wh[dir], 0.UiScalar, UiScalar.high)
+    debugPrint "calcBasicConstraintPostImpl:adjust:minsz: ", "name=", node.name, "val=", f, "v=", v, "bpad:xy:", node.bpad.xy[dir], "bpad:wh:", node.bpad.wh[dir]
 
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 
@@ -289,12 +296,6 @@ proc calcBasicConstraint*(node: GridNode) =
   debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
   printLayout(node)
 
-  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
-  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
-  debugPrint "calcBasicConstraint:start:wh", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
-  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w)
-  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h, node.box.y-parentPad.y, -parentPad.h)
-
   calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, parentPad.x)
   calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, parentPad.y)
   calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w, parentPad.w)
@@ -304,6 +305,12 @@ proc calcBasicConstraint*(node: GridNode) =
   calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
   calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
   calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
+
+  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
+  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
+  debugPrint "calcBasicConstraint:start:wh", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w-parentPad.w, node.box.x-parentPad.x, ppad= -parentPad.w)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h-parentPad.h, node.box.y-parentPad.y, ppad= -parentPad.h)
 
   printLayout(node)
 

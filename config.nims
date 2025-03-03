@@ -1,6 +1,7 @@
 import std/[os, strutils]
 
 --"hints":"off" # Disable single warning
+--verbosity:0
 
 task test, "test all":
   for test in walkDirRec("tests/", skipSpecial=true):

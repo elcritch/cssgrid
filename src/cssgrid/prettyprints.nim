@@ -15,7 +15,7 @@ type ColorMode* = enum
 var prettyPrintWriteMode* = cmNone
 var filterFields: Table[string, string]
 
-proc setPrettyPrintWriteMode*(mode: ColorMode) =
+proc setPrettyPrintMode*(mode: ColorMode) =
   prettyPrintWriteMode = mode
 proc clearPrettyPrintWriteMode*() =
   filterFields.clear()

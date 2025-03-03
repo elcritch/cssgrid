@@ -39,7 +39,7 @@ suite "Compute Layout Tests":
     # Set fixed-parent constraint
     parent.frame.windowSize = uiBox(0,0, 400, 300)
     parent.cxSize[dcol] = csAuto()
-    parent.cxSize[drow] = csAuto()
+    parent.cxSize[drow] = csNone()
     # parent.cxSize[dcol] = 400'ux  # set fixed parent
     # parent.cxSize[drow] = 300'ux  # set fixed parent
 
@@ -58,7 +58,7 @@ suite "Compute Layout Tests":
     check child2.box.h == 0  # 40% of 300
 
     # now test with settings
-    parent.cxSize[drow] = 300'ux
+    parent.cxSize[drow] = csAuto()
     computeLayout(parent)
     
     check child1.box.w == 200  # 50% of 400

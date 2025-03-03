@@ -126,7 +126,7 @@ proc calcBasicConstraintImpl(
     of PADWH:
       node.cxPadSize[dir]
 
-  debugPrint "calcBasicCx", "name=", node.name, "csValue: ", csValue, "dir: ", dir, "calc: ", calc
+  debugPrint "calcBasicCx", "name=", node.name, "csValue:", csValue, "dir=", dir, "calc=", calc
   match csValue:
     UiNone:
       # # handle UiNone for height to account for minimum sizes of contents
@@ -149,7 +149,7 @@ proc calcBasicConstraintImpl(
       let lv = ls.calcBasic()
       let rv = rs.calcBasic()
       f = max(lv, rv)
-      debugPrint "calcBasicCx:max: ", " name= ", node.name, " lv= ", lv, "rv= ", rv, "rs= ", rs
+      debugPrint "calcBasicCx:max: ", " name=", node.name, "dir=", dir, "calc=", calc, "lv=", lv, "rv= ", rv, "rs=", rs
     UiValue(value):
       f = calcBasic(value)
     UiMinMax(ls, rs):
@@ -165,7 +165,7 @@ proc calcBasicConstraintImpl(
   elif calc == WH:
     f += pad
 
-  debugPrint "calcBasicCx:done: ", " name= ", node.name, " val= ", f
+  debugPrint "calcBasicCx:done: ", " name= ", node.name, "dir=", dir, "calc=", calc, " val= ", f
 
 proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   ## computes basic constraints for box'es when set
@@ -228,7 +228,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     of PADWH:
       node.cxPadSize[dir]
   
-  debugPrint "CONTENT csValue:post", "node =", node.name, "calc=", calc, "d =", repr(dir), "w =", node.box.w, "h =", node.box.h
+  debugPrint "CONTENT csValue:post", "node=", node.name, "calc=", calc, "dir=", repr(dir), "w=", node.box.w, "h=", node.box.h
   match csValue:
     UiNone:
       discard

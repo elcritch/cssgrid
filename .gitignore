@@ -7,3 +7,5 @@ vendor/
 .tool-versions
 nimble.develop
 nimble.paths
+deps
+nim.cfg

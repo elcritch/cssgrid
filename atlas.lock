@@ -1,0 +1,121 @@
+{
+  "items": {
+    "macroutils": {
+      "dir": "$deps/macroutils",
+      "url": "https://github.com/PMunch/macroutils",
+      "commit": "b460c6804c97df8cfdc80c308b574ae90b30ac61",
+      "version": ""
+    },
+    "pixie": {
+      "dir": "$deps/pixie",
+      "url": "https://github.com/treeform/pixie",
+      "commit": "3b65ca5605a1156987041bf0295449e4c56128cf",
+      "version": ""
+    },
+    "patty": {
+      "dir": "$deps/patty",
+      "url": "https://github.com/andreaferretti/patty",
+      "commit": "31bb61b990b8b3bae1cba2f353fb978448942318",
+      "version": ""
+    },
+    "stack_strings": {
+      "dir": "$deps/stack_strings",
+      "url": "https://github.com/termermc/nim-stack-strings",
+      "commit": "8fa11c46787a7754d6fc13df1e51f7193bbab5e8",
+      "version": ""
+    },
+    "pretty": {
+      "dir": "$deps/pretty",
+      "url": "https://github.com/treeform/pretty",
+      "commit": "9e770046c5cdf23d395d6b21c4657345481b1c76",
+      "version": ""
+    },
+    "bumpy": {
+      "dir": "$deps/bumpy",
+      "url": "https://github.com/treeform/bumpy",
+      "commit": "d7eaf00c24820ad0317c9926737402e62431e931",
+      "version": ""
+    },
+    "vmath": {
+      "dir": "$deps/vmath",
+      "url": "https://github.com/treeform/vmath",
+      "commit": "7282ae1247f2f384ebeaec3826d7fa38fd0e1df1",
+      "version": ""
+    },
+    "chroma": {
+      "dir": "$deps/chroma",
+      "url": "https://github.com/treeform/chroma",
+      "commit": "b2e71179174e040884ebf6a16cbac711c84620b9",
+      "version": ""
+    },
+    "crunchy": {
+      "dir": "$deps/crunchy",
+      "url": "https://github.com/guzba/crunchy",
+      "commit": "98eb6526982bb8aae8eec6e8781f4539fa19e049",
+      "version": ""
+    },
+    "zippy": {
+      "dir": "$deps/zippy",
+      "url": "https://github.com/guzba/zippy",
+      "commit": "a99f6a7d8a8e3e0213b3cad0daf0ea974bf58e3f",
+      "version": ""
+    },
+    "flatty": {
+      "dir": "$deps/flatty",
+      "url": "https://github.com/treeform/flatty",
+      "commit": "07f6ba8ab96238e5bd1264cf0cea1d1746abb00c",
+      "version": ""
+    },
+    "nimsimd": {
+      "dir": "$deps/nimsimd",
+      "url": "https://github.com/guzba/nimsimd",
+      "commit": "3f6b2668ffb0867d0bf786a658b817763e611350",
+      "version": ""
+    }
+  },
+  "nimcfg": [
+    "############# begin Atlas config section ##########",
+    "--noNimblePath",
+    "--path:\"deps/macroutils/src\"",
+    "--path:\"deps/pixie/src\"",
+    "--path:\"deps/patty\"",
+    "--path:\"deps/stack_strings\"",
+    "--path:\"deps/pretty/src\"",
+    "--path:\"deps/bumpy/src\"",
+    "--path:\"deps/vmath/src\"",
+    "--path:\"deps/chroma/src\"",
+    "--path:\"deps/crunchy/src\"",
+    "--path:\"deps/zippy/src\"",
+    "--path:\"deps/flatty/src\"",
+    "--path:\"deps/nimsimd/src\"",
+    "############# end Atlas config section   ##########",
+    ""
+  ],
+  "nimbleFile": {
+    "filename": "cssgrid.nimble",
+    "content": [
+      "# Package",
+      "version       = \"0.10.0\"",
+      "author        = \"Jaremy Creechley\"",
+      "description   = \"pure Nim CSS Grid layout engine\"",
+      "license       = \"MIT\"",
+      "srcDir        = \"src\"",
+      "",
+      "# Dependencies",
+      "requires \"nim >= 1.2\"",
+      "requires \"patty >= 0.3.4\"",
+      "requires \"vmath >= 1.2.0\"",
+      "requires \"bumpy >= 1.1.0\"",
+      "requires \"macroutils\"",
+      "requires \"stack_strings\"",
+      "requires \"pretty\"",
+      "requires \"pixie\"",
+      ""
+    ]
+  },
+  "hostOS": "macosx",
+  "hostCPU": "arm64",
+  "nimVersion": "2.2.2",
+  "gccVersion": "",
+  "clangVersion": ""
+}

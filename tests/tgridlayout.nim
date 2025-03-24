@@ -115,32 +115,26 @@ suite "Compute Layout Tests":
       let story = newTestNode("story", parent)
 
       parseGridTemplateColumns story.gridTemplate, 1'fr
-      parent.cxSize = [100'pp, 100'pp]
+      parent.cxSize = [400'ux, 300'ux]
 
       story.cxSize = [cx"auto", cx"auto"]
       story.gridTemplate.autoFlow = grRow
       story.gridTemplate.autos[drow] = csAuto()
 
       block rect0:
-        let child = newTestNode("rect-0", story)
-
-        child.cxPadOffset[drow] = 21.01'ux
-        child.cxPadSize[drow] = 22.20'ux
+        let rect = newTestNode("rect-0", story)
 
         block text0:
-          let text = newTestNode("text-0", child)
-          text.cxSize = [cx"auto", 33.33'ux]
+          let text = newTestNode("text-0", rect)
+          text.cxSize = [cx"auto", 133.33'ux]
           text.cxMin = [40'ux, 20.00'ux]
           text.cxMax = [200'ux, 300.00'ux]
 
       block rect1:
-        let child = newTestNode("rect-1", story)
-
-        child.cxPadOffset[drow] = 21.01'ux
-        child.cxPadSize[drow] = 22.20'ux
+        let rect = newTestNode("rect-1", story)
 
         block text1:
-          let text = newTestNode("text-1", child)
+          let text = newTestNode("text-1", rect)
           text.cxSize = [cx"auto", 33.33'ux]
           text.cxMin = [40'ux, 20.00'ux]
           text.cxMax = [200'ux, 300.00'ux]

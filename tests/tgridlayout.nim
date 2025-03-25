@@ -116,12 +116,12 @@ suite "Compute Layout Tests":
 
       parent.cxSize = [400'ux, 300'ux]
 
-      items.cxSize = [cx"auto", cx"none"]
+      items.cxSize = [cx"auto", cx"max-content"]
 
       block story0:
         let story = newTestNode("story", items)
         parseGridTemplateColumns story.gridTemplate, 1'fr
-        story.cxSize = [cx"auto", cx"none"]
+        story.cxSize = [cx"auto", cx"auto"]
         story.gridTemplate.autoFlow = grRow
         story.gridTemplate.autos[drow] = csAuto()
 
@@ -148,6 +148,7 @@ suite "Compute Layout Tests":
       check items.children[0].children[0].box.h.float32 == 42.50
       check items.children[0].children[1].box.h.float32 == 20.50
       check items.children[0].box.h.float32 == 63.00
+      check items.box.h.float32 == 63.00
 
 
   test "vertical layout max-content":

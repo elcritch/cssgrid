@@ -13,6 +13,6 @@ task test, "test all":
   exec "nim -d:cssgrid.scalar=int c -r " & "tests/tgrids.nim"
 
 # begin Nimble config (version 2)
-when withDir(thisDir(), system.fileExists("nimble.paths")):
-  include "nimble.paths"
+# when withDir(thisDir(), system.fileExists("nimble.paths")):
+#   include "nimble.paths"
 # end Nimble config

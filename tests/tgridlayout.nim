@@ -116,10 +116,6 @@ suite "Compute Layout Tests":
 
       parent.cxSize = [400'ux, 300'ux]
 
-      # parseGridTemplateColumns items.gridTemplate, 1'fr
-      # items.cxSize = [cx"auto", cx"max-content"]
-      # items.gridTemplate.autoFlow = grRow
-      # items.gridTemplate.autos[drow] = csAuto()
       items.cxSize = [cx"auto", cx"none"]
 
       block story0:

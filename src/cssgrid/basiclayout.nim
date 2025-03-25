@@ -233,13 +233,13 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     of PADWH:
       node.cxPadSize[dir]
   
-  debugPrint "CONTENT csValue:post", "node=", node.name, "calc=", calc, "dir=", repr(dir), "w=", node.box.w, "h=", node.box.h
+  debugPrint "CONTENT csValue:post", "node=", node.name, "calc=", calc, "dir=", repr(dir), "w=", node.box.w, "h=", node.box.h, "csValue=", repr(csValue)
   match csValue:
     UiNone:
       discard
       # # handle UiNone for height to account for minimum sizes of contents
       if calc == WH and dir == drow:
-        f = node.bmin.h
+        f = max(f, node.bmin.h)
     UiAdd(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
         let lv = ls.calcBasic()

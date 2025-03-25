@@ -68,8 +68,8 @@ suite "Compute Layout Tests":
 
   test "vertical layout auto":
     when true:
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("scroll", 0, 0, 400, 300)
       let body = newTestNode("scrollBody", parent)
@@ -99,20 +99,57 @@ suite "Compute Layout Tests":
         text.cxSize = [cx"auto", 33.33'ux]
         text.cxMin = [40'ux, 20.00'ux]
         text.cxMax = [200'ux, 300.00'ux]
-
-        # W: 1.00'fr          H: 42.30'ui
-        # X: 10.00'ui          Y: 0.00'ui
-        # Xmin: 600.50'ui          Ymin: 22.50'ui
-        # box: [x: 10.00, y: 0.00, w: 638.67, h: 42.30]
-        # bmin: [x: 600.50, y: 22.50]
-        # bmax: [x: -inf, y: 42.30]
-        # bpad: [x: 0.00, y: 20.00, w: 0.00, h: 20.00]
-
+      
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
 
       check items.children[0].box.w == 768
       check abs(items.children[0].box.h - 63.21.UiScalar).float < 1.0e-3
+  
+  test "vertical layout auto with grandchild":
+    when true:
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
+
+      let parent = newTestNode("scroll", 0, 0, 400, 300)
+      let items = newTestNode("items", parent)
+
+      parent.cxSize = [400'ux, 300'ux]
+
+      items.cxSize = [cx"auto", cx"max-content"]
+
+      block story0:
+        let story = newTestNode("story", items)
+        parseGridTemplateColumns story.gridTemplate, 1'fr
+        story.cxSize = [cx"auto", cx"auto"]
+        story.gridTemplate.autoFlow = grRow
+        story.gridTemplate.autos[drow] = csAuto()
+
+        block rect0:
+          let rect = newTestNode("rect-0", story)
+
+          block text0:
+            let text = newTestNode("text-0", rect)
+            text.cxSize = [cx"auto", cx"none"]
+            text.cxMin = [40'ux, 42.50'ux]
+            text.cxMax = [200'ux, 300.00'ux]
+
+        block rect1:
+          let rect = newTestNode("rect-1", story)
+
+          block text1:
+            let text = newTestNode("text-1", rect)
+            text.cxSize = [cx"auto", cx"none"]
+            text.cxMin = [40'ux, 20.50'ux]
+            text.cxMax = [200'ux, 300.00'ux]
+
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+      check items.children[0].children[0].box.h.float32 == 42.50
+      check items.children[0].children[1].box.h.float32 == 20.50
+      check items.children[0].box.h.float32 == 63.00
+      check items.box.h.float32 == 63.00
+
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

@@ -1,10 +1,6 @@
 import numberTypes, constraints, gridtypes
-
+import basiccalcs
 import prettyprints
-
-type
-  CalcKind* {.pure.} = enum
-    PADXY, PADWH, XY, WH, MINSZ, MAXSZ
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
@@ -20,55 +16,6 @@ type
 # Floated elements
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
-
-proc childBMins(node: GridNode, dir: GridDir): UiScalar =
-  result = UiScalar.low()
-  for child in node.children:
-    result = max(result, child.bmin[dir])
-  if result == UiScalar.low():
-    result = 0.0.UiScalar
-
-proc childBMaxs(node: GridNode, dir: GridDir): UiScalar =
-  result = UiScalar.low()
-  for child in node.children:
-    result = max(result, child.bmax[dir])
-  if result == UiScalar.low():
-    result = 0.0.UiScalar
-
-proc childBMinsPost(node: GridNode, dir: GridDir): UiScalar =
-  # I'm not sure about this, it's sorta hacky
-  # but implement min/max content for non-grid nodes...
-  result = UiScalar.high()
-  for child in node.children:
-    let childXY = child.box.xy[dir]
-    let childScreenSize = child.box.wh[dir] + childXY
-    let childScreenMin = child.bmin[dir] + childXY
-    result = min(result, min(childScreenSize, childScreenMin))
-    debugPrint "calcBasicPost:min-content: ", "res=", result, "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
-  if result == UiScalar.high():
-    result = 0.0.UiScalar
-
-proc propogateCalcs(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
-  if calc == WH and node.bmin[dir] != UiScalar.high:
-    debugPrint "calcBasicCx:propogateCalcs", "name=", node.name, "dir=", dir, "calc=", calc, "val=", f, "bmin=", node.bmin[dir]
-    f = max(f, node.bmin[dir])
-
-  if calc == MINSZ and f == UiScalar.high:
-    match node.cxSize[dir]:
-      UiValue(value):
-        match value:
-          UiFixed(coord):
-            f = coord
-          _: discard
-      _: discard
-  if calc == MAXSZ and f == UiScalar.low:
-    match node.cxSize[dir]:
-      UiValue(value):
-        match value:
-          UiFixed(coord):
-            f = coord
-          _: discard
-      _: discard
 
 proc calcBasicConstraintImpl(
     node: GridNode,
@@ -271,7 +218,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   node.propogateCalcs(dir, calc, f)
 
   if calc == MINSZ and f == UiScalar.high:
-    let v = node.childBMins(dir).clamp(0.UiScalar, UiScalar.high)
+    let v = node.childBMinsPost(dir).clamp(0.UiScalar, UiScalar.high)
     f = clamp(v + node.bpad.xy[dir] + node.bpad.wh[dir], 0.UiScalar, UiScalar.high)
     debugPrint "calcBasicConstraintPostImpl:adjust:minsz: ", "name=", node.name, "val=", f, "v=", v, "bpad:xy:", node.bpad.xy[dir], "bpad:wh:", node.bpad.wh[dir]
 

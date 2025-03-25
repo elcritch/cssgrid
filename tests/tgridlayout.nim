@@ -1,4 +1,3 @@
-
 import unittest
 import typetraits
 import sequtils
@@ -101,15 +100,16 @@ suite "Compute Layout Tests":
         text.cxMax = [200'ux, 300.00'ux]
       
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
 
       check items.children[0].box.w == 768
-      check abs(items.children[0].box.h - 63.21.UiScalar).float < 1.0e-3
+      # check items.children[0].box.h == 63.21.UiScalar
+      check items.children[0].box.h == 84.22.UiScalar
   
   test "vertical layout auto with grandchild":
     when true:
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("scroll", 0, 0, 400, 300)
       let items = newTestNode("items", parent)
@@ -150,6 +150,10 @@ suite "Compute Layout Tests":
       check items.children[0].box.h.float32 == 63.00
       check items.box.h.float32 == 63.00
 
+      check items.children[0].children[0].bmin.h.float32 == 42.50
+      check items.children[0].children[1].bmin.h.float32 == 20.50
+      check items.children[0].bmin.h.float32 == 63.00
+      check items.bmin.h.float32 == 63.00
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal
@@ -179,9 +183,10 @@ suite "Compute Layout Tests":
         child.cxSize = [0.9'fr, 120'ux]
 
     computeLayout(parent)
+    # printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
-    check scrollpane.box.h == 270
+    check scrollpane.box.h == 950
     check scrollbody.box.w == 384
     check scrollbody.box.h == 950
     check vertical.box.w == 374

@@ -112,32 +112,40 @@ suite "Compute Layout Tests":
       defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("scroll", 0, 0, 400, 300)
-      let story = newTestNode("story", parent)
+      let items = newTestNode("items", parent)
 
-      parseGridTemplateColumns story.gridTemplate, 1'fr
       parent.cxSize = [400'ux, 300'ux]
 
-      story.cxSize = [cx"auto", cx"auto"]
-      story.gridTemplate.autoFlow = grRow
-      story.gridTemplate.autos[drow] = csAuto()
+      # parseGridTemplateColumns items.gridTemplate, 1'fr
+      # items.cxSize = [cx"auto", cx"max-content"]
+      # items.gridTemplate.autoFlow = grRow
+      # items.gridTemplate.autos[drow] = csAuto()
+      items.cxSize = [cx"auto", cx"none"]
 
-      block rect0:
-        let rect = newTestNode("rect-0", story)
+      block story0:
+        let story = newTestNode("story", items)
+        parseGridTemplateColumns story.gridTemplate, 1'fr
+        story.cxSize = [cx"auto", cx"none"]
+        story.gridTemplate.autoFlow = grRow
+        story.gridTemplate.autos[drow] = csAuto()
 
-        block text0:
-          let text = newTestNode("text-0", rect)
-          text.cxSize = [cx"auto", 133.33'ux]
-          text.cxMin = [40'ux, 20.00'ux]
-          text.cxMax = [200'ux, 300.00'ux]
+        block rect0:
+          let rect = newTestNode("rect-0", story)
 
-      block rect1:
-        let rect = newTestNode("rect-1", story)
+          block text0:
+            let text = newTestNode("text-0", rect)
+            text.cxSize = [cx"auto", cx"none"]
+            text.cxMin = [40'ux, 42.50'ux]
+            text.cxMax = [200'ux, 300.00'ux]
 
-        block text1:
-          let text = newTestNode("text-1", rect)
-          text.cxSize = [cx"auto", 33.33'ux]
-          text.cxMin = [40'ux, 20.00'ux]
-          text.cxMax = [200'ux, 300.00'ux]
+        block rect1:
+          let rect = newTestNode("rect-1", story)
+
+          block text1:
+            let text = newTestNode("text-1", rect)
+            text.cxSize = [cx"auto", cx"none"]
+            text.cxMin = [40'ux, 20.50'ux]
+            text.cxMax = [200'ux, 300.00'ux]
 
       computeLayout(parent)
       # printLayout(parent, cmTerminal)

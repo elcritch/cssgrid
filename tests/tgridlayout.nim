@@ -145,6 +145,9 @@ suite "Compute Layout Tests":
 
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
+      check items.children[0].children[0].box.h.float32 == 42.50
+      check items.children[0].children[1].box.h.float32 == 20.50
+      check items.children[0].box.h.float32 == 63.00
 
 
   test "vertical layout max-content":

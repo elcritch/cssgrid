@@ -355,24 +355,26 @@ suite "Basic CSS Layout Tests":
       # defer: prettyPrintWriteMode = cmNone
 
       # Create the entire hierarchy in a single statement
-      let parent = newTestNode("mixed-grid", 0, 0, 400, 100) 
-      let child1 = newTestNode("fixed-child", 0, 0, 400, 50, parent)
-      let child11 = newTestNode("fixed-grandchild", child1)
-      let child2 = newTestNode("auto-child", parent)
-      let child21 = newTestNode("auto-grandchild", child2)
+      let mixedGrid = newTestNode("mixed-grid", 0, 0, 400, 100) 
+      let fixedChild = newTestNode("fixed-child", 0, 0, 400, 50, mixedGrid)
+      let fixedGrandchild = newTestNode("fixed-grandchild", fixedChild)
+      let autoChild = newTestNode("auto-child", mixedGrid)
+      let autoGrandchild = newTestNode("auto-grandchild", autoChild)
 
-      child11.cxMin = [100'ux, 60'ux]
-      child21.cxMin = [100'ux, 70'ux]
-      child2.cxPadSize[drow] = 10'ux
-      child2.cxPadOffset[drow] = 10'ux
+      fixedGrandchild.cxMin = [100'ux, 60'ux]
+      autoGrandchild.cxMin = [100'ux, 70'ux]
+      autoChild.cxPadSize[drow] = 10'ux
+      autoChild.cxPadOffset[drow] = 10'ux
+      autoChild.cxSize = [cx"auto", cx"auto"]
+      autoGrandchild.cxSize = [cx"auto", cx"auto"]
       # child21.cxSize = [cx"auto", cx"none"]
 
-      computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      computeLayout(mixedGrid)
+      printLayout(mixedGrid, cmTerminal)
 
-      check child1.box == uiBox(0, 0, 400, 50)
-      check child11.box == uiBox(0, 0, 400, 60) # larger than fixed parent
+      check fixedChild.box == uiBox(0, 0, 400, 50)
+      check fixedGrandchild.box == uiBox(0, 0, 400, 60) # larger than fixed parent
 
       # check child2.box.y == 50
-      check child2.box.h == 90
-      check child21.box.h == 70
+      check autoChild.box.h == 100
+      check autoGrandchild.box.h == 80

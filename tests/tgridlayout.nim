@@ -1,4 +1,3 @@
-
 import unittest
 import typetraits
 import sequtils
@@ -150,6 +149,10 @@ suite "Compute Layout Tests":
       check items.children[0].box.h.float32 == 63.00
       check items.box.h.float32 == 63.00
 
+      check items.children[0].children[0].bmin.h.float32 == 42.50
+      check items.children[0].children[1].bmin.h.float32 == 20.50
+      check items.children[0].bmin.h.float32 == 63.00
+      check items.bmin.h.float32 == 63.00
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

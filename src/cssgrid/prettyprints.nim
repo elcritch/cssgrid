@@ -33,29 +33,33 @@ template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {},
   else:
     discard
 
-proc debugPrint*(args: varargs[string, `$`]) =
-  if filterFields.len() > 0:
-    var reject = false
-    for idx in countup(1, args.len()-2 div 2, 2):
-      let arg = args[idx]
-      if arg in filterFields:
-        if filterFields[arg] == args[idx+1]:
-          reject = false
-        else:
-          reject = true
-  
-    if reject:
-      return
+when not defined(debugCssGrid):
+  template debugPrint*(args: varargs[untyped]) =
+    discard
+else:
+  proc debugPrint*(args: varargs[string, `$`]) =
+    if filterFields.len() > 0:
+      var reject = false
+      for idx in countup(1, args.len()-2 div 2, 2):
+        let arg = args[idx]
+        if arg in filterFields:
+          if filterFields[arg] == args[idx+1]:
+            reject = false
+          else:
+            reject = true
+    
+      if reject:
+        return
 
-  if args.len() >= 1:
-    prettyPrintWriteMode.withStyle(fgGreen, text = args[0] & " ")
-  if args.len() >= 2:
-    for i, arg in args[1..^1]:
-      if i mod 2 == 0:
-        prettyPrintWriteMode.withStyle(fgBlue, text = arg & " ")
-      else:
-        prettyPrintWriteMode.withStyle(fgWhite, text = arg & " ")
-  prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
+    if args.len() >= 1:
+      prettyPrintWriteMode.withStyle(fgGreen, text = args[0] & " ")
+    if args.len() >= 2:
+      for i, arg in args[1..^1]:
+        if i mod 2 == 0:
+          prettyPrintWriteMode.withStyle(fgBlue, text = arg & " ")
+        else:
+          prettyPrintWriteMode.withStyle(fgWhite, text = arg & " ")
+    prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
 
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =
   case cs.kind

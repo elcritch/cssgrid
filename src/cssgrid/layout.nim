@@ -191,7 +191,8 @@ proc computeTracks*(
     computedSizes: array[GridDir, Table[int, ComputedTrackSize]],
 ) =
   # The free space is calculated after any non-flexible items. In 
-  prettyGridTemplate(grid)
+  when defined(debugCssGrid):
+    prettyGridTemplate(grid)
   grid.overflowSizes[dcol] = computeLineOverflow(dcol, grid.lines, computedSizes)
   grid.overflowSizes[drow] = computeLineOverflow(drow, grid.lines, computedSizes)
 
@@ -218,7 +219,8 @@ proc computeTracks*(
     spacing=grid.gaps[drow]
   )
 
-  prettyGridTemplate(grid)
+  when defined(debugCssGrid):
+    prettyGridTemplate(grid)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   assert index.isName == true
@@ -489,7 +491,8 @@ proc computeNodeLayout*(
 
 
   debugPrint "COMPUTE node layout: "
-  prettyLayout(node)
+  when defined(debugCssGrid):
+    prettyLayout(node)
 
   let computedSizes = gridTemplate.computeContentSizes(node.bpad, node.children)
 
@@ -501,18 +504,14 @@ proc computeNodeLayout*(
   printGrid(gridTemplate)
 
   debugPrint "COMPUTE Parent: "
-  prettyLayout(node)
+  when defined(debugCssGrid):
+    prettyLayout(node)
   debugPrint "COMPUTE BOXES: "
   for child in node.children:
     if fixedCount(child.gridItem) in 1..3:
       continue
-    # debugPrint "COMPUTE BOXES:CHILD: "
-    # prettyLayout(child)
     let cbox = child.computeBox(gridTemplate)
     child.box = typeof(child.box)(cbox)
-    # prettyLayout(child)
-  # debugPrint "COMPUTE POST: "
-  # prettyLayout(node)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]

@@ -6,6 +6,8 @@ type
   CalcKind* {.pure.} = enum
     PADXY, PADWH, XY, WH, MINSZ, MAXSZ
 
+{.push stackTrace: off.}
+
 proc childBMins*(node: GridNode, dir: GridDir): UiScalar =
   result = UiScalar.low()
   for child in node.children:

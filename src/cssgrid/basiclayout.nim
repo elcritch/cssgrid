@@ -17,6 +17,8 @@ import prettyprints
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
+{.push stackTrace: off.}
+
 proc calcBasicConstraintImpl(
     node: GridNode,
     dir: GridDir,

@@ -12,6 +12,8 @@ import prettyprints
 type
   ComputedTrackSize* = object of ComputedSize
 
+{.push stackTrace: off.}
+
 proc computeLineOverflow*(
     dir: GridDir,
     lines: array[GridDir, seq[GridLine]],

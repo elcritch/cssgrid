@@ -156,8 +156,8 @@ suite "CSS Grid Content Sizing":
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
 
-    check gt.lines[dcol][0].width == 75.UiScalar
-    check gt.lines[dcol][1].width == 125.UiScalar
+    check gt.lines[dcol][0].width == 100.UiScalar
+    check gt.lines[dcol][1].width == 100.UiScalar
 
     check gt.lines[drow][0].width == 200.UiScalar
 

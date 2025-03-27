@@ -119,7 +119,9 @@ proc computeLineLayout*(
                 totalFlexFracs += frac
           UiAuto():
             if totalFracs > 0:
-              fixedMinSizes += computedSizes.getOrDefault(i).autoSize
+              let minSize = computedSizes.getOrDefault(i).autoSize
+              fixedMinSizes += minSize
+              grdLn.width = minSize
             else:
               grdLn.width = UiScalar.low()
           _: discard  # Handle other cases

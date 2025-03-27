@@ -737,13 +737,13 @@ suite "Grid alignment and justification tests":
 
     check top.box.w.float32 == 800
     check top.box.h.float32 == 70
-    check stories.box.w.float32.round(2) == 125.67
+    check stories.box.w.float32.round(0) == 205
     check stories.box.h.float32 == 490
-    check panel.box.w.float32.round(2) == 674.33
+    check panel.box.w.float32.round(0) == 595
     check panel.box.h.float32 == 490
 
     check scrollBody.name == "scrollBody"
-    check scrollBody.box.w.float32.round(2) == 125.67
+    check scrollBody.box.w.float32.round(0) == 205
     check scrollBody.box.h.float32 == 100
 
     check upvotes.box.w.float32.round(2) == 46

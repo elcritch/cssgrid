@@ -501,9 +501,10 @@ proc computeNodeLayout*(
   #   prettyLayout(node)
   debugPrint "COMPUTE BOXES: "
   for child in node.children:
-    if fixedCount(child.gridItem) in 1..3:
-      continue
+    # if fixedCount(child.gridItem) in 1..3:
+    #   continue
     let cbox = child.computeBox(gridTemplate)
+    debugPrint "COMPUTE BOXES: ", "child=", child.name, "cbox=", $cbox
     child.box = typeof(child.box)(cbox)
   
   let w = gridTemplate.overflowSizes[dcol]
@@ -532,10 +533,8 @@ proc computeLayout*(node: GridNode, depth: int, full = true) =
     for n in node.children:
       computeLayout(n, depth + 1)
 
+    printLayout(node)
     var box = node.box
-    # adjust box to not include offset in wh
-    # box.w = box.w - box.x
-    # box.h = box.h - box.y
     let res = node.gridTemplate.computeNodeLayout(node).UiBox
     node.box = res
 
@@ -544,8 +543,6 @@ proc computeLayout*(node: GridNode, depth: int, full = true) =
         computeLayout(c, depth + 1, full = false)
         # calcBasicConstraint(c)
         debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
-    #     calcBasicConstraint(c, dcol, isXY = false)
-    #     calcBasicConstraint(c, drow, isXY = false)
 
     debugPrint "computeLayout:gridTemplate:post", "name=", node.name, " box = ", node.box.wh.repr
   else:

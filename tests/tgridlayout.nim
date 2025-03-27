@@ -67,15 +67,13 @@ suite "Compute Layout Tests":
 
   test "vertical layout auto":
     when true:
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("scroll", 0, 0, 400, 300)
       let body = newTestNode("scrollBody", parent)
       let items = newTestNode("items", body)
 
       parseGridTemplateColumns items.gridTemplate, 1'fr
-      parent.cxSize = [96'pp, 90'pp]
+      parent.cxSize = [768'ux, 540'ux]
       body.cxSize = [cx"auto", cx"max-content"]
       body.cxOffset = [cx"auto", cx"auto"]
 
@@ -99,10 +97,14 @@ suite "Compute Layout Tests":
         text.cxMin = [40'ux, 20.00'ux]
         text.cxMax = [200'ux, 300.00'ux]
       
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
 
-      check items.children[0].box.w == 768
+      # since it's cxStretch with auto it'll goto min content size
+      check items.children[0].box.x == 364
+      check items.children[0].box.w == 40
       check items.children[0].box.h == 84.22.UiScalar
   
   test "vertical layout auto with grandchild":
@@ -671,6 +673,7 @@ suite "Grid alignment and justification tests":
           )
         )
 
+        root.cxSize = [800'ux, 600'ux]
         # Set up grid template for outer node
         parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
         parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
@@ -692,7 +695,7 @@ suite "Grid alignment and justification tests":
         panel.gridItem.row = 2 // 3
         
         # Set up constraints
-        root.cxSize = [100'pp, 100'pp]
+        # root.cxSize = [100'pp, 100'pp]
         root.children[0].cxSize = [100'pp, 100'pp]
         root.children[0].children[0].cxSize = [100'pp, 100'pp]
         
@@ -746,8 +749,8 @@ suite "Grid alignment and justification tests":
         check upvotes.box.h.float32.round(2) == 20.5
 
   test "Complex grid layout with nested nodes":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
       # printLayout(root, cmTerminal)
       check top.box.w.float32 == 800

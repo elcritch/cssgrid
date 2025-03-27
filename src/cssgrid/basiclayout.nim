@@ -34,12 +34,13 @@ proc calcBasicConstraintImpl(
   ## of the box width post css grid or auto constraints layout
   # debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
   let parentBox = node.getParentBoxOrWindows()
+  let isGridChild = not node.parent.isNil and not node.parent[].gridTemplate.isNil
   template calcBasic(val: untyped): untyped =
     block:
       var res: UiScalar
       match val:
         UiAuto():
-          if calc == WH:
+          if not isGridChild and calc == WH:
             res = pf - f0
           # elif calc == WH and dir == drow:
           #   let mins = node.childBMins(dir)
@@ -47,9 +48,11 @@ proc calcBasicConstraintImpl(
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
-          res = frac.UiScalar * pf
+          if not isGridChild:
+            res = frac.UiScalar * pf
         UiPerc(perc):
-          res = perc.UiScalar / 100.0.UiScalar * pf
+          if not isGridChild:
+            res = perc.UiScalar / 100.0.UiScalar * pf
         UiContentMin():
           res = node.childBMins(dir)
         UiContentMax():
@@ -131,7 +134,11 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
     block:
       var res: UiScalar
       debugPrint "calcBasicPost: ", "name=", node.name, "val=", val
+      let isGridChild = not node.parent.isNil and not node.parent[].gridTemplate.isNil
       match val:
+        # UiAuto():
+        #   if isGridChild and calc == WH:
+        #     res = pf - f0
         UiContentMin():
           res = node.childBMinsPost(dir)
         UiContentMax():

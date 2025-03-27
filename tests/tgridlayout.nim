@@ -657,7 +657,9 @@ suite "Grid alignment and justification tests":
           ),
           newTestTree("stories",
             newTestTree("scroll",
-              newTestNode("scrollBody", 0, 0, 0, 0),
+              newTestTree("scrollBody", 
+                newTestNode("item", 0, 0, 0, 0),
+              ),
               newTestNode("scrollbar-vertical", 0, 0, 0, 0)
             )
           ),
@@ -704,9 +706,15 @@ suite "Grid alignment and justification tests":
     text.cxMin = [39'ux, 21.15'ux]
     text.cxMax = [39'ux, 42.30'ux]
     
-    let scrollBody = stories.children[0].children[0]
+    let scroll = stories.children[0]
+    scroll.cxSize = [cx"auto", cx"auto"]
+    
+    let scrollBody = scroll.children[0]
     scrollBody.cxSize = [cx"auto", cx"max-content"]
     
+    let item = scrollBody.children[0]
+    item.cxSize = [100'pp, 100'ux]
+
     let upvotes = panel.children[0].children[0]
     upvotes.cxMin = [46'ux, 20.50'ux]
     upvotes.cxMax = [90'ux, 63.45'ux]
@@ -714,10 +722,16 @@ suite "Grid alignment and justification tests":
     computeLayout(root)
     printLayout(root, cmTerminal)
 
-    check top.box.w.float32 == 800
-    check top.box.h.float32 == 70
+    check top.box.w.float32 ~= 800
+    check top.box.h.float32 ~= 70
     check stories.box.w.float32 ~= 125.666664
-    check stories.box.h.float32 == 490
+    check stories.box.h.float32 ~= 490
     check panel.box.w.float32 ~= 674.3333
-    check panel.box.h.float32 == 490
+    check panel.box.h.float32 ~= 490
+
+    check scrollBody.box.w.float32 ~= 125.666664
+    check scrollBody.box.h.float32 ~= 100
+
+    check upvotes.box.w.float32 ~= 46
+    check upvotes.box.h.float32 ~= 20.5
 

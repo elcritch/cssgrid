@@ -59,118 +59,102 @@ proc computeLineLayout*(
   var
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
-    autoTrackIndices: seq[int] = @[]  # Store indices instead of sizes
-    fracTrackIndices: seq[int] = @[]  # Store indices instead of sizes
+    totalAuto = 0.0.UiScalar
 
   # First pass: calculate fixed sizes and identify auto/frac tracks
-  for i, grdLn in lines:
+  for i, grdLn in lines.mpairs():
     match grdLn.track:
-      UiNone():
-        discard
       UiValue(value):
         match value:
           UiFixed(coord):
             fixed += coord
+            grdLn.width = coord
           UiPerc(perc):
             fixed += length * perc / 100
+            grdLn.width = length * perc / 100
           UiContentMin():
-            if i in computedSizes:
-              fixed += computedSizes[i].minContent
+            fixed += computedSizes.getOrDefault(i).minContent
+            grdLn.width = computedSizes.getOrDefault(i).minContent
           UiContentMax():
-            if i in computedSizes:
-              fixed += computedSizes[i].maxContent
+            fixed += computedSizes.getOrDefault(i).maxContent
+            grdLn.width = computedSizes.getOrDefault(i).maxContent
           UiContentFit():
-            if i in computedSizes:
-              fixed += computedSizes[i].contentFit
+            fixed += computedSizes.getOrDefault(i).contentFit
+            grdLn.width = computedSizes.getOrDefault(i).contentFit
           UiFrac(frac):
-            if i in computedSizes:
-              debugPrint "computeLineLayout", "computedSizes[i]=", computedSizes[i].minContent
             totalFracs += frac
-            fracTrackIndices.add(i)
+            grdLn.width = UiScalar.low()
           UiAuto():
-            autoTrackIndices.add(i)
-      UiEnd():
-        discard
+            totalAuto += 1.0.UiScalar
+            grdLn.width = UiScalar.low()
       _: discard  # Handle other cases
 
   # Account for spacing between tracks
   fixed += spacing * UiScalar(lines.len() - 1)
 
-  # Calculate minimum space needed for auto and frac tracks
-  var
-    totalAutoMin: UiScalar
-    totalFracMin: UiScalar
-
-  for trk in autoTrackIndices:
-    if trk in computedSizes:
-        totalAutoMin += computedSizes[trk].autoSize
-
-  for trk in fracTrackIndices:
-    if trk in computedSizes:
-      debugPrint "computeLineLayout:metrics", "dir=", dir, "fracmin= ", computedSizes[trk].fracMinSize
-      totalFracMin += computedSizes[trk].fracMinSize.clamp(0.UiScalar, UiScalar.high)
-
   # Calculate available free space
   let
-    freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
-  var
-    remSpace = freeSpace
+    freeSpace = max(length - fixed, 0.0.UiScalar)
+    autoSpace = if totalFracs > 0: 0.0.UiScalar else: freeSpace
+    fracUnit = freeSpace / totalFracs
 
-  if fracTrackIndices.len() > 0:
-    remSpace = 0.0.UiScalar
+  var
+    fixedMinSizes = 0.0.UiScalar
+    totalFlexFracs = 0.0.UiScalar
+
+  # Second pass: distribute space for flex items and find any min flex sizes
+  for i, grdLn in lines.mpairs():
+    match grdLn.track:
+      UiValue(value):
+        match value:
+          UiFrac(frac):
+            if totalFracs > 0:
+              let minSize = computedSizes.getOrDefault(i).fracMinSize
+              let frSize = fracUnit * frac
+              if frSize < minSize:
+                grdLn.width = minSize
+                fixedMinSizes += minSize
+              else:
+                grdLn.width = UiScalar.low()
+                totalFlexFracs += frac
+          UiAuto():
+            if totalFracs > 0:
+              fixedMinSizes += computedSizes.getOrDefault(i).autoSize
+            else:
+              grdLn.width = UiScalar.low()
+          _: discard  # Handle other cases
+      _: discard  # Handle other cases
+
+  let freeSpaceMinusMin = freeSpace - fixedMinSizes
+  let fracFlexUnit = freeSpaceMinusMin / totalFlexFracs
 
   debugPrint "computeLineLayout:metrics",
     "dir=", dir,
     "length=", length,
     "fixed=", fixed,
     "freeSpace=", freeSpace,
-    "remSpace=", remSpace,
-    "totalFracMin=", totalFracMin,
-    "totalAutoMin=", totalAutoMin
-  debugPrint "computeLineLayout:metrics",
-    "dir=", dir,
-    "fracTrackIndices=", fracTrackIndices.len(),
-    "autoTrackIndices=", autoTrackIndices.len(),
-    "totalFracMin=", totalFracMin,
-    "totalAutoMin=", totalAutoMin
+    "freeSpaceMinusMin=", freeSpaceMinusMin,
+    "totalFlexFracs=", totalFlexFracs,
+    "fracFlexUnit=", fracFlexUnit
+
 
   # Second pass: distribute space and set track widths
   for i, grdLn in lines.mpairs():
-    if grdLn.track.kind == UiValue:
-      let grdVal = grdLn.track.value
-      case grdVal.kind
-      of UiFixed:
-        grdLn.width = grdVal.coord
-      of UiPerc:
-        grdLn.width = length * grdVal.perc / 100
-      of UiContentMax:
-        if i in computedSizes:
-          grdLn.width = computedSizes[i].maxContent
-      of UiContentMin:
-        if i in computedSizes:
-          grdLn.width = computedSizes[i].minContent
-      of UiContentFit:
-        if i in computedSizes:
-          # For fit-content, use min(maxContent, available space)
-          grdLn.width = min(computedSizes[i].maxContent, length)
-      of UiFrac:
-        if totalFracs > 0:
-          let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
-          grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
-          debugPrint "computeLineLayout:frac: ", "dcol=", dcol, "remSpace=", remSpace, "width=", grdLn.width
-          # remSpace -= grdLn.width
-      of UiAuto:
-        let minSize =
-          if i in computedSizes: computedSizes[i].autoSize
-          else: 0.UiScalar
-
-        let autoShare = 
-          if autoTrackIndices.len > 0:
-            remSpace / autoTrackIndices.len.UiScalar
-          else:
-            0.UiScalar
-        debugPrint "computeLineLayout:auto: ", "dcol=", dcol, "autoshare=", autoShare, "minsize=", minsize
-        grdLn.width = minSize + autoShare
+    match grdLn.track:
+      UiValue(value):
+        match value:
+          UiFrac(frac):
+            if grdLn.width == UiScalar.low():
+              grdLn.width = freeSpaceMinusMin * frac/totalFlexFracs
+              debugPrint "computeLineLayout:frac: ", "width=", grdLn.width, "frac=", frac, "freeSpaceMinusMin=", freeSpaceMinusMin, "totalFlexFracs=", totalFlexFracs, "fracFlexUnit=", fracFlexUnit
+          UiAuto():
+            if grdLn.width == UiScalar.low():
+              let minSize = computedSizes.getOrDefault(i).autoSize
+              var autoShare = 0.UiScalar
+              debugPrint "computeLineLayout:auto: ", "dcol=", dcol, "autoshare=", autoShare, "minsize=", minsize
+              grdLn.width = autoShare
+          _: discard  # Handle other cases
+      _: discard  # Handle other cases
 
   # Final pass: calculate positions
   var cursor = 0.0.UiScalar

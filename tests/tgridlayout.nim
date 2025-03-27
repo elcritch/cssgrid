@@ -722,7 +722,7 @@ suite "Grid alignment and justification tests":
     
     let scrollBar = scroll.children[1]
     # scrollBar.cxOffset = [100'pp-10'ux, 0'ux]
-    scrollBar.cxOffset = [10'ux, 0'ux]
+    scrollBar.cxOffset = [194.55'ux, 0'ux]
     scrollBar.cxSize = [10'ux, 100'pp]
 
     let item = scrollBody.children[0]

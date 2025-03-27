@@ -100,7 +100,7 @@ suite "Compute Layout Tests":
         text.cxMax = [200'ux, 300.00'ux]
       
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       check items.children[0].box.w == 768
       # check items.children[0].box.h == 63.21.UiScalar
@@ -646,3 +646,71 @@ suite "Grid alignment and justification tests":
     
     check child4.box.x == 300   # End horizontally
     check child4.box.y == 300   # End vertically
+
+  test "Complex grid layout with nested nodes":
+    let root = newTestTree("root",
+      newTestTree("main",
+        newTestTree("outer",
+          newTestTree("top",
+            newTestNode("Load", 0, 0, 0, 0),
+            newTestNode("text", 0, 0, 0, 0)
+          ),
+          newTestTree("stories",
+            newTestTree("scroll",
+              newTestNode("scrollBody", 0, 0, 0, 0),
+              newTestNode("scrollbar-vertical", 0, 0, 0, 0)
+            )
+          ),
+          newTestTree("panel",
+            newTestTree("panel-inner",
+              newTestNode("upvotes", 0, 0, 0, 0)
+            )
+          )
+        )
+      )
+    )
+
+    # Set up grid template for outer node
+    parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
+    parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
+    
+    # Set up grid items
+    let top = root.children[0].children[0].children[0]
+    top.gridItem = newGridItem()
+    top.gridItem.column = 1 // 3
+    top.gridItem.row = 1 // 2
+    
+    let stories = root.children[0].children[0].children[1]
+    stories.gridItem = newGridItem()
+    stories.gridItem.column = 1 // 2
+    stories.gridItem.row = 2 // 3
+    
+    let panel = root.children[0].children[0].children[2]
+    panel.gridItem = newGridItem()
+    panel.gridItem.column = 2 // 3
+    panel.gridItem.row = 2 // 3
+    
+    # Set up constraints
+    root.cxSize = [100'pp, 100'pp]
+    root.children[0].cxSize = [100'pp, 100'pp]
+    root.children[0].children[0].cxSize = [100'pp, 100'pp]
+    
+    let load = top.children[0]
+    load.cxSize = [50'pp, 50'ux]
+    load.cxOffset = [25'pp, 10'ux]
+    
+    let text = top.children[1]
+    text.cxSize = [100'pp, 100'pp]
+    text.cxMin = [39'ux, 21.15'ux]
+    text.cxMax = [39'ux, 42.30'ux]
+    
+    let scrollBody = stories.children[0].children[0]
+    scrollBody.cxSize = [cx"auto", cx"max-content"]
+    
+    let upvotes = panel.children[0].children[0]
+    upvotes.cxMin = [46'ux, 20.50'ux]
+    upvotes.cxMax = [90'ux, 63.45'ux]
+
+    computeLayout(root)
+    printLayout(root, cmTerminal)
+

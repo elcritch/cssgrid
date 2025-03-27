@@ -648,104 +648,108 @@ suite "Grid alignment and justification tests":
     check child4.box.y == 300   # End vertically
 
   test "Complex grid layout with nested nodes":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
-    addPrettyPrintFilter("name", "scroll")
-    addPrettyPrintFilter("name", "scrollBody")
-    addPrettyPrintFilter("name", "stories")
-    addPrettyPrintFilter("name", "scrollbar-vertical")
-    addPrettyPrintFilter("dir", "dcol")
+    template testLayout(scrollBarWidth, blk: untyped) =
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
+      addPrettyPrintFilter("name", "scroll")
+      addPrettyPrintFilter("name", "scrollBody")
+      addPrettyPrintFilter("name", "stories")
+      addPrettyPrintFilter("name", "scrollbar-vertical")
+      addPrettyPrintFilter("dir", "dcol")
 
-    let root = newTestTree("root",
-      newTestTree("main",
-        newTestTree("outer",
-          newTestTree("top",
-            newTestNode("Load", 0, 0, 0, 0),
-            newTestNode("text", 0, 0, 0, 0)
-          ),
-          newTestTree("stories",
-            newTestTree("scroll",
-              newTestTree("scrollBody", 
-                newTestNode("item", 0, 0, 0, 0),
-              ),
-              newTestNode("scrollbar-vertical", 0, 0, 0, 0)
-            )
-          ),
-          newTestTree("panel",
-            newTestTree("panel-inner",
-              newTestNode("upvotes", 0, 0, 0, 0)
+      let root {.inject.} = newTestTree("root",
+        newTestTree("main",
+          newTestTree("outer",
+            newTestTree("top",
+              newTestNode("Load", 0, 0, 0, 0),
+              newTestNode("text", 0, 0, 0, 0)
+            ),
+            newTestTree("stories",
+              newTestTree("scroll",
+                newTestTree("scrollBody", 
+                  newTestNode("item", 0, 0, 0, 0),
+                ),
+                newTestNode("scrollbar-vertical", 0, 0, 0, 0)
+              )
+            ),
+            newTestTree("panel",
+              newTestTree("panel-inner",
+                newTestNode("upvotes", 0, 0, 0, 0)
+              )
             )
           )
         )
       )
-    )
 
-    # Set up grid template for outer node
-    parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
-    parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
-    
-    # Set up grid items
-    let top = root.children[0].children[0].children[0]
-    top.gridItem = newGridItem()
-    top.gridItem.column = 1 // 3
-    top.gridItem.row = 1 // 2
-    
-    let stories = root.children[0].children[0].children[1]
-    stories.gridItem = newGridItem()
-    stories.gridItem.column = 1 // 2
-    stories.gridItem.row = 2 // 3
-    
-    let panel = root.children[0].children[0].children[2]
-    panel.gridItem = newGridItem()
-    panel.gridItem.column = 2 // 3
-    panel.gridItem.row = 2 // 3
-    
-    # Set up constraints
-    root.cxSize = [100'pp, 100'pp]
-    root.children[0].cxSize = [100'pp, 100'pp]
-    root.children[0].children[0].cxSize = [100'pp, 100'pp]
-    
-    let load = top.children[0]
-    load.cxSize = [50'pp, 50'ux]
-    load.cxOffset = [25'pp, 10'ux]
-    
-    let text = top.children[1]
-    text.cxSize = [100'pp, 100'pp]
-    text.cxMin = [39'ux, 21.15'ux]
-    text.cxMax = [39'ux, 42.30'ux]
-    
-    let scroll = stories.children[0]
-    scroll.cxSize = [cx"auto", cx"auto"]
-    
-    let scrollBody = scroll.children[0]
-    scrollBody.cxSize = [100'pp, cx"max-content"]
-    
-    let scrollBar = scroll.children[1]
-    # scrollBar.cxOffset = [100'pp-10'ux, 0'ux]
-    scrollBar.cxOffset = [194.55'ux, 0'ux]
-    scrollBar.cxSize = [10'ux, 100'pp]
+      # Set up grid template for outer node
+      parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
+      parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
+      
+      # Set up grid items
+      let top {.inject.} = root.children[0].children[0].children[0]
+      top.gridItem = newGridItem()
+      top.gridItem.column = 1 // 3
+      top.gridItem.row = 1 // 2
+      
+      let stories {.inject.} = root.children[0].children[0].children[1]
+      stories.gridItem = newGridItem()
+      stories.gridItem.column = 1 // 2
+      stories.gridItem.row = 2 // 3
+      
+      let panel {.inject.} = root.children[0].children[0].children[2]
+      panel.gridItem = newGridItem()
+      panel.gridItem.column = 2 // 3
+      panel.gridItem.row = 2 // 3
+      
+      # Set up constraints
+      root.cxSize = [100'pp, 100'pp]
+      root.children[0].cxSize = [100'pp, 100'pp]
+      root.children[0].children[0].cxSize = [100'pp, 100'pp]
+      
+      let load {.inject.} = top.children[0]
+      load.cxSize = [50'pp, 50'ux]
+      load.cxOffset = [25'pp, 10'ux]
+      
+      let text {.inject.} = top.children[1]
+      text.cxSize = [100'pp, 100'pp]
+      text.cxMin = [39'ux, 21.15'ux]
+      text.cxMax = [39'ux, 42.30'ux]
+      
+      let scroll {.inject.} = stories.children[0]
+      scroll.cxSize = [cx"auto", cx"auto"]
+      
+      let scrollBody {.inject.} = scroll.children[0]
+      scrollBody.cxSize = [100'pp, cx"max-content"]
+      
+      let scrollBar {.inject.} = scroll.children[1]
+      # scrollBar.cxOffset = [100'pp-10'ux, 0'ux]
+      scrollBar.cxOffset = [scrollBarWidth, 0'ux]
+      scrollBar.cxSize = [10'ux, 100'pp]
 
-    let item = scrollBody.children[0]
-    item.cxSize = [100'pp, 100'ux]
+      let item {.inject.} = scrollBody.children[0]
+      item.cxSize = [100'pp, 100'ux]
 
-    let upvotes = panel.children[0].children[0]
-    upvotes.cxMin = [46'ux, 20.50'ux]
-    upvotes.cxMax = [90'ux, 63.45'ux]
+      let upvotes {.inject.} = panel.children[0].children[0]
+      upvotes.cxMin = [46'ux, 20.50'ux]
+      upvotes.cxMax = [90'ux, 63.45'ux]
 
-    computeLayout(root)
-    printLayout(root, cmTerminal)
+      computeLayout(root)
 
-    check top.box.w.float32 == 800
-    check top.box.h.float32 == 70
-    check stories.box.w.float32.round(0) == 205
-    check stories.box.h.float32 == 490
-    check panel.box.w.float32.round(0) == 595
-    check panel.box.h.float32 == 490
+      `blk`
 
-    check scrollBody.name == "scrollBody"
-    check scrollBody.box.w.float32.round(0) == 205
-    check scrollBody.box.h.float32 == 100
+    testLayout(194.55'ux):
+      printLayout(root, cmTerminal)
+      check top.box.w.float32 == 800
+      check top.box.h.float32 == 70
+      check stories.box.w.float32.round(0) == 205
+      check stories.box.h.float32 == 490
+      check panel.box.w.float32.round(0) == 595
+      check panel.box.h.float32 == 490
 
-    check upvotes.box.w.float32.round(2) == 46
-    check upvotes.box.h.float32.round(2) == 20.5
+      check scrollBody.name == "scrollBody"
+      check scrollBody.box.w.float32.round(0) == 205
+      check scrollBody.box.h.float32 == 100
+
+      check upvotes.box.w.float32.round(2) == 46
+      check upvotes.box.h.float32.round(2) == 20.5
 

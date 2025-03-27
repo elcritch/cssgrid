@@ -714,3 +714,10 @@ suite "Grid alignment and justification tests":
     computeLayout(root)
     printLayout(root, cmTerminal)
 
+    check top.box.w.float32 == 800
+    check top.box.h.float32 == 70
+    check stories.box.w.float32 ~= 125.666664
+    check stories.box.h.float32 == 490
+    check panel.box.w.float32 ~= 674.3333
+    check panel.box.h.float32 == 490
+

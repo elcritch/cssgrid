@@ -97,6 +97,7 @@ proc computeLineLayout*(
     freeSpace = max(length - fixed, 0.0.UiScalar)
     autoSpace = if totalFracs > 0: 0.0.UiScalar else: freeSpace
     fracUnit = freeSpace / totalFracs
+    autoUnit = autoSpace / totalAuto
 
   var
     fixedMinSizes = 0.0.UiScalar
@@ -123,7 +124,7 @@ proc computeLineLayout*(
               fixedMinSizes += minSize
               grdLn.width = minSize
             else:
-              grdLn.width = UiScalar.low()
+              grdLn.width = autoUnit
           _: discard  # Handle other cases
       _: discard  # Handle other cases
 
@@ -149,12 +150,6 @@ proc computeLineLayout*(
             if grdLn.width == UiScalar.low():
               grdLn.width = freeSpaceMinusMin * frac/totalFlexFracs
               debugPrint "computeLineLayout:frac: ", "width=", grdLn.width, "frac=", frac, "freeSpaceMinusMin=", freeSpaceMinusMin, "totalFlexFracs=", totalFlexFracs, "fracFlexUnit=", fracFlexUnit
-          UiAuto():
-            if grdLn.width == UiScalar.low():
-              let minSize = computedSizes.getOrDefault(i).autoSize
-              var autoShare = 0.UiScalar
-              debugPrint "computeLineLayout:auto: ", "dcol=", dcol, "autoshare=", autoShare, "minsize=", minsize
-              grdLn.width = autoShare
           _: discard  # Handle other cases
       _: discard  # Handle other cases
 

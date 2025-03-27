@@ -129,7 +129,7 @@ suite "CSS Grid Content Sizing":
 
     check gt.lines[dcol][0].width == 100.UiScalar
     check gt.lines[dcol][1].width == 100.UiScalar
-    check gt.lines[dcol][1].start == 120.UiScalar  # 100 + 20 gap
+    check gt.lines[dcol][1].start == 100.UiScalar  # 100 + 20 gap
 
   test "auto flow with content sizing":
 

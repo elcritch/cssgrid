@@ -138,7 +138,7 @@ suite "Compute Layout Tests":
       text1.cxMax = [200'ux, 300.00'ux]
 
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
       check rect0.box.h.float32.round(2) == 42.50
       check rect1.box.h.float32.round(2) == 20.50
       check items.box.h.float32.round(2) == 63.00
@@ -205,6 +205,7 @@ suite "Compute Layout Tests":
       child2.gridItem.row = 1
       
       computeLayout(parent)
+      # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
       check child1.box.w == 200  # Half of parent width
@@ -354,7 +355,7 @@ suite "Compute Layout Tests":
       computeLayout(parent)
 
       echo "\nLayout: "
-      prettyprints.printLayout(parent)
+      # prettyprints.printLayout(parent)
       
       # Check that children are arranged in a 2x2 grid
       check children[0].box.x < children[1].box.x  # First row

@@ -22,10 +22,10 @@ proc computeLineOverflow*(
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
   for i, grdLn in lines:
-    if grdLn.isAuto:
+      # if grdLn.isAuto:
       match grdLn.track:
         UiValue(value):
-          debugPrint "computeLineOverflow", "trackCxValue=", value
+          debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).autoSize
           match value:
             UiFixed(coord):
               result += coord
@@ -166,7 +166,8 @@ proc computeLineLayout*(
   for grdLn in lines.mitems():
     grdLn.start = cursor
     cursor += grdLn.width + spacing
-  lines[^1].start -= spacing
+  if lines.len() > 0:
+    lines[^1].start -= spacing
 
 proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout

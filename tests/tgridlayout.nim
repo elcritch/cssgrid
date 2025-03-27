@@ -755,7 +755,7 @@ suite "Grid alignment and justification tests":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
-      printLayout(root, cmTerminal)
+      # printLayout(root, cmTerminal)
       check top.box.w.float32 == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133

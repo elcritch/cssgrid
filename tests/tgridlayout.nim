@@ -652,6 +652,8 @@ suite "Grid alignment and justification tests":
     defer: prettyPrintWriteMode = cmNone
     addPrettyPrintFilter("name", "scroll")
     addPrettyPrintFilter("name", "scrollBody")
+    addPrettyPrintFilter("name", "stories")
+    addPrettyPrintFilter("name", "scrollbar-vertical")
     addPrettyPrintFilter("dir", "dcol")
 
     let root = newTestTree("root",
@@ -719,7 +721,8 @@ suite "Grid alignment and justification tests":
     scrollBody.cxSize = [100'pp, cx"max-content"]
     
     let scrollBar = scroll.children[1]
-    scrollBar.cxOffset = [100'pp-10'ux, 0'ux]
+    # scrollBar.cxOffset = [100'pp-10'ux, 0'ux]
+    scrollBar.cxOffset = [10'ux, 0'ux]
     scrollBar.cxSize = [10'ux, 100'pp]
 
     let item = scrollBody.children[0]
@@ -732,17 +735,17 @@ suite "Grid alignment and justification tests":
     computeLayout(root)
     printLayout(root, cmTerminal)
 
-    check top.box.w.float32 ~= 800
-    check top.box.h.float32 ~= 70
-    check stories.box.w.float32 ~= 125.666664
-    check stories.box.h.float32 ~= 490
-    check panel.box.w.float32 ~= 674.3333
-    check panel.box.h.float32 ~= 490
+    check top.box.w.float32 == 800
+    check top.box.h.float32 == 70
+    check stories.box.w.float32.round(2) == 125.67
+    check stories.box.h.float32 == 490
+    check panel.box.w.float32.round(2) == 674.33
+    check panel.box.h.float32 == 490
 
     check scrollBody.name == "scrollBody"
-    check scrollBody.box.w.float32 ~= 125.666664
-    check scrollBody.box.h.float32 ~= 100
+    check scrollBody.box.w.float32.round(2) == 125.67
+    check scrollBody.box.h.float32 == 100
 
-    check upvotes.box.w.float32 ~= 46
-    check upvotes.box.h.float32 ~= 20.5
+    check upvotes.box.w.float32.round(2) == 46
+    check upvotes.box.h.float32.round(2) == 20.5
 

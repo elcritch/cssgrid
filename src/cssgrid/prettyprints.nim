@@ -39,17 +39,17 @@ when not defined(debugCssGrid):
 else:
   proc debugPrint*(args: varargs[string, `$`]) =
     if filterFields.len() > 0:
-      var reject = false
+      var reject: HashSet[string]
       for idx in countup(1, args.len()-2 div 2, 2):
         let arg = args[idx].strip(false, true, {':', '='})
         if arg in filterFields:
           # echo "arg:check: ", arg, " value: ", args[idx+1], " hasArg: ", args[idx+1] in filterFields[arg]
           if args[idx+1] in filterFields[arg]:
-            reject = false
+            reject.excl(arg)
           else:
-            reject = true
+            reject.incl(arg)
     
-      if reject:
+      if reject.len() > 0:
         return
 
     if args.len() >= 1:

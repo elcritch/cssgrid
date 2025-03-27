@@ -524,12 +524,15 @@ proc computeNodeLayout*(
                 max(box.h.float, gridTemplate.lines[drow][^1].start.float),
               ))
 
-proc computeLayout*(node: GridNode, depth: int) =
+proc computeLayout*(node: GridNode, depth: int, full = true) =
   ## Computes constraints and auto-layout.
   debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
+  let prev = node.box
   calcBasicConstraint(node)
+  if not full and prev == node.box:
+    return
 
   # css grid impl
   if not node.gridTemplate.isNil:
@@ -547,7 +550,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 
     for n in node.children:
       for c in n.children:
-        computeLayout(c, depth + 1)
+        computeLayout(c, depth + 1, full = false)
         # calcBasicConstraint(c)
         debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
     #     calcBasicConstraint(c, dcol, isXY = false)

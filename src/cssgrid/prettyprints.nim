@@ -13,7 +13,7 @@ type ColorMode* = enum
   cmTerminal
 
 var prettyPrintWriteMode* = cmNone
-var filterFields: Table[string, string]
+var filterFields: Table[string, seq[string]]
 
 proc setPrettyPrintMode*(mode: ColorMode) =
   prettyPrintWriteMode = mode
@@ -21,9 +21,9 @@ proc clearPrettyPrintWriteMode*() =
   filterFields.clear()
 
 proc addPrettyPrintFilter*(field, value: string) =
-  filterFields[field] = value
-  filterFields[field&"="] = value
-  filterFields[field&":"] = value
+  if field notin filterFields:
+    filterFields[field] = @[]
+  filterFields[field].add(value)
 
 template withStyle(mode: ColorMode, fg: ForegroundColor, style: set[Style] = {}, text: string) =
   if mode == cmTerminal or prettyPrintWriteMode == cmTerminal:
@@ -41,9 +41,10 @@ else:
     if filterFields.len() > 0:
       var reject = false
       for idx in countup(1, args.len()-2 div 2, 2):
-        let arg = args[idx]
+        let arg = args[idx].strip(false, true, {':', '='})
         if arg in filterFields:
-          if filterFields[arg] == args[idx+1]:
+          # echo "arg:check: ", arg, " value: ", args[idx+1], " hasArg: ", args[idx+1] in filterFields[arg]
+          if args[idx+1] in filterFields[arg]:
             reject = false
           else:
             reject = true

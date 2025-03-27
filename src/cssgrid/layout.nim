@@ -299,7 +299,7 @@ proc computeBox*(
     let spanWidth = (spanEnd - result.`f`) - grid.gaps[`dir`]
     let contentSizeDir = contentSize.`v` + node.bpad.wh[`dir`]
     let contentView = min(contentSizeDir, spanWidth)
-    debugPrint "calcBoxFor:", "node=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
+    debugPrint "calcBoxFor:", "name=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
     case `axis`:
     of CxStretch:
       result.`v` = spanWidth
@@ -493,8 +493,8 @@ proc computeNodeLayout*(
 
 
   debugPrint "COMPUTE node layout: "
-  when defined(debugCssGrid):
-    prettyLayout(node)
+  # when defined(debugCssGrid):
+  #   prettyLayout(node)
 
   let computedSizes = gridTemplate.computeContentSizes(node.bpad, node.children)
 
@@ -506,8 +506,8 @@ proc computeNodeLayout*(
   printGrid(gridTemplate)
 
   debugPrint "COMPUTE Parent: "
-  when defined(debugCssGrid):
-    prettyLayout(node)
+  # when defined(debugCssGrid):
+  #   prettyLayout(node)
   debugPrint "COMPUTE BOXES: "
   for child in node.children:
     if fixedCount(child.gridItem) in 1..3:
@@ -526,14 +526,14 @@ proc computeNodeLayout*(
 
 proc computeLayout*(node: GridNode, depth: int) =
   ## Computes constraints and auto-layout.
-  debugPrint "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
+  debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
   calcBasicConstraint(node)
 
   # css grid impl
   if not node.gridTemplate.isNil:
-    debugPrint "computeLayout:gridTemplate", " name = ", node.name, " box = ", node.box.repr
+    debugPrint "computeLayout:gridTemplate", "name=", node.name, " box = ", node.box.repr
     # compute children first, then lay them out in grid
     for n in node.children:
       computeLayout(n, depth + 1)
@@ -547,12 +547,13 @@ proc computeLayout*(node: GridNode, depth: int) =
 
     for n in node.children:
       for c in n.children:
-        calcBasicConstraint(c)
+        computeLayout(c, depth + 1)
+        # calcBasicConstraint(c)
         debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
     #     calcBasicConstraint(c, dcol, isXY = false)
     #     calcBasicConstraint(c, drow, isXY = false)
 
-    debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
+    debugPrint "computeLayout:gridTemplate:post", "name=", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:
       computeLayout(n, depth + 1)
@@ -567,7 +568,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)
   debugPrint "COMPUTELAYOUT:done"
-  printLayout(node)
+  # printLayout(node)
 
 proc printLayoutShort*(node: GridNode, depth = 0) =
   stdout.styledWriteLine(
@@ -596,4 +597,4 @@ proc printLayoutShort*(node: GridNode, depth = 0) =
     printLayoutShort(c, depth + 2)
 
   debugPrint "computeLayout:post: ",
-    " name = ", node.name, " wh = ", node.box.wh
+    "name=", node.name, " wh = ", node.box.wh

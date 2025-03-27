@@ -648,6 +648,12 @@ suite "Grid alignment and justification tests":
     check child4.box.y == 300   # End vertically
 
   test "Complex grid layout with nested nodes":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+    addPrettyPrintFilter("name", "scroll")
+    addPrettyPrintFilter("name", "scrollBody")
+    addPrettyPrintFilter("dir", "dcol")
+
     let root = newTestTree("root",
       newTestTree("main",
         newTestTree("outer",
@@ -710,7 +716,7 @@ suite "Grid alignment and justification tests":
     scroll.cxSize = [cx"auto", cx"auto"]
     
     let scrollBody = scroll.children[0]
-    scrollBody.cxSize = [cx"auto", cx"max-content"]
+    scrollBody.cxSize = [100'pp, cx"max-content"]
     
     let item = scrollBody.children[0]
     item.cxSize = [100'pp, 100'ux]
@@ -729,6 +735,7 @@ suite "Grid alignment and justification tests":
     check panel.box.w.float32 ~= 674.3333
     check panel.box.h.float32 ~= 490
 
+    check scrollBody.name == "scrollBody"
     check scrollBody.box.w.float32 ~= 125.666664
     check scrollBody.box.h.float32 ~= 100
 

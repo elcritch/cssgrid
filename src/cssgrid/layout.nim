@@ -102,6 +102,7 @@ proc computeLineLayout*(
   var
     fixedMinSizes = 0.0.UiScalar
     totalFlexFracs = 0.0.UiScalar
+    totalFlexAuto = 0.0.UiScalar
 
   # Second pass: distribute space for flex items and find any min flex sizes
   for i, grdLn in lines.mpairs():
@@ -119,17 +120,19 @@ proc computeLineLayout*(
                 grdLn.width = UiScalar.low()
                 totalFlexFracs += frac
           UiAuto():
-            if totalFracs > 0:
-              let minSize = computedSizes.getOrDefault(i).autoSize
+            let minSize = computedSizes.getOrDefault(i).autoSize
+            if totalFracs > 0 or autoUnit < minSize:
               fixedMinSizes += minSize
               grdLn.width = minSize
             else:
-              grdLn.width = autoUnit
+              grdLn.width = UiScalar.low()
+              totalFlexAuto += 1
           _: discard  # Handle other cases
       _: discard  # Handle other cases
 
   let freeSpaceMinusMin = freeSpace - fixedMinSizes
   let fracFlexUnit = freeSpaceMinusMin / totalFlexFracs
+  let autoFlexUnit = freeSpaceMinusMin / totalFlexAuto
 
   debugPrint "computeLineLayout:metrics",
     "dir=", dir,
@@ -138,7 +141,9 @@ proc computeLineLayout*(
     "freeSpace=", freeSpace,
     "freeSpaceMinusMin=", freeSpaceMinusMin,
     "totalFlexFracs=", totalFlexFracs,
-    "fracFlexUnit=", fracFlexUnit
+    "fracFlexUnit=", fracFlexUnit,
+    "totalFlexAuto=", totalFlexAuto,
+    "autoFlexUnit=", autoFlexUnit
 
 
   # Second pass: distribute space and set track widths
@@ -150,6 +155,9 @@ proc computeLineLayout*(
             if grdLn.width == UiScalar.low():
               grdLn.width = freeSpaceMinusMin * frac/totalFlexFracs
               debugPrint "computeLineLayout:frac: ", "width=", grdLn.width, "frac=", frac, "freeSpaceMinusMin=", freeSpaceMinusMin, "totalFlexFracs=", totalFlexFracs, "fracFlexUnit=", fracFlexUnit
+          UiAuto():
+            if grdLn.width == UiScalar.low():
+              grdLn.width = autoFlexUnit
           _: discard  # Handle other cases
       _: discard  # Handle other cases
 

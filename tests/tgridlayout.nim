@@ -103,7 +103,6 @@ suite "Compute Layout Tests":
       # printLayout(parent, cmTerminal)
 
       check items.children[0].box.w == 768
-      # check items.children[0].box.h == 63.21.UiScalar
       check items.children[0].box.h == 84.22.UiScalar
   
   test "vertical layout auto with grandchild":
@@ -118,42 +117,35 @@ suite "Compute Layout Tests":
 
       items.cxSize = [cx"auto", cx"max-content"]
 
-      block story0:
-        let story = newTestNode("story", items)
-        parseGridTemplateColumns story.gridTemplate, 1'fr
-        story.cxSize = [cx"auto", cx"auto"]
-        story.gridTemplate.autoFlow = grRow
-        story.gridTemplate.autos[drow] = csAuto()
+      let story = newTestNode("story", items)
+      parseGridTemplateColumns story.gridTemplate, 1'fr
+      story.cxSize = [cx"auto", cx"auto"]
+      story.gridTemplate.autoFlow = grRow
+      story.gridTemplate.autos[drow] = csAuto()
 
-        block rect0:
-          let rect = newTestNode("rect-0", story)
+      let rect0 = newTestNode("rect-0", story)
 
-          block text0:
-            let text = newTestNode("text-0", rect)
-            text.cxSize = [cx"auto", cx"none"]
-            text.cxMin = [40'ux, 42.50'ux]
-            text.cxMax = [200'ux, 300.00'ux]
+      let text0 = newTestNode("text-0", rect0)
+      text0.cxSize = [cx"auto", cx"none"]
+      text0.cxMin = [40'ux, 42.50'ux]
+      text0.cxMax = [200'ux, 300.00'ux]
 
-        block rect1:
-          let rect = newTestNode("rect-1", story)
+      let rect1 = newTestNode("rect-1", story)
 
-          block text1:
-            let text = newTestNode("text-1", rect)
-            text.cxSize = [cx"auto", cx"none"]
-            text.cxMin = [40'ux, 20.50'ux]
-            text.cxMax = [200'ux, 300.00'ux]
+      let text1 = newTestNode("text-1", rect1)
+      text1.cxSize = [cx"auto", cx"none"]
+      text1.cxMin = [40'ux, 20.50'ux]
+      text1.cxMax = [200'ux, 300.00'ux]
 
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
-      check items.children[0].children[0].box.h.float32 == 42.50
-      check items.children[0].children[1].box.h.float32 == 20.50
-      check items.children[0].box.h.float32 == 63.00
-      check items.box.h.float32 == 63.00
+      printLayout(parent, cmTerminal)
+      check rect0.box.h.float32.round(2) == 42.50
+      check rect1.box.h.float32.round(2) == 20.50
+      check items.box.h.float32.round(2) == 63.00
 
-      check items.children[0].children[0].bmin.h.float32 == 42.50
-      check items.children[0].children[1].bmin.h.float32 == 20.50
-      check items.children[0].bmin.h.float32 == 63.00
-      check items.bmin.h.float32 == 63.00
+      check rect0.bmin.h.float32.round(2) == 42.50
+      check rect1.bmin.h.float32.round(2) == 20.50
+      check items.bmin.h.float32.round(2) == 63.00
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal

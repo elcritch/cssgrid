@@ -89,8 +89,8 @@ proc computeLineLayout*(
             grdLn.width = UiScalar.low()
       _: discard  # Handle other cases
 
-  # Account for spacing between tracks
-  fixed += spacing * UiScalar(lines.len() - 1)
+  # Account for spacing between tracks (minus the last [end] track)
+  fixed += spacing * max(UiScalar(lines.len() - 3), 0.UiScalar)
 
   # Calculate available free space
   let

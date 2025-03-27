@@ -107,6 +107,48 @@ suite "Compute Layout Tests":
       check items.children[0].box.w == 40
       check items.children[0].box.h == 84.22.UiScalar
   
+  test "vertical layout auto stretch":
+    when true:
+
+      let parent = newTestNode("scroll", 0, 0, 400, 300)
+      let body = newTestNode("scrollBody", parent)
+      let items = newTestNode("items", body)
+
+      parseGridTemplateColumns items.gridTemplate, 1'fr
+      parent.cxSize = [768'ux, 540'ux]
+      body.cxSize = [cx"auto", cx"max-content"]
+      body.cxOffset = [cx"auto", cx"auto"]
+
+      items.cxSize = [cx"auto", cx"auto"]
+      items.gridTemplate.autoFlow = grRow
+      items.gridTemplate.gaps[drow] = 3
+      items.gridTemplate.autos[drow] = csAuto()
+      items.gridTemplate.justifyItems = CxStretch
+      items.gridTemplate.alignItems = CxStretch
+
+      for i in 0..1:
+        let child = newTestNode("story-" & $i, items)
+        let text = newTestNode("text-" & $i, child)
+
+        # child.cxSize = [1'fr, csAuto()]
+        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
+        child.cxPadOffset[drow] = 21.01'ux
+        child.cxPadSize[drow] = 22.20'ux
+
+        text.cxSize = [cx"auto", 33.33'ux]
+        text.cxMin = [40'ux, 20.00'ux]
+        text.cxMax = [200'ux, 300.00'ux]
+      
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+
+      # since it's cxStretch with auto it'll goto min content size
+      check items.children[0].box.x == 0
+      check items.children[0].box.w == 768
+      check items.children[0].box.h == 84.22.UiScalar
+  
   test "vertical layout auto with grandchild":
     when true:
       # prettyPrintWriteMode = cmTerminal

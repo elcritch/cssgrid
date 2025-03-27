@@ -718,6 +718,10 @@ suite "Grid alignment and justification tests":
     let scrollBody = scroll.children[0]
     scrollBody.cxSize = [100'pp, cx"max-content"]
     
+    let scrollBar = scroll.children[1]
+    scrollBar.cxOffset = [100'pp-10'ux, 0'ux]
+    scrollBar.cxSize = [10'ux, 100'pp]
+
     let item = scrollBody.children[0]
     item.cxSize = [100'pp, 100'ux]
 

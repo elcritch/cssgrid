@@ -90,7 +90,7 @@ proc computeLineLayout*(
       _: discard  # Handle other cases
 
   # Account for spacing between tracks (minus the last [end] track)
-  fixed += spacing * max(UiScalar(lines.len() - 3), 0.UiScalar)
+  fixed += spacing * max(UiScalar(lines.len() - 2), 0.UiScalar)
 
   # Calculate available free space
   let
@@ -166,6 +166,7 @@ proc computeLineLayout*(
   for grdLn in lines.mitems():
     grdLn.start = cursor
     cursor += grdLn.width + spacing
+  lines[^1].start -= spacing
 
 proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout

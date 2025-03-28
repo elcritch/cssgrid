@@ -12,6 +12,8 @@ import prettyprints
 type
   ComputedTrackSize* = object of ComputedSize
 
+{.push stackTrace: off.}
+
 proc computeLineOverflow*(
     dir: GridDir,
     lines: array[GridDir, seq[GridLine]],
@@ -20,10 +22,10 @@ proc computeLineOverflow*(
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
   for i, grdLn in lines:
-    if grdLn.isAuto:
+      # if grdLn.isAuto:
       match grdLn.track:
         UiValue(value):
-          debugPrint "computeLineOverflow", "trackCxValue=", value
+          debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).autoSize
           match value:
             UiFixed(coord):
               result += coord
@@ -57,124 +59,115 @@ proc computeLineLayout*(
   var
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
-    autoTrackIndices: seq[int] = @[]  # Store indices instead of sizes
-    fracTrackIndices: seq[int] = @[]  # Store indices instead of sizes
+    totalAuto = 0.0.UiScalar
 
   # First pass: calculate fixed sizes and identify auto/frac tracks
-  for i, grdLn in lines:
+  for i, grdLn in lines.mpairs():
     match grdLn.track:
-      UiNone():
-        discard
       UiValue(value):
         match value:
           UiFixed(coord):
             fixed += coord
+            grdLn.width = coord
           UiPerc(perc):
             fixed += length * perc / 100
+            grdLn.width = length * perc / 100
           UiContentMin():
-            if i in computedSizes:
-              fixed += computedSizes[i].minContent
+            fixed += computedSizes.getOrDefault(i).minContent
+            grdLn.width = computedSizes.getOrDefault(i).minContent
           UiContentMax():
-            if i in computedSizes:
-              fixed += computedSizes[i].maxContent
+            fixed += computedSizes.getOrDefault(i).maxContent
+            grdLn.width = computedSizes.getOrDefault(i).maxContent
           UiContentFit():
-            if i in computedSizes:
-              fixed += computedSizes[i].contentFit
+            fixed += computedSizes.getOrDefault(i).contentFit
+            grdLn.width = computedSizes.getOrDefault(i).contentFit
           UiFrac(frac):
-            if i in computedSizes:
-              debugPrint "computeLineLayout", "computedSizes[i]=", computedSizes[i].minContent
             totalFracs += frac
-            fracTrackIndices.add(i)
+            grdLn.width = UiScalar.low()
           UiAuto():
-            autoTrackIndices.add(i)
-      UiEnd():
-        discard
+            totalAuto += 1.0.UiScalar
+            grdLn.width = UiScalar.low()
       _: discard  # Handle other cases
 
-  # Account for spacing between tracks
-  fixed += spacing * UiScalar(lines.len() - 1)
-
-  # Calculate minimum space needed for auto and frac tracks
-  var
-    totalAutoMin: UiScalar
-    totalFracMin: UiScalar
-
-  for trk in autoTrackIndices:
-    if trk in computedSizes:
-        totalAutoMin += computedSizes[trk].autoSize
-
-  for trk in fracTrackIndices:
-    if trk in computedSizes:
-      debugPrint "computeLineLayout:metrics", "dir=", dir, "fracmin= ", computedSizes[trk].fracMinSize
-      totalFracMin += computedSizes[trk].fracMinSize.clamp(0.UiScalar, UiScalar.high)
+  # Account for spacing between tracks (minus the last [end] track)
+  fixed += spacing * max(UiScalar(lines.len() - 2), 0.UiScalar)
 
   # Calculate available free space
   let
-    freeSpace = max(length - fixed - totalAutoMin - totalFracMin, 0.0.UiScalar)
-  var
-    remSpace = freeSpace
+    freeSpace = max(length - fixed, 0.0.UiScalar)
+    autoSpace = if totalFracs > 0: 0.0.UiScalar else: freeSpace
+    fracUnit = freeSpace / totalFracs
+    autoUnit = autoSpace / totalAuto
 
-  if fracTrackIndices.len() > 0:
-    remSpace = 0.0.UiScalar
+  var
+    fixedMinSizes = 0.0.UiScalar
+    totalFlexFracs = 0.0.UiScalar
+    totalFlexAuto = 0.0.UiScalar
+
+  # Second pass: distribute space for flex items and find any min flex sizes
+  for i, grdLn in lines.mpairs():
+    match grdLn.track:
+      UiValue(value):
+        match value:
+          UiFrac(frac):
+            if totalFracs > 0:
+              let minSize = computedSizes.getOrDefault(i).fracMinSize
+              let frSize = fracUnit * frac
+              if frSize < minSize:
+                grdLn.width = minSize
+                fixedMinSizes += minSize
+              else:
+                grdLn.width = UiScalar.low()
+                totalFlexFracs += frac
+          UiAuto():
+            let minSize = computedSizes.getOrDefault(i).autoSize
+            if totalFracs > 0 or autoUnit < minSize:
+              fixedMinSizes += minSize
+              grdLn.width = minSize
+            else:
+              grdLn.width = UiScalar.low()
+              totalFlexAuto += 1
+          _: discard  # Handle other cases
+      _: discard  # Handle other cases
+
+  let freeSpaceMinusMin = freeSpace - fixedMinSizes
+  let fracFlexUnit = freeSpaceMinusMin / totalFlexFracs
+  let autoFlexUnit = freeSpaceMinusMin / totalFlexAuto
 
   debugPrint "computeLineLayout:metrics",
     "dir=", dir,
     "length=", length,
     "fixed=", fixed,
     "freeSpace=", freeSpace,
-    "remSpace=", remSpace,
-    "totalFracMin=", totalFracMin,
-    "totalAutoMin=", totalAutoMin
-  debugPrint "computeLineLayout:metrics",
-    "dir=", dir,
-    "fracTrackIndices=", fracTrackIndices.len(),
-    "autoTrackIndices=", autoTrackIndices.len(),
-    "totalFracMin=", totalFracMin,
-    "totalAutoMin=", totalAutoMin
+    "freeSpaceMinusMin=", freeSpaceMinusMin,
+    "totalFlexFracs=", totalFlexFracs,
+    "fracFlexUnit=", fracFlexUnit,
+    "totalFlexAuto=", totalFlexAuto,
+    "autoFlexUnit=", autoFlexUnit
+
 
   # Second pass: distribute space and set track widths
   for i, grdLn in lines.mpairs():
-    if grdLn.track.kind == UiValue:
-      let grdVal = grdLn.track.value
-      case grdVal.kind
-      of UiFixed:
-        grdLn.width = grdVal.coord
-      of UiPerc:
-        grdLn.width = length * grdVal.perc / 100
-      of UiContentMax:
-        if i in computedSizes:
-          grdLn.width = computedSizes[i].maxContent
-      of UiContentMin:
-        if i in computedSizes:
-          grdLn.width = computedSizes[i].minContent
-      of UiContentFit:
-        if i in computedSizes:
-          # For fit-content, use min(maxContent, available space)
-          grdLn.width = min(computedSizes[i].maxContent, length)
-      of UiFrac:
-        if totalFracs > 0:
-          let minSize = if i in computedSizes: computedSizes[i].fracMinSize else: 0.UiScalar
-          grdLn.width = freeSpace * grdVal.frac/totalFracs + minSize
-          debugPrint "computeLineLayout:frac: ", "dcol=", dcol, "remSpace=", remSpace, "width=", grdLn.width
-          # remSpace -= grdLn.width
-      of UiAuto:
-        let minSize =
-          if i in computedSizes: computedSizes[i].autoSize
-          else: 0.UiScalar
-
-        let autoShare = 
-          if autoTrackIndices.len > 0:
-            remSpace / autoTrackIndices.len.UiScalar
-          else:
-            0.UiScalar
-        debugPrint "computeLineLayout:auto: ", "dcol=", dcol, "autoshare=", autoShare, "minsize=", minsize
-        grdLn.width = minSize + autoShare
+    match grdLn.track:
+      UiValue(value):
+        match value:
+          UiFrac(frac):
+            if grdLn.width == UiScalar.low():
+              grdLn.width = freeSpaceMinusMin * frac/totalFlexFracs
+              debugPrint "computeLineLayout:frac: ", "width=", grdLn.width, "frac=", frac, "freeSpaceMinusMin=", freeSpaceMinusMin, "totalFlexFracs=", totalFlexFracs, "fracFlexUnit=", fracFlexUnit
+          UiAuto():
+            if grdLn.width == UiScalar.low():
+              grdLn.width = autoFlexUnit
+          _: discard  # Handle other cases
+      _: discard  # Handle other cases
 
   # Final pass: calculate positions
   var cursor = 0.0.UiScalar
   for grdLn in lines.mitems():
     grdLn.start = cursor
     cursor += grdLn.width + spacing
+  if lines.len() > 0:
+    lines[^1].start -= spacing
 
 proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout
@@ -191,7 +184,8 @@ proc computeTracks*(
     computedSizes: array[GridDir, Table[int, ComputedTrackSize]],
 ) =
   # The free space is calculated after any non-flexible items. In 
-  prettyGridTemplate(grid)
+  when defined(debugCssGrid):
+    prettyGridTemplate(grid)
   grid.overflowSizes[dcol] = computeLineOverflow(dcol, grid.lines, computedSizes)
   grid.overflowSizes[drow] = computeLineOverflow(drow, grid.lines, computedSizes)
 
@@ -218,7 +212,8 @@ proc computeTracks*(
     spacing=grid.gaps[drow]
   )
 
-  prettyGridTemplate(grid)
+  when defined(debugCssGrid):
+    prettyGridTemplate(grid)
 
 proc findLine(index: GridIndex, lines: seq[GridLine]): int16 =
   assert index.isName == true
@@ -295,7 +290,7 @@ proc computeBox*(
     let spanWidth = (spanEnd - result.`f`) - grid.gaps[`dir`]
     let contentSizeDir = contentSize.`v` + node.bpad.wh[`dir`]
     let contentView = min(contentSizeDir, spanWidth)
-    debugPrint "calcBoxFor:", "node=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
+    debugPrint "calcBoxFor:", "name=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
     case `axis`:
     of CxStretch:
       result.`v` = spanWidth
@@ -489,7 +484,8 @@ proc computeNodeLayout*(
 
 
   debugPrint "COMPUTE node layout: "
-  prettyLayout(node)
+  # when defined(debugCssGrid):
+  #   prettyLayout(node)
 
   let computedSizes = gridTemplate.computeContentSizes(node.bpad, node.children)
 
@@ -501,18 +497,15 @@ proc computeNodeLayout*(
   printGrid(gridTemplate)
 
   debugPrint "COMPUTE Parent: "
-  prettyLayout(node)
+  # when defined(debugCssGrid):
+  #   prettyLayout(node)
   debugPrint "COMPUTE BOXES: "
   for child in node.children:
-    if fixedCount(child.gridItem) in 1..3:
-      continue
-    # debugPrint "COMPUTE BOXES:CHILD: "
-    # prettyLayout(child)
+    # if fixedCount(child.gridItem) in 1..3:
+    #   continue
     let cbox = child.computeBox(gridTemplate)
+    debugPrint "COMPUTE BOXES: ", "child=", child.name, "cbox=", $cbox
     child.box = typeof(child.box)(cbox)
-    # prettyLayout(child)
-  # debugPrint "COMPUTE POST: "
-  # prettyLayout(node)
   
   let w = gridTemplate.overflowSizes[dcol]
   let h = gridTemplate.overflowSizes[drow]
@@ -523,35 +516,35 @@ proc computeNodeLayout*(
                 max(box.h.float, gridTemplate.lines[drow][^1].start.float),
               ))
 
-proc computeLayout*(node: GridNode, depth: int) =
+proc computeLayout*(node: GridNode, depth: int, full = true) =
   ## Computes constraints and auto-layout.
-  debugPrint "computeLayout", " name = ", node.name, " box = ", node.box.wh.repr
+  debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
+  let prev = node.box
   calcBasicConstraint(node)
+  if not full and prev == node.box:
+    return
 
   # css grid impl
   if not node.gridTemplate.isNil:
-    debugPrint "computeLayout:gridTemplate", " name = ", node.name, " box = ", node.box.repr
+    debugPrint "computeLayout:gridTemplate", "name=", node.name, " box = ", node.box.repr
     # compute children first, then lay them out in grid
     for n in node.children:
       computeLayout(n, depth + 1)
 
+    printLayout(node)
     var box = node.box
-    # adjust box to not include offset in wh
-    # box.w = box.w - box.x
-    # box.h = box.h - box.y
     let res = node.gridTemplate.computeNodeLayout(node).UiBox
     node.box = res
 
     for n in node.children:
       for c in n.children:
-        calcBasicConstraint(c)
+        computeLayout(c, depth + 1, full = false)
+        # calcBasicConstraint(c)
         debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
-    #     calcBasicConstraint(c, dcol, isXY = false)
-    #     calcBasicConstraint(c, drow, isXY = false)
 
-    debugPrint "computeLayout:gridTemplate:post", " name = ", node.name, " box = ", node.box.wh.repr
+    debugPrint "computeLayout:gridTemplate:post", "name=", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:
       computeLayout(n, depth + 1)
@@ -566,7 +559,7 @@ proc computeLayout*(node: GridNode, depth: int) =
 proc computeLayout*(node: GridNode) =
   computeLayout(node, 0)
   debugPrint "COMPUTELAYOUT:done"
-  printLayout(node)
+  # printLayout(node)
 
 proc printLayoutShort*(node: GridNode, depth = 0) =
   stdout.styledWriteLine(
@@ -595,4 +588,4 @@ proc printLayoutShort*(node: GridNode, depth = 0) =
     printLayoutShort(c, depth + 2)
 
   debugPrint "computeLayout:post: ",
-    " name = ", node.name, " wh = ", node.box.wh
+    "name=", node.name, " wh = ", node.box.wh

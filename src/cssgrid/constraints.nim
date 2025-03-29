@@ -109,6 +109,60 @@ proc csSub*[U, T](a: U, b: T): Constraint =
           else: csFixed(b).value
   Constraint(kind: UiSub, lsub: a, rsub: b)
 
+proc validateMinMaxArgs(a, b: ConstraintSize) =
+  # Check for negative values
+  if a.kind == UiFixed and a.coord < 0:
+    raise newException(ValueError, "minmax first argument cannot be negative")
+  if b.kind == UiFixed and b.coord < 0:
+    raise newException(ValueError, "minmax second argument cannot be negative")
+  
+  # Check for fr units in first argument
+  if a.kind == UiFrac:
+    raise newException(ValueError, "minmax first argument cannot use fr units")
+  
+  # Check for negative or zero fr values in second argument
+  if b.kind == UiFrac:
+    if b.frac <= 0:
+      raise newException(ValueError, "minmax second argument cannot use negative or zero fr values")
+  
+  # Check for auto in minmax
+  if a.kind == UiAuto or b.kind == UiAuto:
+    raise newException(ValueError, "minmax cannot use auto values")
+  
+  # Check for invalid unit combinations
+  if a.kind == UiFixed and b.kind == UiPerc:
+    raise newException(ValueError, "minmax cannot mix fixed and percentage units")
+  
+  # Check for fr units in minmax
+  if a.kind == UiFrac or b.kind == UiFrac:
+    raise newException(ValueError, "minmax cannot use fr units")
+
+proc validateMinArgs(a: ConstraintSize) =
+  # Check for negative values
+  if a.kind == UiFixed and a.coord < 0:
+    raise newException(ValueError, "min argument cannot be negative")
+  
+  # Check for fr units
+  if a.kind == UiFrac:
+    raise newException(ValueError, "min argument cannot use fr units")
+  
+  # Check for auto
+  if a.kind == UiAuto:
+    raise newException(ValueError, "min argument cannot use auto values")
+
+proc validateMaxArgs(a: ConstraintSize) =
+  # Check for negative values
+  if a.kind == UiFixed and a.coord < 0:
+    raise newException(ValueError, "max argument cannot be negative")
+  
+  # Check for fr units
+  if a.kind == UiFrac:
+    raise newException(ValueError, "max argument cannot use fr units")
+  
+  # Check for auto
+  if a.kind == UiAuto:
+    raise newException(ValueError, "max argument cannot use auto values")
+
 proc csMax*[U, T](a: U, b: T): Constraint =
   ## create max op
   let a = when a is ConstraintSize: a
@@ -117,6 +171,10 @@ proc csMax*[U, T](a: U, b: T): Constraint =
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
+  
+  validateMaxArgs(a)
+  validateMaxArgs(b)
+  
   Constraint(kind: UiMax, lmax: a, rmax: b)
 
 proc csMin*[U, T](a: U, b: T): Constraint =
@@ -127,16 +185,23 @@ proc csMin*[U, T](a: U, b: T): Constraint =
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
+  
+  validateMinArgs(a)
+  validateMinArgs(b)
+  
   Constraint(kind: UiMin, lmin: a, rmin: b)
 
 proc csMinMax*[U, T](a: U, b: T): Constraint =
-  ## create minmin op
+  ## create minmax op
   let a = when a is ConstraintSize: a
           elif a is Constraint: a.value
           else: csFixed(a).value
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
+  
+  validateMinMaxArgs(a, b)
+  
   Constraint(kind: UiMinMax, lmm: a, rmm: b)
 
 proc `+`*[U: Constraint, T](a: U, b: T): Constraint =

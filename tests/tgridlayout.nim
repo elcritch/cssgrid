@@ -685,11 +685,11 @@ suite "Grid alignment and justification tests":
     check child4.box.y == 300   # End vertically
 
   template testLayout(scrollBarWidth, blk: untyped) =
-        addPrettyPrintFilter("name", "scroll")
-        addPrettyPrintFilter("name", "scrollBody")
-        addPrettyPrintFilter("name", "stories")
-        addPrettyPrintFilter("name", "scrollbar-vertical")
-        addPrettyPrintFilter("dir", "dcol")
+        # addPrettyPrintFilter("name", "scroll")
+        # addPrettyPrintFilter("name", "scrollBody")
+        # addPrettyPrintFilter("name", "stories")
+        # addPrettyPrintFilter("name", "scrollbar-vertical")
+        # addPrettyPrintFilter("dir", "dcol")
 
         let root {.inject.} = newTestTree("root",
           newTestTree("main",
@@ -812,10 +812,15 @@ suite "Grid alignment and justification tests":
       check upvotes.box.h.float32.round(2) == 20.5
 
   test "Complex grid layout with nested nodes and large child":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+    addPrettyPrintFilter("name", "panel")
+    addPrettyPrintFilter("name", "panel-inner")
+    addPrettyPrintFilter("name", "upvotes")
+
     testLayout(10.55'ux): # smaller than 1'fr
       panelInner.cxSize = [100'pp, cx"max-content"]
+      panelInner.cxMin = [0'ux, 0'ux]
       upvotes.cxMin = [1000'ux, 1000'ux]
       computeLayout(root)
 
@@ -831,8 +836,8 @@ suite "Grid alignment and justification tests":
       check scrollBody.box.w.float32.round(0) == 133
       check scrollBody.box.h.float32 == 100
 
-      check upvotes.box.w.float32.round(2) == 46
-      check upvotes.box.h.float32.round(2) == 20.5
+      check upvotes.box.w.float32.round(2) == 1000
+      check upvotes.box.h.float32.round(2) == 1000
 
 
 

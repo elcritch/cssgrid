@@ -125,17 +125,9 @@ proc validateMinMaxArgs(a, b: ConstraintSize) =
     if b.frac <= 0:
       raise newException(ValueError, "minmax second argument cannot use negative or zero fr values")
   
-  # Check for auto in minmax
-  if a.kind == UiAuto or b.kind == UiAuto:
-    raise newException(ValueError, "minmax cannot use auto values")
-  
   # Check for invalid unit combinations
   if a.kind == UiFixed and b.kind == UiPerc:
     raise newException(ValueError, "minmax cannot mix fixed and percentage units")
-  
-  # Check for fr units in minmax
-  if a.kind == UiFrac or b.kind == UiFrac:
-    raise newException(ValueError, "minmax cannot use fr units")
 
 proc validateMinArgs(a: ConstraintSize) =
   # Check for negative values
@@ -145,10 +137,6 @@ proc validateMinArgs(a: ConstraintSize) =
   # Check for fr units
   if a.kind == UiFrac:
     raise newException(ValueError, "min argument cannot use fr units")
-  
-  # Check for auto
-  if a.kind == UiAuto:
-    raise newException(ValueError, "min argument cannot use auto values")
 
 proc validateMaxArgs(a: ConstraintSize) =
   # Check for negative values
@@ -158,10 +146,6 @@ proc validateMaxArgs(a: ConstraintSize) =
   # Check for fr units
   if a.kind == UiFrac:
     raise newException(ValueError, "max argument cannot use fr units")
-  
-  # Check for auto
-  if a.kind == UiAuto:
-    raise newException(ValueError, "max argument cannot use auto values")
 
 proc csMax*[U, T](a: U, b: T): Constraint =
   ## create max op

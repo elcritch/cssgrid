@@ -120,6 +120,10 @@ proc validateMinMaxArgs(a, b: ConstraintSize) =
   if a.kind == UiFrac:
     raise newException(ValueError, "minmax first argument cannot use fr units")
   
+  # Check for auto in first argument
+  if a.kind == UiAuto:
+    raise newException(ValueError, "minmax first argument cannot use auto")
+  
   # Check for negative or zero fr values in second argument
   if b.kind == UiFrac:
     if b.frac <= 0:

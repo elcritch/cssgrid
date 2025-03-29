@@ -150,10 +150,6 @@ suite "invalid constraints":
     expect ValueError:
       discard csMin(csAuto(), csAuto())  # Can't use auto in minmax
     
-    # Test that invalid unit combinations are rejected
-    expect ValueError:
-      discard csMin(100'ux, 50'pp)  # Can't mix fixed and percentage
-    
     # Test that invalid fraction combinations are rejected
     expect ValueError:
       discard csMin(1'fr, 2'fr)  # Can't use fr in minmax

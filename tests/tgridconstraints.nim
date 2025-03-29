@@ -1,4 +1,3 @@
-
 import unittest
 import typetraits
 import sequtils
@@ -227,3 +226,40 @@ suite "CSS Grid Content Sizing":
     # gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes, extendOnOverflow = false)
     # check gt.lines[dcol][0].width == 200.UiScalar  # Constrained to container
     # check gt.lines[drow][0].width == 200.UiScalar  # Constrained to container
+
+  test "minimum content sizing":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+
+    var gt = newGridTemplate(
+      columns = @[
+        initGridLine(csMin(100.UiScalar, 1'fr)),
+        initGridLine(csMin(150.UiScalar, 9'fr))
+      ],
+      rows = @[
+        initGridLine(csMin(200.UiScalar, 1'fr))
+      ]
+    )
+    
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
+      dcol: {
+        0: ComputedTrackSize(minContent: 100.UiScalar),
+        1: ComputedTrackSize(minContent: 150.UiScalar)
+      }.toTable,
+      drow: {
+        0: ComputedTrackSize(minContent: 200.UiScalar)
+      }.toTable
+    ]
+
+    gt.computeTracks(uiBox(0, 0, 300, 300), computedSizes)
+
+    # Check that minimum sizes are respected
+    check gt.lines[dcol][0].width == 100.UiScalar  # First column minimum
+    check gt.lines[dcol][1].width == 150.UiScalar  # Second column minimum
+    check gt.lines[drow][0].width == 200.UiScalar  # Row minimum
+
+    # Check that tracks can grow beyond minimum
+    gt.computeTracks(uiBox(0, 0, 500, 500), computedSizes)
+    check gt.lines[dcol][0].width == 175.UiScalar  # Grows proportionally
+    check gt.lines[dcol][1].width == 325.UiScalar  # Grows proportionally
+    check gt.lines[drow][0].width == 500.UiScalar  # Grows to fill container

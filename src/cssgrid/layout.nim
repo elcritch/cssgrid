@@ -87,7 +87,9 @@ proc computeLineLayout*(
           UiAuto():
             totalAuto += 1.0.UiScalar
             grdLn.width = UiScalar.low()
-      _: discard  # Handle other cases
+      _:
+        debugPrint "computeLineLayout:unknown: ", "track=", grdLn.track
+        discard  # Handle other cases
 
   # Account for spacing between tracks (minus the last [end] track)
   fixed += spacing * max(UiScalar(lines.len() - 2), 0.UiScalar)

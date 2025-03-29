@@ -764,7 +764,9 @@ suite "Grid alignment and justification tests":
         let item {.inject.} = scrollBody.children[0]
         item.cxSize = [100'pp, 100'ux]
 
-        let upvotes {.inject.} = panel.children[0].children[0]
+        let panelInner {.inject.} = panel.children[0]
+
+        let upvotes {.inject.} = panelInner.children[0]
         upvotes.cxMin = [46'ux, 20.50'ux]
         upvotes.cxMax = [90'ux, 63.45'ux]
 
@@ -808,5 +810,29 @@ suite "Grid alignment and justification tests":
 
       check upvotes.box.w.float32.round(2) == 46
       check upvotes.box.h.float32.round(2) == 20.5
+
+  test "Complex grid layout with nested nodes and large child":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    testLayout(10.55'ux): # smaller than 1'fr
+      panelInner.cxSize = [100'pp, cx"max-content"]
+      upvotes.cxMin = [1000'ux, 1000'ux]
+      computeLayout(root)
+
+      printLayout(root, cmTerminal)
+      check top.box.w.float32 == 800
+      check top.box.h.float32 == 70
+      check stories.box.w.float32.round(0) == 133
+      check stories.box.h.float32 == 490
+      check panel.box.w.float32.round(0) == 667
+      check panel.box.h.float32 == 490
+
+      check scrollBody.name == "scrollBody"
+      check scrollBody.box.w.float32.round(0) == 133
+      check scrollBody.box.h.float32 == 100
+
+      check upvotes.box.w.float32.round(2) == 46
+      check upvotes.box.h.float32.round(2) == 20.5
+
 
 

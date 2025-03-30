@@ -104,7 +104,8 @@ proc isBasicContentSized*(cs: ConstraintSize): bool =
   cs.kind in [UiContentMin, UiContentMax, UiContentFit]
 
 proc isAuto*(cs: ConstraintSize): bool =
-  cs.kind == UiAuto
+  cs.kind in [UiAuto, UiFrac]
+
 proc isAuto*(cx: Constraint): bool =
   match cx:
     UiNone:

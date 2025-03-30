@@ -14,6 +14,50 @@ type
 
 {.push stackTrace: off.}
 
+proc computeContentSizes*(
+    grid: GridTemplate,
+    padding: UiBox,
+    children: seq[GridNode]
+): array[GridDir, Table[int, ComputedTrackSize]] =
+  ## Returns computed sizes for each track that needs content sizing
+
+  # Find which tracks need content sizing
+  var contentSized: array[GridDir, HashSet[int]]
+  for dir in [dcol, drow]:
+    for i in 0 ..< grid.lines[dir].len():
+      let track = grid.lines[dir][i].track
+      if isContentSized(track):
+        contentSized[dir].incl(i)
+
+  # Process each child and track
+  for child in children:
+    let cspan = child.gridItem.span
+    for dir in [dcol, drow]:
+      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
+        let trackIndex = cspan[dir].a-1
+        let track = grid.lines[dir][trackIndex].track
+        
+        var contentSize = child.bmin[dir]
+        if child.box.wh[dir] != 0.UiScalar:
+          contentSize = min(contentSize, child.box.wh[dir])
+
+        if contentSize == UiScalar.high: contentSize = 0.UiScalar
+        if contentSize == UiScalar.low: contentSize = 0.UiScalar
+        debugPrint "computeContentSizes:pre", "child=", child.name, "dir=", dir, "contentSize=", contentSize, "chBmin=", child.bmin[dir], "chBox=", child.box.wh[dir], "pad=", child.bpad.wh[dir]
+        
+        # Update track's computed size based on its type
+        var computed = result[dir].getOrDefault(trackIndex)
+        case track.value.kind:
+        of UiAuto, UiFrac, UiContentMin, UiContentMax, UiContentFit:
+          # For fit-content, we just need to set the maxContent value
+          # The clamping to available space happens during layout
+          computed.content = contentSize
+        else: discard
+        
+        debugPrint "computeContentSizes:post", "track=", track.value.kind, "contentSize=", contentSize, "computed=", computed
+
+        result[dir][trackIndex] = computed
+
 proc processUiValue(
     value: ConstraintSize,
     i: int, computedSizes: Table[int, ComputedTrackSize],
@@ -413,50 +457,6 @@ proc computeAutoFlow(
   if foundOverflow:
     for child in autos:
       child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
-
-proc computeContentSizes*(
-    grid: GridTemplate,
-    padding: UiBox,
-    children: seq[GridNode]
-): array[GridDir, Table[int, ComputedTrackSize]] =
-  ## Returns computed sizes for each track that needs content sizing
-
-  # Find which tracks need content sizing
-  var contentSized: array[GridDir, HashSet[int]]
-  for dir in [dcol, drow]:
-    for i in 0 ..< grid.lines[dir].len():
-      let track = grid.lines[dir][i].track
-      if isContentSized(track):
-        contentSized[dir].incl(i)
-
-  # Process each child and track
-  for child in children:
-    let cspan = child.gridItem.span
-    for dir in [dcol, drow]:
-      if cspan[dir].len()-1 == 1 and (cspan[dir].a-1) in contentSized[dir]:
-        let trackIndex = cspan[dir].a-1
-        let track = grid.lines[dir][trackIndex].track
-        
-        var contentSize = child.bmin[dir]
-        if child.box.wh[dir] != 0.UiScalar:
-          contentSize = min(contentSize, child.box.wh[dir])
-
-        if contentSize == UiScalar.high: contentSize = 0.UiScalar
-        if contentSize == UiScalar.low: contentSize = 0.UiScalar
-        debugPrint "computeContentSizes:pre", "child=", child.name, "dir=", dir, "contentSize=", contentSize, "chBmin=", child.bmin[dir], "chBox=", child.box.wh[dir], "pad=", child.bpad.wh[dir]
-        
-        # Update track's computed size based on its type
-        var computed = result[dir].getOrDefault(trackIndex)
-        case track.value.kind:
-        of UiAuto, UiFrac, UiContentMin, UiContentMax, UiContentFit:
-          # For fit-content, we just need to set the maxContent value
-          # The clamping to available space happens during layout
-          computed.content = contentSize
-        else: discard
-        
-        debugPrint "computeContentSizes:post", "track=", track.value.kind, "contentSize=", contentSize, "computed=", computed
-
-        result[dir][trackIndex] = computed
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,

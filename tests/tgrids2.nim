@@ -411,6 +411,7 @@ suite "grids":
     var parent = TestNode()
     parent.box.w = 50
     parent.box.h = 400
+    parent.gridTemplate = gridTemplate
 
     var nodes = newSeq[TestNode](8)
 

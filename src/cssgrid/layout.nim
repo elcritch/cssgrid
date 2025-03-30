@@ -157,32 +157,34 @@ proc computeLineLayout*(
     totalFlexFracs = 0.0.UiScalar
     totalFlexAuto = 0.0.UiScalar
 
+  template processFlexibleTracks(res: var UiScalar, value: ConstraintSize, minSize: UiScalar) =
+      block:
+        case value.kind:
+          of UiFrac:
+            if totalFracs > 0:
+              let frSize = fracUnit * value.frac
+              if frSize < minSize:
+                fixedMinSizes += minSize
+                res = minSize
+              else:
+                res = UiScalar.low()
+                totalFlexFracs += value.frac
+          of UiAuto:
+            if totalFracs > 0 or autoUnit < minSize:
+              fixedMinSizes += minSize
+              res = minSize
+            else:
+              res = UiScalar.low()
+              totalFlexAuto += 1
+          else:
+            discard  # Handle other cases
+
   # Second pass: distribute space for flex items and find any min flex sizes
   for i, grdLn in lines.mpairs():
     case grdLn.track.kind:
     of UiValue:
       let value = grdLn.track.value
-      case value.kind:
-        of UiFrac:
-          if totalFracs > 0:
-            let minSize = computedSizes.getOrDefault(i).content
-            let frSize = fracUnit * value.frac
-            if frSize < minSize:
-              grdLn.width = minSize
-              fixedMinSizes += minSize
-            else:
-              grdLn.width = UiScalar.low()
-              totalFlexFracs += value.frac
-        of UiAuto:
-          let minSize = computedSizes.getOrDefault(i).content
-          if totalFracs > 0 or autoUnit < minSize:
-            fixedMinSizes += minSize
-            grdLn.width = minSize
-          else:
-            grdLn.width = UiScalar.low()
-            totalFlexAuto += 1
-        else:
-          discard  # Handle other cases
+      processFlexibleTracks( grdLn.width, value, computedSizes.getOrDefault(i).content)
     of UiAdd, UiSub, UiMin, UiMax, UiMinMax:
       let args = cssFuncArgs(grdLn.track)
       let lv = processUiValue(args.l, i, computedSizes, totalAuto, totalFracs)

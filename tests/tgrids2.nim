@@ -258,6 +258,7 @@ suite "grids":
     var parent = TestNode()
     parent.box.w = 50
     parent.box.h = 50
+    parent.gridTemplate = gridTemplate
 
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[TestNode](8)

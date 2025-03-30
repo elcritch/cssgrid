@@ -437,12 +437,9 @@ proc computeContentSizes*(
         let trackIndex = cspan[dir].a-1
         let track = grid.lines[dir][trackIndex].track
         
-        # Calculate size recursively including nested children
-        # let contentSize = calculateContentSize(child, dir)
         var contentSize = child.bmin[dir]
         if child.box.wh[dir] != 0.UiScalar:
           contentSize = min(contentSize, child.box.wh[dir])
-        # contentSize += child.bpad.wh[dir] # TODO: que?
 
         if contentSize == UiScalar.high: contentSize = 0.UiScalar
         if contentSize == UiScalar.low: contentSize = 0.UiScalar

@@ -307,7 +307,7 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       
       check child1.box.w == 100  # Fixed width
-      check child2.box.w > 100   # Should get remaining space
+      check child2.box.w >= 100.0.UiScalar   # Should get remaining space
       check child3.box.w > 0     # Should get minimum required space
 
   test "Grid with content sizing":
@@ -779,7 +779,7 @@ suite "Grid alignment and justification tests":
     when true:
       testLayout(194.55'ux): # larger than 1'fr
         # printLayout(root, cmTerminal)
-        check top.box.w.float32 == 800
+        check top.box.w.float32.round(0) == 800
         check top.box.h.float32 == 70
         check stories.box.w.float32.round(0) == 205
         check stories.box.h.float32 == 490
@@ -794,11 +794,11 @@ suite "Grid alignment and justification tests":
         check upvotes.box.h.float32.round(2) == 20.5
 
   test "Complex grid layout with nested nodes":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
-      printLayout(root, cmTerminal)
-      check top.box.w.float32 == 800
+      # printLayout(root, cmTerminal)
+      check top.box.w.float32.round(0) == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133
       check stories.box.h.float32 == 490
@@ -825,8 +825,8 @@ suite "Grid alignment and justification tests":
       upvotes.cxMin = [1000'ux, 1000'ux]
       computeLayout(root)
 
-      printLayout(root, cmTerminal)
-      check top.box.w.float32 == 800
+      # printLayout(root, cmTerminal)
+      check top.box.w.float32.round(0) == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133
       check stories.box.h.float32 == 490

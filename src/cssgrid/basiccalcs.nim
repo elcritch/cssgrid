@@ -31,14 +31,14 @@ proc childBMinsPost*(node: GridNode, dir: GridDir, addXY = true): UiScalar =
     let childScreenSize = child.box.wh[dir] + childXY
     let childScreenMin = child.bmin[dir] + childXY
     result = max(result, min(childScreenSize, childScreenMin))
-    debugPrint "calcBasicPost:min-content: ", "name=", child.name, "res=", result, "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
-  debugPrint "calcBasicPost:min-content:done: ", "name=", node.name, "res=", result
+    # debugPrint "calcBasicPost:min-content: ", "name=", child.name, "res=", result, "childScreenSize=", childScreenSize, "childScreenMin=", childScreenMin
+  # debugPrint "calcBasicPost:min-content:done: ", "name=", node.name, "res=", result
   if result == UiScalar.high():
     result = 0.0.UiScalar
 
 proc propogateCalcs*(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
   if calc == WH and node.bmin[dir] != UiScalar.high:
-    debugPrint "calcBasicCx:propogateCalcs", "name=", node.name, "dir=", dir, "calc=", calc, "val=", f, "bmin=", node.bmin[dir]
+    # debugPrint "calcBasicCx:propogateCalcs", "name=", node.name, "dir=", dir, "calc=", calc, "val=", f, "bmin=", node.bmin[dir]
     f = max(f, node.bmin[dir])
 
   if calc == MINSZ and f == UiScalar.high:

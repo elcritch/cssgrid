@@ -133,16 +133,12 @@ proc computeLineLayout*(
     case grdLn.track.kind:
       of UiValue:
         let value = grdLn.track.value
+
         case value.kind:
-          of UiFixed, UiPerc:
+          of UiFixed, UiPerc, UiContentMin, UiContentMax, UiContentFit:
             grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
             fixed += grdLn.width
-          of UiContentMin, UiContentMax, UiContentFit:
-            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
-            fixed += grdLn.width
-          of UiFrac:
-            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
-          of UiAuto:
+          of UiFrac, UiAuto:
             grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
       of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
         let args = cssFuncArgs(grdLn.track)

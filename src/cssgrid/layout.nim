@@ -104,19 +104,7 @@ proc computeLineLayout*(
         let args = cssFuncArgs(grdLn.track)
         let lv = processUiValue(args.l, i, computedSizes, totalAuto, totalFracs)
         let rv = processUiValue(args.r, i, computedSizes, totalAuto, totalFracs)
-        case grdLn.track.kind:
-          of UiMin:
-            grdLn.width = min(lv, rv)
-          of UiMax:
-            grdLn.width = max(lv, rv)
-          of UiAdd:
-            grdLn.width = lv + rv
-          of UiSub:
-            grdLn.width = lv - rv
-          of UiMinMax:
-            discard
-          else:
-            discard
+        grdLn.width = computeCssFuncs(grdLn.track.kind, lv, rv)
       else:
         debugPrint "computeLineLayout:unknown: ", "track=", grdLn.track
         discard  # Handle other cases

@@ -16,7 +16,7 @@ type
   LineName* = Atom
 
   ComputedSize* = object of RootObj
-    contentMin*: UiScalar
+    content*: UiScalar
     # minContent*: UiScalar
     # maxContent*: UiScalar
     # autoSize*: UiScalar

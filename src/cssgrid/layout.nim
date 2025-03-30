@@ -25,7 +25,7 @@ proc computeLineOverflow*(
       # if grdLn.isAuto:
       match grdLn.track:
         UiValue(value):
-          debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).contentMin
+          debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
           case value.kind
           of UiFixed:
             result += value.coord
@@ -33,7 +33,7 @@ proc computeLineOverflow*(
             discard
           of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
             if i in computedSizes:
-              result += computedSizes[i].contentMin
+              result += computedSizes[i].content
         _: discard
 
   debugPrint "computeLineOverflow:post: ", "dir=", dir, "overflow=", result
@@ -62,8 +62,8 @@ proc computeLineLayout*(
           fixed += length * value.perc / 100
           grdLn.width = length * value.perc / 100
         of UiContentMin, UiContentMax, UiContentFit:
-          fixed += computedSizes.getOrDefault(i).contentMin
-          grdLn.width = computedSizes.getOrDefault(i).contentMin
+          fixed += computedSizes.getOrDefault(i).content
+          grdLn.width = computedSizes.getOrDefault(i).content
         of UiFrac:
           totalFracs += value.frac
           grdLn.width = UiScalar.low()
@@ -96,7 +96,7 @@ proc computeLineLayout*(
         match value:
           UiFrac(frac):
             if totalFracs > 0:
-              let minSize = computedSizes.getOrDefault(i).contentMin
+              let minSize = computedSizes.getOrDefault(i).content
               let frSize = fracUnit * frac
               if frSize < minSize:
                 grdLn.width = minSize
@@ -105,7 +105,7 @@ proc computeLineLayout*(
                 grdLn.width = UiScalar.low()
                 totalFlexFracs += frac
           UiAuto():
-            let minSize = computedSizes.getOrDefault(i).contentMin
+            let minSize = computedSizes.getOrDefault(i).content
             if totalFracs > 0 or autoUnit < minSize:
               fixedMinSizes += minSize
               grdLn.width = minSize
@@ -417,17 +417,17 @@ proc computeContentSizes*(
         var computed = result[dir].getOrDefault(trackIndex)
         case track.value.kind:
         of UiAuto:
-          computed.contentMin = contentSize
+          computed.content = contentSize
         of UiFrac:
-          computed.contentMin = contentSize
+          computed.content = contentSize
         of UiContentMin:
-          computed.contentMin = contentSize
+          computed.content = contentSize
         of UiContentMax:
-          computed.contentMin = contentSize
+          computed.content = contentSize
         of UiContentFit:
           # For fit-content, we just need to set the maxContent value
           # The clamping to available space happens during layout
-          computed.contentMin = contentSize
+          computed.content = contentSize
         else: discard
         
         debugPrint "computeContentSizes:post", "track=", track.value.kind, "contentSize=", contentSize, "computed=", computed

@@ -159,29 +159,37 @@ proc computeLineLayout*(
 
   # Second pass: distribute space for flex items and find any min flex sizes
   for i, grdLn in lines.mpairs():
-    match grdLn.track:
-      UiValue(value):
-        match value:
-          UiFrac(frac):
-            if totalFracs > 0:
-              let minSize = computedSizes.getOrDefault(i).content
-              let frSize = fracUnit * frac
-              if frSize < minSize:
-                grdLn.width = minSize
-                fixedMinSizes += minSize
-              else:
-                grdLn.width = UiScalar.low()
-                totalFlexFracs += frac
-          UiAuto():
+    case grdLn.track.kind:
+    of UiValue:
+      let value = grdLn.track.value
+      case value.kind:
+        of UiFrac:
+          if totalFracs > 0:
             let minSize = computedSizes.getOrDefault(i).content
-            if totalFracs > 0 or autoUnit < minSize:
-              fixedMinSizes += minSize
+            let frSize = fracUnit * value.frac
+            if frSize < minSize:
               grdLn.width = minSize
+              fixedMinSizes += minSize
             else:
               grdLn.width = UiScalar.low()
-              totalFlexAuto += 1
-          _: discard  # Handle other cases
-      _: discard  # Handle other cases
+              totalFlexFracs += value.frac
+        of UiAuto:
+          let minSize = computedSizes.getOrDefault(i).content
+          if totalFracs > 0 or autoUnit < minSize:
+            fixedMinSizes += minSize
+            grdLn.width = minSize
+          else:
+            grdLn.width = UiScalar.low()
+            totalFlexAuto += 1
+        else:
+          discard  # Handle other cases
+    of UiAdd, UiSub, UiMin, UiMax, UiMinMax:
+      let args = cssFuncArgs(grdLn.track)
+      let lv = processUiValue(args.l, i, computedSizes, totalAuto, totalFracs)
+      let rv = processUiValue(args.r, i, computedSizes, totalAuto, totalFracs)
+      grdLn.width = computeCssFuncs(grdLn.track.kind, lv, rv)
+    else:
+      discard  # Handle other cases
 
   let freeSpaceMinusMin = freeSpace - fixedMinSizes
   let fracFlexUnit = freeSpaceMinusMin / totalFlexFracs

@@ -16,11 +16,12 @@ type
   LineName* = Atom
 
   ComputedSize* = object of RootObj
-    minContent*: UiScalar
-    maxContent*: UiScalar
-    autoSize*: UiScalar
-    fracMinSize*: UiScalar
-    contentFit*: UiScalar
+    contentMin*: UiScalar
+    # minContent*: UiScalar
+    # maxContent*: UiScalar
+    # autoSize*: UiScalar
+    # fracMinSize*: UiScalar
+    # contentFit*: UiScalar
 
   GridNode* = concept node
     typeof(node.box) is UiBox

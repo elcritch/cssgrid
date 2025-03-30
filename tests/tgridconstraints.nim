@@ -26,8 +26,8 @@ suite "CSS Grid Content Sizing":
     
     # Create computed sizes
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
-      {0: ComputedTrackSize(minContent: 100.UiScalar)}.toTable,
-      {0: ComputedTrackSize(minContent: 150.UiScalar)}.toTable
+      {0: ComputedTrackSize(contentMin: 100.UiScalar)}.toTable,
+      {0: ComputedTrackSize(contentMin: 150.UiScalar)}.toTable
     ]
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
@@ -43,10 +43,10 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(autoSize: 50.UiScalar),
+        0: ComputedTrackSize(contentMin: 50.UiScalar),
       }.toTable,
       drow: {
-        0: ComputedTrackSize(autoSize: 75.UiScalar)
+        0: ComputedTrackSize(contentMin: 75.UiScalar)
       }.toTable
     ]
 
@@ -64,11 +64,11 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(fracMinSize: 50.UiScalar),
-        1: ComputedTrackSize(fracMinSize: 100.UiScalar)
+        0: ComputedTrackSize(contentMin: 50.UiScalar),
+        1: ComputedTrackSize(contentMin: 100.UiScalar)
       }.toTable,
       drow: {
-        0: ComputedTrackSize(fracMinSize: 75.UiScalar)
+        0: ComputedTrackSize(contentMin: 75.UiScalar)
       }.toTable
     ]
 
@@ -89,9 +89,9 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(minContent: 50.UiScalar),
-        1: ComputedTrackSize(autoSize: 75.UiScalar),
-        2: ComputedTrackSize(fracMinSize: 100.UiScalar)
+        0: ComputedTrackSize(contentMin: 50.UiScalar),
+        1: ComputedTrackSize(contentMin: 75.UiScalar),
+        2: ComputedTrackSize(contentMin: 100.UiScalar)
       }.toTable,
       drow: initTable[int, ComputedTrackSize]()
     ]
@@ -116,11 +116,11 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(minContent: 100.UiScalar),
-        1: ComputedTrackSize(minContent: 100.UiScalar)
+        0: ComputedTrackSize(contentMin: 100.UiScalar),
+        1: ComputedTrackSize(contentMin: 100.UiScalar)
       }.toTable,
       drow: {
-        0: ComputedTrackSize(minContent: 100.UiScalar)
+        0: ComputedTrackSize(contentMin: 100.UiScalar)
       }.toTable
     ]
 
@@ -145,11 +145,11 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(autoSize: 50.UiScalar),
-        1: ComputedTrackSize(autoSize: 100.UiScalar)
+        0: ComputedTrackSize(contentMin: 50.UiScalar),
+        1: ComputedTrackSize(contentMin: 100.UiScalar)
       }.toTable,
       drow: {
-        0: ComputedTrackSize(autoSize: 100.UiScalar)
+        0: ComputedTrackSize(contentMin: 100.UiScalar)
       }.toTable
     ]
 
@@ -214,8 +214,8 @@ suite "CSS Grid Content Sizing":
     )
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
-      dcol: {0: ComputedTrackSize(minContent: 300.UiScalar)}.toTable,
-      drow: {0: ComputedTrackSize(minContent: 400.UiScalar)}.toTable
+      dcol: {0: ComputedTrackSize(contentMin: 300.UiScalar)}.toTable,
+      drow: {0: ComputedTrackSize(contentMin: 400.UiScalar)}.toTable
     ]
 
     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
@@ -243,11 +243,11 @@ suite "CSS Grid Content Sizing":
     
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(minContent: 100.UiScalar),
-        1: ComputedTrackSize(minContent: 150.UiScalar)
+        0: ComputedTrackSize(contentMin: 100.UiScalar),
+        1: ComputedTrackSize(contentMin: 150.UiScalar)
       }.toTable,
       drow: {
-        0: ComputedTrackSize(minContent: 200.UiScalar)
+        0: ComputedTrackSize(contentMin: 200.UiScalar)
       }.toTable
     ]
 

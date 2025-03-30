@@ -4,10 +4,10 @@ import sequtils
 
 import cssgrid/numberTypes
 import cssgrid/gridtypes
-import cssgrid/layout
 import cssgrid/parser
 import cssgrid/prettyprints
 
+import cssgrid/computelayout
 import pretty
 import macros
 
@@ -257,8 +257,8 @@ suite "CSS Grid Content Sizing":
     check gt.lines[drow][0].width == 200.UiScalar  # Row minimum
 
   test "minimum content sizing container larger than minimum":
-    if true:
-      break
+    # if true:
+    #   break
     prettyPrintWriteMode = cmTerminal
     defer: prettyPrintWriteMode = cmNone
 

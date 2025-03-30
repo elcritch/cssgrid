@@ -6,10 +6,11 @@ import unittest
 import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/basiclayout
-import cssgrid/layout
 import cssgrid/parser
 import cssgrid/prettyprints
 
+# import cssgrid/layout
+import cssgrid/computelayout
 import pretty
 
 type
@@ -796,7 +797,7 @@ suite "Grid alignment and justification tests":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
-      # printLayout(root, cmTerminal)
+      printLayout(root, cmTerminal)
       check top.box.w.float32 == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133
@@ -812,8 +813,8 @@ suite "Grid alignment and justification tests":
       check upvotes.box.h.float32.round(2) == 20.5
 
   test "Complex grid layout with nested nodes and large child":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     addPrettyPrintFilter("name", "panel")
     addPrettyPrintFilter("name", "panel-inner")
     addPrettyPrintFilter("name", "upvotes")
@@ -824,7 +825,7 @@ suite "Grid alignment and justification tests":
       upvotes.cxMin = [1000'ux, 1000'ux]
       computeLayout(root)
 
-      printLayout(root, cmTerminal)
+      # printLayout(root, cmTerminal)
       check top.box.w.float32 == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133

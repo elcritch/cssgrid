@@ -626,6 +626,7 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
   runGridSizingAlgorithm(node, node.gridTemplate, node.box)
   
   prettyGridTemplate(node.gridTemplate)
+  printLayout(node)
 
   # 4. Lay out the grid items
   for child in node.children:

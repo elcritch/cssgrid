@@ -51,6 +51,7 @@ suite "grids":
     parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
     parseGridTemplateRows gridTemplate, 33'ux 33'ux
     gridTemplate.justifyItems = CxStretch
+    gridTemplate.autoFlow = grRow
     # echo "grid template pre: ", repr gridTemplate
     check gridTemplate.lines[dcol].len() == 6
     check gridTemplate.lines[drow].len() == 3

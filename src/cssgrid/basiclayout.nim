@@ -35,7 +35,7 @@ proc calcBasicConstraintImpl(
   # debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
   let parentBox = node.getParentBoxOrWindows()
   let isGridChild = not node.parent.isNil and not node.parent[].gridTemplate.isNil
-  template calcBasic(val: untyped): untyped =
+  proc calcBasic(val: ConstraintSize): UiScalar =
     block:
       var res: UiScalar
       match val:

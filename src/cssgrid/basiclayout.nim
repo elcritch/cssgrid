@@ -34,6 +34,21 @@ proc computeCssFuncs*(calc: Constraints, lhs, rhs: UiScalar): UiScalar =
     of UiMinMax:
       return min(max(lhs, rhs), rhs)
 
+proc getConstraintValue*(node: GridNode, dir: GridDir, calc: CalcKind): Constraint =
+  case calc
+  of XY:
+    node.cxOffset[dir]
+  of WH:
+    node.cxSize[dir]
+  of MINSZ:
+    node.cxMin[dir]
+  of MAXSZ:
+    node.cxMax[dir]
+  of PADXY:
+    node.cxPadOffset[dir]
+  of PADWH:
+    node.cxPadSize[dir]
+
 proc calcBasicConstraintImpl(
     node: GridNode,
     dir: GridDir,
@@ -78,20 +93,7 @@ proc calcBasicConstraintImpl(
       res
 
   # debugPrint "CONTENT csValue: ", "name = ", node.name, " d = ", repr(dir), " w = ", node.box.w, " h = ", node.box.h
-  let csValue =
-    case calc
-    of XY:
-      node.cxOffset[dir]
-    of WH:
-      node.cxSize[dir]
-    of MINSZ:
-      node.cxMin[dir]
-    of MAXSZ:
-      node.cxMax[dir]
-    of PADXY:
-      node.cxPadOffset[dir]
-    of PADWH:
-      node.cxPadSize[dir]
+  let csValue = getConstraintValue(node, dir, calc)
 
   debugPrint "calcBasicCx", "name=", node.name, "csValue:", csValue, "dir=", dir, "calc=", calc
   case csValue.kind:
@@ -168,20 +170,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
           res = f
       res
 
-  let csValue =
-    case calc
-    of XY:
-      node.cxOffset[dir]
-    of WH:
-      node.cxSize[dir]
-    of MINSZ:
-      node.cxMin[dir]
-    of MAXSZ:
-      node.cxMax[dir]
-    of PADXY:
-      node.cxPadOffset[dir]
-    of PADWH:
-      node.cxPadSize[dir]
+  let csValue = getConstraintValue(node, dir, calc)
   
   debugPrint "CONTENT csValue:post", "name=", node.name, "calc=", calc, "dir=", repr(dir), "w=", node.box.w, "h=", node.box.h, "csValue=", repr(csValue)
   case csValue.kind

@@ -776,6 +776,8 @@ suite "Grid alignment and justification tests":
         `blk`
 
   test "Complex grid layout with nested nodes":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     when true:
       testLayout(194.55'ux): # larger than 1'fr
         # printLayout(root, cmTerminal)
@@ -794,8 +796,8 @@ suite "Grid alignment and justification tests":
         check upvotes.box.h.float32.round(2) == 20.5
 
   test "Complex grid layout with nested nodes":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
       # printLayout(root, cmTerminal)
       check top.box.w.float32.round(0) == 800
@@ -815,9 +817,9 @@ suite "Grid alignment and justification tests":
   test "Complex grid layout with nested nodes and large child":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
-    addPrettyPrintFilter("name", "panel")
-    addPrettyPrintFilter("name", "panel-inner")
-    addPrettyPrintFilter("name", "upvotes")
+    # addPrettyPrintFilter("name", "panel")
+    # addPrettyPrintFilter("name", "panel-inner")
+    # addPrettyPrintFilter("name", "upvotes")
 
     testLayout(10.55'ux): # smaller than 1'fr
       panelInner.cxSize = [100'pp, cx"max-content"]

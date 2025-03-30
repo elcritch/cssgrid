@@ -68,6 +68,8 @@ type
     start*: UiScalar
     width*: UiScalar
     isAuto*: bool
+    baseSize*: UiScalar  # For Grid Layout Algorithm
+    growthLimit*: UiScalar  # For Grid Layout Algorithm
 
   GridIndex* = object
     line*: Atom

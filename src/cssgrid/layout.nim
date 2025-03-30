@@ -11,6 +11,8 @@ import prettyprints
 
 type
   ComputedTrackSize* = object of ComputedSize
+    minContribution*: UiScalar
+    maxContribution*: UiScalar
 
 {.push stackTrace: off.}
 

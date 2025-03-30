@@ -136,6 +136,7 @@ suite "grids":
 
     # ==== process grid ====
     parent.children = nodes
+    parent.gridTemplate = gridTemplate
     let box = gridTemplate.computeNodeLayout(parent)
 
     check box.w == 100
@@ -177,6 +178,7 @@ suite "grids":
     nodes[0].cxSize = [40'ux, 40'ux]
     # ==== process grid ====
     parent.children = nodes
+    parent.gridTemplate = gridTemplate
     # discard gridTemplate.computeNodeLayout(parent)
     # let box = gridTemplate.computeNodeLayout(parent)
     computeLayout(parent)

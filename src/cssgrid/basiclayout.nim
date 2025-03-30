@@ -42,9 +42,6 @@ proc calcBasicConstraintImpl(
         UiAuto():
           if not isGridChild and calc == WH:
             res = pf - f0
-          # elif calc == WH and dir == drow:
-          #   let mins = node.childBMins(dir)
-          #   res = mins
         UiFixed(coord):
           res = coord.UiScalar
         UiFrac(frac):
@@ -84,9 +81,6 @@ proc calcBasicConstraintImpl(
   debugPrint "calcBasicCx", "name=", node.name, "csValue:", csValue, "dir=", dir, "calc=", calc
   match csValue:
     UiNone:
-      # # handle UiNone for height to account for minimum sizes of contents
-      # if calc == WH and dir == drow:
-      #   f = node.bmin.h
       discard
     UiAdd(ls, rs):
       let lv = ls.calcBasic()

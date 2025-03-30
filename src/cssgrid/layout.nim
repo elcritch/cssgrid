@@ -14,6 +14,17 @@ type
 
 {.push stackTrace: off.}
 
+proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, ComputedTrackSize]): UiScalar =
+  debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
+  case value.kind
+  of UiFixed:
+    result = value.coord
+  of UiPerc:
+    discard
+  of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
+    if i in computedSizes:
+      result = computedSizes[i].content
+
 proc computeLineOverflow*(
     dir: GridDir,
     lines: array[GridDir, seq[GridLine]],
@@ -21,17 +32,6 @@ proc computeLineOverflow*(
 ): UiScalar =
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
-
-  proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, ComputedTrackSize]): UiScalar =
-    debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
-    case value.kind
-    of UiFixed:
-      result = value.coord
-    of UiPerc:
-      discard
-    of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
-      if i in computedSizes:
-        result = computedSizes[i].content
 
   for i, grdLn in lines:
       match grdLn.track:

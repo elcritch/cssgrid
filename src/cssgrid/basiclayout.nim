@@ -124,7 +124,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
   ## of the box width post css grid or auto constraints layout
   debugPrint "\ncalcBasicConstraintPostImpl: ", "name=", node.name, "calc=", calc, "dir=", dir, "box=", f
   let parentBox = node.getParentBoxOrWindows()
-  template calcBasic(val: untyped): untyped =
+  proc calcBasic(val: ConstraintSize, f: UiScalar): UiScalar =
     block:
       var res: UiScalar
       debugPrint "calcBasicPost: ", "name=", node.name, "val=", val
@@ -192,29 +192,29 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
         f = max(f, node.bmin.h)
     UiAdd(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = ls.calcBasic()
-        let rv = rs.calcBasic()
+        let lv = calcBasic(ls, f)
+        let rv = calcBasic(rs, f)
         f = lv + rv
     UiSub(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = ls.calcBasic()
-        let rv = rs.calcBasic()
+        let lv = calcBasic(ls, f)
+        let rv = calcBasic(rs, f)
         f = lv - rv
     UiMin(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = ls.calcBasic()
-        let rv = rs.calcBasic()
+        let lv = calcBasic(ls, f)
+        let rv = calcBasic(rs, f)
         f = min(lv, rv)
     UiMax(ls, rs):
       if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = ls.calcBasic()
-        let rv = rs.calcBasic()
+        let lv = calcBasic(ls, f)
+        let rv = calcBasic(rs, f)
         debugPrint "calcBasicPost:max: ", "name=", node.name, " lv= ", lv, "rv= ", rv, "rs= ", rs
         f = max(lv, rv)
     UiMinMax(ls, rs):
       return # doesn't make sense here
     UiValue(value):
-      f = calcBasic(value)
+      f = calcBasic(value, f)
     UiEnd:
       discard
 

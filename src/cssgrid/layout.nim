@@ -14,7 +14,13 @@ type
 
 {.push stackTrace: off.}
 
-proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, ComputedTrackSize], length = 0.0.UiScalar, fracMinsOnly = true): UiScalar =
+proc processUiValue(
+    value: ConstraintSize,
+    i: int, computedSizes: Table[int, ComputedTrackSize],
+    totalAuto: var UiScalar,
+    totalFracs: var UiScalar,
+    length = 0.0.UiScalar,
+): UiScalar =
   debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
   case value.kind
   of UiFixed:
@@ -22,12 +28,14 @@ proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, Com
   of UiPerc:
     result = length * value.perc / 100
   of UiFrac:
-    if fracMinsOnly:
-      if i in computedSizes:
-        result = computedSizes[i].content
-    else:
-      result = value.frac
-  of UiContentMax, UiContentMin, UiContentFit, UiAuto:
+    if i in computedSizes:
+      result = computedSizes[i].content
+    totalFracs += value.frac
+  of UiAuto:
+    totalAuto += 1.0.UiScalar
+    if i in computedSizes:
+      result = computedSizes[i].content
+  of UiContentMax, UiContentMin, UiContentFit:
     if i in computedSizes:
       result = computedSizes[i].content
 
@@ -39,20 +47,24 @@ proc computeLineOverflow*(
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
 
+  var
+    totalAuto = 0.0.UiScalar
+    totalFracs = 0.0.UiScalar
+
   for i, grdLn in lines:
       match grdLn.track:
         UiNone:
           discard
         UiValue(value):
-          result += processUiValue(value, i, computedSizes)
+          result += processUiValue(value, i, computedSizes, totalAuto, totalFracs)
         UiAdd(ls, rs):
-          result += processUiValue(ls, i, computedSizes) + processUiValue(rs, i, computedSizes)
+          result += processUiValue(ls, i, computedSizes, totalAuto, totalFracs) + processUiValue(rs, i, computedSizes, totalAuto, totalFracs)
         UiSub(ls, rs):
-          result += processUiValue(ls, i, computedSizes) - processUiValue(rs, i, computedSizes)
+          result += processUiValue(ls, i, computedSizes, totalAuto, totalFracs) - processUiValue(rs, i, computedSizes, totalAuto, totalFracs)
         UiMin(ls, rs):
-          result += min(processUiValue(ls, i, computedSizes), processUiValue(rs, i, computedSizes))
+          result += min(processUiValue(ls, i, computedSizes, totalAuto, totalFracs), processUiValue(rs, i, computedSizes, totalAuto, totalFracs))
         UiMax(ls, rs):
-          result += max(processUiValue(ls, i, computedSizes), processUiValue(rs, i, computedSizes))
+          result += max(processUiValue(ls, i, computedSizes, totalAuto, totalFracs), processUiValue(rs, i, computedSizes, totalAuto, totalFracs))
         UiMinMax(ls, rs):
           discard
         UiEnd:
@@ -74,33 +86,38 @@ proc computeLineLayout*(
 
   # First pass: calculate fixed sizes and identify auto/frac tracks
   for i, grdLn in lines.mpairs():
-    match grdLn.track:
-      UiValue(value):
-        case value.kind
-        of UiFixed:
-          grdLn.width = processUiValue(value, i, computedSizes, length, false)
-          fixed += value.coord
-        of UiPerc:
-          fixed += length * value.perc / 100
-          grdLn.width = length * value.perc / 100
-        of UiContentMin, UiContentMax, UiContentFit:
-          fixed += computedSizes.getOrDefault(i).content
-          grdLn.width = computedSizes.getOrDefault(i).content
-        of UiFrac:
-          totalFracs += value.frac
-          grdLn.width = UiScalar.low()
-        of UiAuto:
-          totalAuto += 1.0.UiScalar
-          grdLn.width = UiScalar.low()
-      UiMin(ls, rs):
-        let lv = processUiValue(ls, i, computedSizes)
-        let rv = processUiValue(rs, i, computedSizes)
-        grdLn.width = min(lv, rv)
-      UiMax(ls, rs):
-        let lv = processUiValue(ls, i, computedSizes)
-        let rv = processUiValue(rs, i, computedSizes)
-        grdLn.width = max(lv, rv)
-      _:
+    case grdLn.track.kind:
+      of UiValue:
+        let value = grdLn.track.value
+        case value.kind:
+          of UiFixed, UiPerc:
+            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
+            fixed += grdLn.width
+          of UiContentMin, UiContentMax, UiContentFit:
+            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
+            fixed += grdLn.width
+          of UiFrac:
+            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
+          of UiAuto:
+            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
+      of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+        let args = cssFuncArgs(grdLn.track)
+        let lv = processUiValue(args.l, i, computedSizes, totalAuto, totalFracs)
+        let rv = processUiValue(args.r, i, computedSizes, totalAuto, totalFracs)
+        case grdLn.track.kind:
+          of UiMin:
+            grdLn.width = min(lv, rv)
+          of UiMax:
+            grdLn.width = max(lv, rv)
+          of UiAdd:
+            grdLn.width = lv + rv
+          of UiSub:
+            grdLn.width = lv - rv
+          of UiMinMax:
+            discard
+          else:
+            discard
+      else:
         debugPrint "computeLineLayout:unknown: ", "track=", grdLn.track
         discard  # Handle other cases
 

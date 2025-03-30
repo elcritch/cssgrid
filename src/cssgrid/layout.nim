@@ -96,22 +96,15 @@ proc computeLineOverflow*(
     totalFracs = 0.0.UiScalar
 
   for i, grdLn in lines:
-      match grdLn.track:
-        UiNone:
+      case grdLn.track.kind:
+        of UiNone:
           discard
-        UiValue(value):
-          result += processUiValue(value, i, computedSizes, totalAuto, totalFracs)
-        UiAdd(ls, rs):
-          result += processUiValue(ls, i, computedSizes, totalAuto, totalFracs) + processUiValue(rs, i, computedSizes, totalAuto, totalFracs)
-        UiSub(ls, rs):
-          result += processUiValue(ls, i, computedSizes, totalAuto, totalFracs) - processUiValue(rs, i, computedSizes, totalAuto, totalFracs)
-        UiMin(ls, rs):
-          result += min(processUiValue(ls, i, computedSizes, totalAuto, totalFracs), processUiValue(rs, i, computedSizes, totalAuto, totalFracs))
-        UiMax(ls, rs):
-          result += max(processUiValue(ls, i, computedSizes, totalAuto, totalFracs), processUiValue(rs, i, computedSizes, totalAuto, totalFracs))
-        UiMinMax(ls, rs):
-          discard
-        UiEnd:
+        of UiValue:
+          result += processUiValue(grdLn.track.value, i, computedSizes, totalAuto, totalFracs)
+        of UiAdd, UiSub, UiMin, UiMax, UiMinMax:
+          let args = cssFuncArgs(grdLn.track)
+          result += computeCssFuncs(grdLn.track.kind, processUiValue(args.l, i, computedSizes, totalAuto, totalFracs), processUiValue(args.r, i, computedSizes, totalAuto, totalFracs))
+        of UiEnd:
           discard
 
   debugPrint "computeLineOverflow:post: ", "dir=", dir, "overflow=", result

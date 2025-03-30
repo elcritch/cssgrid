@@ -184,39 +184,23 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       node.cxPadSize[dir]
   
   debugPrint "CONTENT csValue:post", "name=", node.name, "calc=", calc, "dir=", repr(dir), "w=", node.box.w, "h=", node.box.h, "csValue=", repr(csValue)
-  match csValue:
-    UiNone:
-      discard
-      # # handle UiNone for height to account for minimum sizes of contents
-      if calc == WH and dir == drow:
-        f = max(f, node.bmin.h)
-    UiAdd(ls, rs):
-      if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = calcBasic(ls, f)
-        let rv = calcBasic(rs, f)
-        f = lv + rv
-    UiSub(ls, rs):
-      if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = calcBasic(ls, f)
-        let rv = calcBasic(rs, f)
-        f = lv - rv
-    UiMin(ls, rs):
-      if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = calcBasic(ls, f)
-        let rv = calcBasic(rs, f)
-        f = min(lv, rv)
-    UiMax(ls, rs):
-      if ls.isBasicContentSized() or rs.isBasicContentSized():
-        let lv = calcBasic(ls, f)
-        let rv = calcBasic(rs, f)
+  case csValue.kind
+  of UiNone:
+    # handle UiNone for height to account for minimum sizes of contents
+    if calc == WH and dir == drow:
+      f = max(f, node.bmin.h)
+  of UiValue:
+    f = calcBasic(csValue.value, f)
+  of UiAdd, UiSub, UiMin, UiMax, UiMinMax:
+    let (ls, rs) = csValue.cssFuncArgs()
+    if ls.isBasicContentSized() or rs.isBasicContentSized():
+      let lv = calcBasic(ls, f)
+      let rv = calcBasic(rs, f)
+      if csValue.kind == UiMax:
         debugPrint "calcBasicPost:max: ", "name=", node.name, " lv= ", lv, "rv= ", rv, "rs= ", rs
-        f = max(lv, rv)
-    UiMinMax(ls, rs):
-      return # doesn't make sense here
-    UiValue(value):
-      f = calcBasic(value, f)
-    UiEnd:
-      discard
+      f = computeCssFuncs(csValue.kind, lv, rv)
+  of UiEnd:
+    discard
 
   node.propogateCalcs(dir, calc, f)
 

@@ -74,6 +74,26 @@ proc cssFuncArgs*(cx: Constraint): tuple[l, r: ConstraintSize] =
     _:
       discard
 
+proc isFixed*(cs: ConstraintSize): bool =
+  case cs.kind:
+    of UiFixed, UiPerc:
+      return true
+    else:
+      return false
+
+proc isFixed*(cx: Constraint): bool =
+  case cx.kind:
+    of UiValue:
+      return isFixed(cx.value)
+    of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+      let args = cssFuncArgs(cx)
+      return isFixed(args.l) or isFixed(args.r)
+    of UiNone, UiEnd:
+      return true
+
+proc isCssFunc*(cx: Constraint): bool =
+  cx.kind in [UiAdd, UiSub, UiMin, UiMax, UiMinMax]
+
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)
 proc csAuto*(): Constraint =

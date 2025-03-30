@@ -22,12 +22,12 @@ proc childBMaxs*(node: GridNode, dir: GridDir): UiScalar =
   if result == UiScalar.low():
     result = 0.0.UiScalar
 
-proc childBMinsPost*(node: GridNode, dir: GridDir): UiScalar =
+proc childBMinsPost*(node: GridNode, dir: GridDir, addXY = true): UiScalar =
   # I'm not sure about this, it's sorta hacky
   # but implement min/max content for non-grid nodes...
   result = UiScalar.low()
   for child in node.children:
-    let childXY = child.box.xy[dir]
+    let childXY = if addXY: child.box.xy[dir] else: 0.0.UiScalar
     let childScreenSize = child.box.wh[dir] + childXY
     let childScreenMin = child.bmin[dir] + childXY
     result = max(result, min(childScreenSize, childScreenMin))

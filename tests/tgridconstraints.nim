@@ -272,10 +272,11 @@ suite "CSS Grid Content Sizing":
       ]
     )
     
+
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
       dcol: {
-        0: ComputedTrackSize(content: 100.UiScalar),
-        1: ComputedTrackSize(content: 150.UiScalar)
+        0: ComputedTrackSize(content: 50.UiScalar),
+        1: ComputedTrackSize(content: 75.UiScalar)
       }.toTable,
       drow: {
         0: ComputedTrackSize(content: 200.UiScalar)

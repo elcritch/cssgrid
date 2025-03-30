@@ -22,7 +22,6 @@ proc computeLineOverflow*(
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
   for i, grdLn in lines:
-      # if grdLn.isAuto:
       match grdLn.track:
         UiValue(value):
           debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
@@ -34,7 +33,21 @@ proc computeLineOverflow*(
           of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
             if i in computedSizes:
               result += computedSizes[i].content
-        _: discard
+        
+        UiNone:
+          discard
+        UiAdd(ls, rs):
+          discard
+        UiSub(ls, rs):
+          discard
+        UiMin(ls, rs):
+          discard
+        UiMax(ls, rs):
+          discard
+        UiMinMax(ls, rs):
+          discard
+        UiEnd:
+          discard
 
   debugPrint "computeLineOverflow:post: ", "dir=", dir, "overflow=", result
 

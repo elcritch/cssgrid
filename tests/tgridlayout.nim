@@ -718,7 +718,7 @@ suite "Grid alignment and justification tests":
 
         root.cxSize = [800'ux, 600'ux]
         # Set up grid template for outer node
-        parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
+        parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr
         parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
         
         # Set up grid items

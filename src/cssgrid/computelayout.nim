@@ -499,13 +499,13 @@ proc expandFlexibleTracks*(
     availableSpace: UiScalar
 ) =
   ## Expand flexible tracks using fr units (Step 12.7 in spec)
+  ## This follows the "Find the Size of an fr" algorithm in section 12.7.1
   
-  # Identify flexible tracks and calculate minimum sizes for flex tracks
+  # 1. Identify flexible tracks and calculate minimum sizes for flex tracks
   var 
     flexTracks: seq[tuple[index: int, factor: UiScalar, baseSize: UiScalar]]
     totalFlex = 0.0.UiScalar
     nonFlexSpace = 0.UiScalar
-    flexMinSpace = 0.UiScalar  # Total minimum size required by flex tracks
   
   for i, gridLine in grid.lines[dir]:
     match gridLine.track:
@@ -513,55 +513,79 @@ proc expandFlexibleTracks*(
         if value.kind == UiFrac:
           flexTracks.add((index: i, factor: value.frac, baseSize: gridLine.baseSize))
           totalFlex += value.frac
-          flexMinSpace += gridLine.baseSize  # Add the minimum content size of flex track
         else:
           nonFlexSpace += gridLine.baseSize
       _:
         nonFlexSpace += gridLine.baseSize
   
-  # Add space for gaps
+  # 2. Add space for gaps
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
-  # Calculate free space for flex tracks AFTER accounting for minimum sizes
-  let 
-    totalRequiredSpace = nonFlexSpace + flexMinSpace
-    freeSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
-    flexibleFreeSpace = max(0.UiScalar, availableSpace - totalRequiredSpace)
+  # 3. Calculate leftover space (as described in 12.7.1)
+  let leftoverSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
   
-  # Log detailed information for debugging
   debugPrint "expandFlexibleTracks:sizes", "dir=", dir, "availableSpace=", availableSpace, 
-    "nonFlexSpace=", nonFlexSpace, "flexMinSpace=", flexMinSpace,
-    "freeSpace=", freeSpace, "flexibleFreeSpace=", flexibleFreeSpace,
+    "nonFlexSpace=", nonFlexSpace, "leftoverSpace=", leftoverSpace,
     "flexTracks=", flexTracks.len
   
   if flexTracks.len() > 0:
-    # If total flex is less than 1, treat it as 1
+    # A. If total flex is less than 1, treat it as 1 (spec rule)
     let adjustedTotalFlex = max(totalFlex, 1.0.UiScalar)
     
-    # Calculate the size per flex unit AFTER accounting for minimum sizes
-    let flexUnit = if flexibleFreeSpace > 0: flexibleFreeSpace / adjustedTotalFlex else: 0.UiScalar
+    # B. Calculate initial hypothetical fr size
+    var hypotheticalFrSize = leftoverSpace / adjustedTotalFlex
     
-    debugPrint "expandFlexibleTracks:fr", "flexUnit=", flexUnit, "totalFlex=", totalFlex, "adjustedTotalFlex=", adjustedTotalFlex
+    debugPrint "expandFlexibleTracks:initial", "hypotheticalFrSize=", hypotheticalFrSize, 
+               "totalFlex=", totalFlex, "adjustedTotalFlex=", adjustedTotalFlex
     
-    # Assign sizes to flexible tracks
-    for (i, factor, baseSize) in flexTracks:
-      # Calculate flexSize by multiplying flexUnit by the flex factor
-      let flexSize = flexUnit * factor
+    # C. Check if any track's flex size would be less than its baseSize
+    var inflexibleTracks: seq[int]
+    
+    for i, (trackIdx, factor, baseSize) in flexTracks:
+      let flexSize = hypotheticalFrSize * factor
+      if flexSize < baseSize:
+        inflexibleTracks.add(i)
+    
+    # D. If we have any inflexible tracks, restart algorithm treating them as inflexible
+    if inflexibleTracks.len > 0:
+      debugPrint "expandFlexibleTracks:restart", "inflexibleTracks=", inflexibleTracks.len
       
-      # The final size is the MAX of:
-      # 1. Current baseSize (min-content)
-      # 2. The flex size calculated based on the flex factor
-      let finalSize = max(baseSize, flexSize)
+      # Remove inflexible tracks from calculation
+      var 
+        remainingFlex = totalFlex
+        remainingSpace = leftoverSpace
+        
+      for i in inflexibleTracks:
+        let (trackIdx, factor, baseSize) = flexTracks[i]
+        remainingFlex -= factor
+        remainingSpace -= baseSize
       
-      debugPrint "expandFlexibleTracks:track", "index=", i, "factor=", factor, 
-                 "baseSize=", baseSize, "flexSize=", flexSize, "finalSize=", finalSize
+      # Recalculate with remaining flexible tracks
+      let adjustedRemainingFlex = max(remainingFlex, 1.0.UiScalar)
+      hypotheticalFrSize = if remainingSpace > 0 and adjustedRemainingFlex > 0: 
+                             remainingSpace / adjustedRemainingFlex 
+                           else: 
+                             0.UiScalar
+      
+      debugPrint "expandFlexibleTracks:recalculated", "hypotheticalFrSize=", hypotheticalFrSize, 
+                 "remainingFlex=", remainingFlex, "remainingSpace=", remainingSpace
+    
+    # E. Apply the fr sizes to all tracks
+    for i, (trackIdx, factor, baseSize) in flexTracks:
+      let inInflexible = i in inflexibleTracks
+      let finalSize = if inInflexible: 
+                        baseSize  # Use baseSize for inflexible tracks
+                      else: 
+                        max(baseSize, hypotheticalFrSize * factor)  # Use fr calculation for flexible tracks
+      
+      debugPrint "expandFlexibleTracks:track", "index=", trackIdx, "factor=", factor, 
+                 "baseSize=", baseSize, "flexSize=", hypotheticalFrSize * factor, 
+                 "finalSize=", finalSize, "inflexible=", inInflexible
       
       # Update both baseSize and width
-      grid.lines[dir][i].baseSize = finalSize
-      grid.lines[dir][i].width = finalSize
-      
-      debugPrint "expandFlexibleTracks:track:final", "index=", i, "baseSize=", grid.lines[dir][i].baseSize
+      grid.lines[dir][trackIdx].baseSize = finalSize
+      grid.lines[dir][trackIdx].width = finalSize
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 

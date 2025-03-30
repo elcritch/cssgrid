@@ -84,8 +84,8 @@ suite "grids":
     # ==== process grid ====
     parent.children = nodes
 
-    setPrettyPrintMode(cmTerminal)
-    defer: setPrettyPrintMode(cmNone)
+    # setPrettyPrintMode(cmTerminal)
+    # defer: setPrettyPrintMode(cmNone)
     discard gridTemplate.computeNodeLayout(parent)
 
     # echo "grid template post: ", repr gridTemplate

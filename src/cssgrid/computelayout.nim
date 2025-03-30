@@ -358,6 +358,10 @@ proc initializeTrackSizes*(
       _:
         baseSize = 0.UiScalar
     
+    # Initialize with content size if available - this ensures min-content contributes to base size
+    if i in trackSizes:
+      baseSize = max(baseSize, trackSizes[i].minContribution)
+    
     # Set initial growth limit
     match track:
       UiValue(value):
@@ -496,18 +500,20 @@ proc expandFlexibleTracks*(
 ) =
   ## Expand flexible tracks using fr units (Step 12.7 in spec)
   
-  # Identify flexible tracks and calculate total flex factor
+  # Identify flexible tracks and calculate minimum sizes for flex tracks
   var 
-    flexTracks: seq[tuple[index: int, factor: UiScalar]]
+    flexTracks: seq[tuple[index: int, factor: UiScalar, baseSize: UiScalar]]
     totalFlex = 0.0.UiScalar
     nonFlexSpace = 0.UiScalar
+    flexMinSpace = 0.UiScalar  # Total minimum size required by flex tracks
   
   for i, gridLine in grid.lines[dir]:
     match gridLine.track:
       UiValue(value):
         if value.kind == UiFrac:
-          flexTracks.add((index: i, factor: value.frac))
+          flexTracks.add((index: i, factor: value.frac, baseSize: gridLine.baseSize))
           totalFlex += value.frac
+          flexMinSpace += gridLine.baseSize  # Add the minimum content size of flex track
         else:
           nonFlexSpace += gridLine.baseSize
       _:
@@ -517,24 +523,45 @@ proc expandFlexibleTracks*(
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
-  # Calculate free space for flex tracks
-  let freeSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
+  # Calculate free space for flex tracks AFTER accounting for minimum sizes
+  let 
+    totalRequiredSpace = nonFlexSpace + flexMinSpace
+    freeSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
+    flexibleFreeSpace = max(0.UiScalar, availableSpace - totalRequiredSpace)
   
-  if flexTracks.len() > 0 and freeSpace > 0:
+  # Log detailed information for debugging
+  debugPrint "expandFlexibleTracks:sizes", "dir=", dir, "availableSpace=", availableSpace, 
+    "nonFlexSpace=", nonFlexSpace, "flexMinSpace=", flexMinSpace,
+    "freeSpace=", freeSpace, "flexibleFreeSpace=", flexibleFreeSpace,
+    "flexTracks=", flexTracks.len
+  
+  if flexTracks.len() > 0:
     # If total flex is less than 1, treat it as 1
     let adjustedTotalFlex = max(totalFlex, 1.0.UiScalar)
     
-    # Calculate the size per flex unit
-    let flexUnit = freeSpace / adjustedTotalFlex.UiScalar
+    # Calculate the size per flex unit AFTER accounting for minimum sizes
+    let flexUnit = if flexibleFreeSpace > 0: flexibleFreeSpace / adjustedTotalFlex else: 0.UiScalar
+    
+    debugPrint "expandFlexibleTracks:fr", "flexUnit=", flexUnit, "totalFlex=", totalFlex, "adjustedTotalFlex=", adjustedTotalFlex
     
     # Assign sizes to flexible tracks
-    for (i, factor) in flexTracks:
-      let flexSize = flexUnit * factor.UiScalar
-      grid.lines[dir][i].baseSize = max(grid.lines[dir][i].baseSize, flexSize)
-      grid.lines[dir][i].width = grid.lines[dir][i].baseSize  # Update width for final positioning
-    
-    debugPrint "expandFlexibleTracks", "dir=", dir, "freeSpace=", freeSpace, 
-              "totalFlex=", totalFlex, "flexUnit=", flexUnit
+    for (i, factor, baseSize) in flexTracks:
+      # Calculate flexSize by multiplying flexUnit by the flex factor
+      let flexSize = flexUnit * factor
+      
+      # The final size is the MAX of:
+      # 1. Current baseSize (min-content)
+      # 2. The flex size calculated based on the flex factor
+      let finalSize = max(baseSize, flexSize)
+      
+      debugPrint "expandFlexibleTracks:track", "index=", i, "factor=", factor, 
+                 "baseSize=", baseSize, "flexSize=", flexSize, "finalSize=", finalSize
+      
+      # Update both baseSize and width
+      grid.lines[dir][i].baseSize = finalSize
+      grid.lines[dir][i].width = finalSize
+      
+      debugPrint "expandFlexibleTracks:track:final", "index=", i, "baseSize=", grid.lines[dir][i].baseSize
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 
@@ -582,16 +609,35 @@ proc computeTrackPositions*(grid: GridTemplate, dir: GridDir) =
   ## Calculate final positions of tracks
   var cursor = 0.0.UiScalar
   
-  for gridLine in grid.lines[dir].mitems:
+  # Skip end track if it exists
+  let trackCount = if grid.lines[dir].len() > 0 and grid.lines[dir][^1].track.kind == UiEnd: 
+                     grid.lines[dir].len() - 1 
+                   else: 
+                     grid.lines[dir].len()
+  
+  # First pass: set positions and ensure width equals baseSize
+  for i in 0 ..< trackCount:
+    var gridLine = addr grid.lines[dir][i]
     gridLine.start = cursor
     gridLine.width = gridLine.baseSize  # Use final base size as width
-    cursor += gridLine.width + grid.gaps[dir]
+    
+    # Move cursor for next track
+    cursor += gridLine.width
+    
+    # Add gap after all tracks except the last one
+    if i < trackCount - 1:
+      cursor += grid.gaps[dir]
+    
+    debugPrint "computeTrackPositions:track", "dir=", dir, "i=", i, 
+               "start=", gridLine.start, "width=", gridLine.width, 
+               "cursor=", cursor
   
-  # Adjust the last track position (remove extra gap)
-  if grid.lines[dir].len() > 0:
-    grid.lines[dir][^1].start -= grid.gaps[dir]
+  # Update the end track position if it exists
+  if grid.lines[dir].len() > 0 and grid.lines[dir][^1].track.kind == UiEnd:
+    grid.lines[dir][^1].start = cursor
+    grid.lines[dir][^1].width = 0.UiScalar
   
-  debugPrint "computeTrackPositions:done", "dir=", dir
+  debugPrint "computeTrackPositions:done", "dir=", dir, "cursor=", cursor
 
 proc trackSizingAlgorithm*(
     grid: GridTemplate,
@@ -620,6 +666,11 @@ proc trackSizingAlgorithm*(
   
   # Now compute final positions
   computeTrackPositions(grid, dir)
+  
+  # Debug output of final track sizes
+  for i, gridLine in grid.lines[dir]:
+    debugPrint "trackSizingAlgorithm:finalTrack", "dir=", dir, "track=", i, 
+               "start=", gridLine.start, "width=", gridLine.width, "baseSize=", gridLine.baseSize
 
 # Add computeAutoFlow function here (copied from layout.nim to make sure it's available)
 proc computeAutoFlow(
@@ -730,6 +781,17 @@ proc computeAutoFlow(
   for child in autos:
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
+# Add a function to compute the overflow sizes correctly
+proc computeOverflowSizes*(grid: GridTemplate) =
+  # Calculate overflow sizes based on the final positions and widths of tracks
+  for dir in [dcol, drow]:
+    if grid.lines[dir].len() > 0:
+      let lastTrackIndex = grid.lines[dir].len() - 1
+      let lastTrack = grid.lines[dir][lastTrackIndex]
+      grid.overflowSizes[dir] = lastTrack.start + lastTrack.width
+      
+    debugPrint "computeOverflowSizes", "dir=", dir, "size=", grid.overflowSizes[dir]
+
 # Grid Layout Algorithm implementation following CSS Grid Level 2 spec
 proc runGridLayoutAlgorithm*(node: GridNode) =
   ## Implementation of the grid layout algorithm as defined in css-grid-level-2.md
@@ -768,6 +830,10 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
   # 3. Run the Grid Sizing Algorithm
   runGridSizingAlgorithm(node, node.gridTemplate, node.box)
   
+  # 3a. Compute overflow sizes based on final track positions and sizes
+  computeOverflowSizes(node.gridTemplate)
+  
+  # Debug output
   prettyGridTemplate(node.gridTemplate)
   printLayout(node)
 
@@ -775,12 +841,12 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
   for child in node.children:
     let gridBox = child.computeBox(node.gridTemplate)
     child.box = typeof(child.box)(gridBox)
+    debugPrint "runGridLayoutAlgorithm:layout_item", "child=", child.name, "box=", child.box
 
 proc computeNodeLayout*(
     gridTemplate: GridTemplate,
     node: GridNode,
 ): auto =
-
   let box = node.box
 
   gridTemplate.createEndTracks()
@@ -788,14 +854,41 @@ proc computeNodeLayout*(
   # Run the full grid layout algorithm
   runGridLayoutAlgorithm(node)
   
-  # Return the grid container's final size
-  let w = gridTemplate.overflowSizes[dcol]
-  let h = gridTemplate.overflowSizes[drow]
+  # Calculate final grid size - need to add the width of the last track
+  var finalWidth = 0.UiScalar
+  var finalHeight = 0.UiScalar
+  
+  # Handle empty grid case
+  if gridTemplate.lines[dcol].len() > 0:
+    let lastColIndex = gridTemplate.lines[dcol].len() - 1
+    finalWidth = gridTemplate.lines[dcol][lastColIndex].start + gridTemplate.lines[dcol][lastColIndex].width
+  
+  if gridTemplate.lines[drow].len() > 0:
+    let lastRowIndex = gridTemplate.lines[drow].len() - 1
+    finalHeight = gridTemplate.lines[drow][lastRowIndex].start + gridTemplate.lines[drow][lastRowIndex].width
+  
+  # If we have explicit overflow sizes, use those
+  if gridTemplate.overflowSizes[dcol] > 0:
+    finalWidth = max(finalWidth, gridTemplate.overflowSizes[dcol])
+  
+  if gridTemplate.overflowSizes[drow] > 0:
+    finalHeight = max(finalHeight, gridTemplate.overflowSizes[drow])
+  
+  # Make sure we're at least the requested box size
+  finalWidth = max(finalWidth, box.w)
+  finalHeight = max(finalHeight, box.h)
+  
+  debugPrint "computeNodeLayout:finalSize", "finalWidth=", finalWidth, "finalHeight=", finalHeight, 
+             "originalBox=", box, "lastColStart=", 
+             if gridTemplate.lines[dcol].len() > 0: gridTemplate.lines[dcol][^1].start else: 0.UiScalar,
+             "lastColWidth=", 
+             if gridTemplate.lines[dcol].len() > 0: gridTemplate.lines[dcol][^1].width else: 0.UiScalar
+  
   return typeof(box)(uiBox(
                 box.x.float,
                 box.y.float,
-                max(box.w.float, gridTemplate.lines[dcol][^1].start.float),
-                max(box.h.float, gridTemplate.lines[drow][^1].start.float),
+                finalWidth.float,
+                finalHeight.float,
               ))
 
 proc computeLayout*(node: GridNode, depth: int, full = true) =

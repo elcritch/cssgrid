@@ -37,18 +37,16 @@ proc computeLineOverflow*(
       match grdLn.track:
         UiNone:
           discard
-
         UiValue(value):
           result += processUiValue(value, i, computedSizes)
-        
         UiAdd(ls, rs):
-          discard
+          result += processUiValue(ls, i, computedSizes) + processUiValue(rs, i, computedSizes)
         UiSub(ls, rs):
-          discard
+          result += processUiValue(ls, i, computedSizes) - processUiValue(rs, i, computedSizes)
         UiMin(ls, rs):
-          discard
+          result += min(processUiValue(ls, i, computedSizes), processUiValue(rs, i, computedSizes))
         UiMax(ls, rs):
-          discard
+          result += max(processUiValue(ls, i, computedSizes), processUiValue(rs, i, computedSizes))
         UiMinMax(ls, rs):
           discard
         UiEnd:
@@ -88,6 +86,14 @@ proc computeLineLayout*(
         of UiAuto:
           totalAuto += 1.0.UiScalar
           grdLn.width = UiScalar.low()
+      UiMin(ls, rs):
+        let lv = processUiValue(ls, i, computedSizes)
+        let rv = processUiValue(rs, i, computedSizes)
+        grdLn.width = min(lv, rv)
+      UiMax(ls, rs):
+        let lv = processUiValue(ls, i, computedSizes)
+        let rv = processUiValue(rs, i, computedSizes)
+        grdLn.width = max(lv, rv)
       _:
         debugPrint "computeLineLayout:unknown: ", "track=", grdLn.track
         discard  # Handle other cases

@@ -227,9 +227,36 @@ suite "CSS Grid Content Sizing":
     # check gt.lines[dcol][0].width == 200.UiScalar  # Constrained to container
     # check gt.lines[drow][0].width == 200.UiScalar  # Constrained to container
 
-  test "minimum content sizing":
-    if true:
-      break
+  test "minimum content sizing container smaller than minimum":
+    var gt = newGridTemplate(
+      columns = @[
+        initGridLine(csMin(100.UiScalar, 1'fr)),
+        initGridLine(csMin(150.UiScalar, 9'fr))
+      ],
+      rows = @[
+        initGridLine(csMin(200.UiScalar, 1'fr))
+      ]
+    )
+    
+    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
+      dcol: {
+        0: ComputedTrackSize(content: 100.UiScalar),
+        1: ComputedTrackSize(content: 150.UiScalar)
+      }.toTable,
+      drow: {
+        0: ComputedTrackSize(content: 200.UiScalar)
+      }.toTable
+    ]
+
+    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
+
+    # Check that minimum sizes are respected
+    check gt.lines[dcol][0].width == 100.UiScalar  # First column minimum
+    check gt.lines[dcol][1].width == 150.UiScalar  # Second column minimum
+    check gt.lines[drow][0].width == 200.UiScalar  # Row minimum
+
+  test "minimum content sizing container larger than minimum":
+    break
     prettyPrintWriteMode = cmTerminal
     defer: prettyPrintWriteMode = cmNone
 
@@ -252,13 +279,6 @@ suite "CSS Grid Content Sizing":
         0: ComputedTrackSize(content: 200.UiScalar)
       }.toTable
     ]
-
-    gt.computeTracks(uiBox(0, 0, 300, 300), computedSizes)
-
-    # Check that minimum sizes are respected
-    check gt.lines[dcol][0].width == 100.UiScalar  # First column minimum
-    check gt.lines[dcol][1].width == 150.UiScalar  # Second column minimum
-    check gt.lines[drow][0].width == 200.UiScalar  # Row minimum
 
     # Check that tracks can grow beyond minimum
     gt.computeTracks(uiBox(0, 0, 500, 500), computedSizes)

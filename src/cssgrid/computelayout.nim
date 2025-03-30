@@ -53,6 +53,13 @@ proc getLine*(grid: GridTemplate, dir: GridDir, index: GridIndex): var GridLine 
     else: findLine(index, grid.lines[dir])
   grid.lines[dir][idx-1]
 
+proc fixedCount*(gridItem: GridItem): range[0..4] =
+  if gridItem.index[dcol].a.line.ints != 0: result.inc
+  if gridItem.index[dcol].b.line.ints != 0: result.inc
+  if gridItem.index[drow].a.line.ints != 0: result.inc
+  if gridItem.index[drow].b.line.ints != 0: result.inc
+
+
 proc setGridSpans*(
     item: GridItem,
     grid: GridTemplate,
@@ -603,6 +610,87 @@ proc trackSizingAlgorithm*(
   # Now compute final positions
   computeTrackPositions(grid, dir)
 
+# Add computeAutoFlow function here (copied from layout.nim to make sure it's available)
+proc computeAutoFlow(
+    gridTemplate: GridTemplate,
+    node: UiBox,
+    allNodes: seq[GridNode],
+) =
+  let (mx, my) =
+    if gridTemplate.autoFlow in [grRow, grRowDense]:
+      (dcol, drow)
+    elif gridTemplate.autoFlow in [grColumn, grColumnDense]:
+      (drow, dcol)
+    else:
+      raise newException(ValueError, "unhandled case")
+
+  proc `in`(cur: array[GridDir, LinePos], cache: HashSet[GridSpan]): bool =
+    for span in cache:
+      if cur[mx] in span[mx] and cur[my] in span[my]:
+        return true
+
+  # setup caches
+  var autos = newSeqOfCap[GridNode](allNodes.len())
+  var fixedCache = newTable[LinePos, HashSet[GridSpan]]()
+  for i in 1..gridTemplate.lines[my].len()+1:
+    fixedCache[i.LinePos] = initHashSet[GridSpan]()
+
+  # populate caches
+  for child in allNodes:
+    if child.gridItem == nil:
+      child.gridItem = GridItem()
+  for child in allNodes:
+    if fixedCount(child.gridItem) == 4:
+      var span = child.gridItem.span
+      span[mx].b.dec
+      let rng = child.gridItem.span[my]
+      for j in rng.a ..< rng.b:
+        fixedCache.mgetOrPut(j, initHashSet[GridSpan]()).incl span
+    else:
+      autos.add child
+
+  var cursor: array[GridDir, LinePos] = [1.LinePos, 1.LinePos]
+  var i = 0
+  var foundOverflow = false
+
+  template incrCursor(amt, blk, outer: untyped) =
+    ## increment major index
+    cursor[mx].inc
+    ## increment minor when at end of major
+    if cursor[mx] >= gridTemplate.lines[mx].len():
+      cursor[mx] = 1.LinePos
+      cursor[my] = cursor[my] + 1
+      if cursor[my] >= gridTemplate.lines[my].len():
+        foundOverflow = true
+      break blk
+  
+  ## computing auto flows
+  block autoflow:
+    ## this format is complicated but is used to try and keep
+    ## the algorithm as O(N) as possible by iterating directly
+    ## through the indexes
+    while i < len(autos):
+      block childBlock:
+        ## increment cursor and index until one breaks the mold
+        while cursor[my] in fixedCache and cursor in fixedCache[cursor[my]]:
+          incrCursor(1, childBlock, autoFlow)
+        while cursor[my] notin fixedCache or not (cursor in fixedCache[cursor[my]]):
+          debugPrint "computeAutoFlow:setting", "node=", (autos[i]).name, "mx=", repr mx, "my=", repr my, "cursor=", repr cursor
+          # set the index for each auto rather than the span directly
+          # so that auto-flow works properly
+          autos[i].gridItem.index[mx].a = mkIndex(cursor[mx].int)
+          autos[i].gridItem.index[mx].b = mkIndex((cursor[mx]+1).int)
+          autos[i].gridItem.index[my].a = mkIndex(cursor[my].int)
+          autos[i].gridItem.index[my].b = mkIndex((cursor[my]+1).int)
+          i.inc
+          if i >= autos.len():
+            break autoflow
+          incrCursor(1, childBlock, autoFlow)
+
+  if foundOverflow:
+    for child in autos:
+      child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
+
 # Grid Layout Algorithm implementation following CSS Grid Level 2 spec
 proc runGridLayoutAlgorithm*(node: GridNode) =
   ## Implementation of the grid layout algorithm as defined in css-grid-level-2.md
@@ -614,10 +702,26 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
   assert not node.gridTemplate.isNil
   
   # 1. Run the Grid Item Placement Algorithm
-  # We're reusing the existing implementation which is similar to this step
+  
+  # 1a. First, handle auto flow items - this is what was missing
+  # Check if there are any items that need auto flow
+  var hasAutos = false
   for child in node.children:
     if child.gridItem == nil:
       child.gridItem = GridItem()
+    child.gridItem.setGridSpans(node.gridTemplate, child.box.wh.UiSize)
+    
+    # If this item doesn't have all positions set, we need auto flow
+    if fixedCount(child.gridItem) != 4:
+      hasAutos = true
+  
+  # Run auto flow placement if needed
+  if hasAutos:
+    debugPrint "runGridLayoutAlgorithm:computeAutoFlow"
+    computeAutoFlow(node.gridTemplate, node.box, node.children)
+  
+  # 1b. Now set final spans with the positions
+  for child in node.children:
     child.gridItem.setGridSpans(node.gridTemplate, child.box.wh.UiSize)
   
   # 2. Find the size of the grid container (already in node.box)

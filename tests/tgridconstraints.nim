@@ -250,13 +250,15 @@ suite "CSS Grid Content Sizing":
 
     gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
 
+
     # Check that minimum sizes are respected
     check gt.lines[dcol][0].width == 100.UiScalar  # First column minimum
     check gt.lines[dcol][1].width == 150.UiScalar  # Second column minimum
     check gt.lines[drow][0].width == 200.UiScalar  # Row minimum
 
   test "minimum content sizing container larger than minimum":
-    break
+    if true:
+      break
     prettyPrintWriteMode = cmTerminal
     defer: prettyPrintWriteMode = cmNone
 

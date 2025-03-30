@@ -14,14 +14,20 @@ type
 
 {.push stackTrace: off.}
 
-proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, ComputedTrackSize]): UiScalar =
+proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, ComputedTrackSize], length = 0.0.UiScalar, fracMinsOnly = true): UiScalar =
   debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
   case value.kind
   of UiFixed:
     result = value.coord
   of UiPerc:
-    discard
-  of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
+    result = length * value.perc / 100
+  of UiFrac:
+    if fracMinsOnly:
+      if i in computedSizes:
+        result = computedSizes[i].content
+    else:
+      result = value.frac
+  of UiContentMax, UiContentMin, UiContentFit, UiAuto:
     if i in computedSizes:
       result = computedSizes[i].content
 
@@ -72,8 +78,8 @@ proc computeLineLayout*(
       UiValue(value):
         case value.kind
         of UiFixed:
+          grdLn.width = processUiValue(value, i, computedSizes, length, false)
           fixed += value.coord
-          grdLn.width = value.coord
         of UiPerc:
           fixed += length * value.perc / 100
           grdLn.width = length * value.perc / 100

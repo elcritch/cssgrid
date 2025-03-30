@@ -416,15 +416,7 @@ proc computeContentSizes*(
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)
         case track.value.kind:
-        of UiAuto:
-          computed.content = contentSize
-        of UiFrac:
-          computed.content = contentSize
-        of UiContentMin:
-          computed.content = contentSize
-        of UiContentMax:
-          computed.content = contentSize
-        of UiContentFit:
+        of UiAuto, UiFrac, UiContentMin, UiContentMax, UiContentFit:
           # For fit-content, we just need to set the maxContent value
           # The clamping to available space happens during layout
           computed.content = contentSize

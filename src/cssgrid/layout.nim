@@ -304,24 +304,24 @@ proc computeBox*(
   node.gridItem.setGridSpans(grid, contentSize)
 
   # set columns
-  template calcBoxFor(f, v, dir, axis) =
-    result.`f` = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].a)
-    let spanEnd = grid.lines[`dir`].getGrid(node.gridItem.span[`dir`].b)
-    let spanWidth = (spanEnd - result.`f`) - grid.gaps[`dir`]
-    let contentSizeDir = contentSize.`v` + node.bpad.wh[`dir`]
-    let contentView = min(contentSizeDir, spanWidth)
-    debugPrint "calcBoxFor:", "name=", node.name, "dir=", dir, "spanEnd=", spanEnd, "spanWidth=", spanWidth, "contentView=", contentView, "contentSize=", contentSizeDir
-    case `axis`:
+  template calcBoxFor(position, size, direction, alignment) =
+    result.`position` = grid.lines[`direction`].getGrid(node.gridItem.span[`direction`].a)
+    let spanEnd = grid.lines[`direction`].getGrid(node.gridItem.span[`direction`].b)
+    let spanSize = (spanEnd - result.`position`) - grid.gaps[`direction`]
+    let contentSizeInDirection = contentSize.`size` + node.bpad.wh[`direction`]
+    let visibleContentSize = min(contentSizeInDirection, spanSize)
+    debugPrint "calcBoxFor:", "name=", node.name, "dir=", direction, "spanEnd=", spanEnd, "spanSize=", spanSize, "visibleContentSize=", visibleContentSize, "contentSize=", contentSizeInDirection
+    case `alignment`:
     of CxStretch:
-      result.`v` = spanWidth
+      result.`size` = spanSize
     of CxCenter:
-      result.`f` = (spanWidth/2 - contentView/2) + result.`f`
-      result.`v` = contentView
+      result.`position` = (spanSize/2 - visibleContentSize/2) + result.`position`
+      result.`size` = visibleContentSize
     of CxStart:
-      result.`v` = contentView
+      result.`size` = visibleContentSize
     of CxEnd:
-      result.`f` = spanEnd - contentView
-      result.`v` = contentView
+      result.`position` = spanEnd - visibleContentSize
+      result.`size` = visibleContentSize
 
   let justify = node.gridItem.justify.get(grid.justifyItems)
   let align = node.gridItem.align.get(grid.alignItems)

@@ -776,7 +776,7 @@ suite "Grid alignment and justification tests":
         `blk`
 
   test "Complex grid layout with nested nodes":
-    when false:
+    when true:
       testLayout(194.55'ux): # larger than 1'fr
         # printLayout(root, cmTerminal)
         check top.box.w.float32 == 800
@@ -825,7 +825,7 @@ suite "Grid alignment and justification tests":
       upvotes.cxMin = [1000'ux, 1000'ux]
       computeLayout(root)
 
-      # printLayout(root, cmTerminal)
+      printLayout(root, cmTerminal)
       check top.box.w.float32 == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133

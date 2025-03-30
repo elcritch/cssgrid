@@ -22,16 +22,16 @@ proc computeLineOverflow*(
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
 
-  template processUiValue(value, i, computedSizes) =
+  proc processUiValue(value: ConstraintSize, i: int, computedSizes: Table[int, ComputedTrackSize]): UiScalar =
     debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
     case value.kind
     of UiFixed:
-      result += value.coord
+      result = value.coord
     of UiPerc:
       discard
     of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
       if i in computedSizes:
-        result += computedSizes[i].content
+        result = computedSizes[i].content
 
   for i, grdLn in lines:
       match grdLn.track:
@@ -39,7 +39,7 @@ proc computeLineOverflow*(
           discard
 
         UiValue(value):
-          processUiValue(value, i, computedSizes)
+          result += processUiValue(value, i, computedSizes)
         
         UiAdd(ls, rs):
           discard

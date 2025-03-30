@@ -31,11 +31,22 @@ proc getGrid(lines: seq[GridLine], idx: int): UiScalar =
 proc gridAutoInsert(grid: GridTemplate, dir: GridDir, idx: int, cz: UiScalar) =
   assert idx <= 1000, "max grids exceeded"
   # assert idx < 8
+  
+  # debugPrint "gridAutoInsert", "dir=", dir, "idx=", idx, "currLen=", grid.lines[dir].len()
+  
   while idx >= grid.lines[dir].len():
     let offset = grid.lines[dir].len() - 1
     let track = grid.autos[dir]
     var ln = initGridLine(track = track, isAuto = true)
-    grid.lines[dir].insert(ln, max(offset, 0))
+    
+    # Always insert before the end track (or at the beginning if empty)
+    if offset < 0 or grid.lines[dir].len() == 0:
+      grid.lines[dir].add(ln)
+    else:
+      # Insert auto track before the end track
+      grid.lines[dir].insert(ln, offset)
+      
+    # debugPrint "gridAutoInsert:added", "dir=", dir, "idx=", idx, "at=", offset, "currLen=", grid.lines[dir].len()
 
 proc setSpan(grid: GridTemplate, index: GridIndex, dir: GridDir, cz: UiScalar): int16 =
   ## todo: clean this up? maybe use static bools for col vs row
@@ -653,6 +664,19 @@ proc computeAutoFlow(
   var i = 0
   var foundOverflow = false
 
+  # Pre-insert auto tracks if needed to ensure we have enough
+  proc ensureTracksExist(dir: GridDir, pos: LinePos) =
+    # Make sure we have at least pos tracks in the given direction
+    # This ensures we never run out of tracks during auto-placement
+    let currentCount = gridTemplate.lines[dir].len() - 1
+    if pos.int > currentCount:
+      for _ in currentCount+1 .. pos.int:
+        let autoTrack = gridTemplate.autos[dir]
+        var newLine = initGridLine(track = autoTrack, isAuto = true)
+        # Insert before the end track
+        gridTemplate.lines[dir].insert(newLine, max(gridTemplate.lines[dir].len() - 1, 0))
+        # debugPrint "ensureTracksExist:inserted", "dir=", dir, "pos=", pos, "currentCount=", currentCount
+
   template incrCursor(amt, blk, outer: untyped) =
     ## increment major index
     cursor[mx].inc
@@ -660,8 +684,13 @@ proc computeAutoFlow(
     if cursor[mx] >= gridTemplate.lines[mx].len():
       cursor[mx] = 1.LinePos
       cursor[my] = cursor[my] + 1
+      
+      # Check if we need more tracks in the minor axis - this is the key fix
       if cursor[my] >= gridTemplate.lines[my].len():
-        foundOverflow = true
+        # Instead of just setting foundOverflow, actually create the new track
+        ensureTracksExist(my, cursor[my])
+        # debugPrint "computeAutoFlow:overflow:created_track", "my=", my, "cursor=", cursor
+      
       break blk
   
   ## computing auto flows
@@ -672,10 +701,20 @@ proc computeAutoFlow(
     while i < len(autos):
       block childBlock:
         ## increment cursor and index until one breaks the mold
+        
+        # Ensure we have enough tracks for both directions
+        ensureTracksExist(mx, cursor[mx])
+        ensureTracksExist(my, cursor[my])
+        
         while cursor[my] in fixedCache and cursor in fixedCache[cursor[my]]:
           incrCursor(1, childBlock, autoFlow)
         while cursor[my] notin fixedCache or not (cursor in fixedCache[cursor[my]]):
-          debugPrint "computeAutoFlow:setting", "node=", (autos[i]).name, "mx=", repr mx, "my=", repr my, "cursor=", repr cursor
+          # debugPrint "computeAutoFlow:setting", "node=", (autos[i]).name, "mx=", repr mx, "my=", repr my, "cursor=", repr cursor
+          
+          # Ensure tracks exist before setting the index
+          ensureTracksExist(mx, cursor[mx])
+          ensureTracksExist(my, cursor[my])
+          
           # set the index for each auto rather than the span directly
           # so that auto-flow works properly
           autos[i].gridItem.index[mx].a = mkIndex(cursor[mx].int)
@@ -687,9 +726,9 @@ proc computeAutoFlow(
             break autoflow
           incrCursor(1, childBlock, autoFlow)
 
-  if foundOverflow:
-    for child in autos:
-      child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
+  # Always update spans for auto items to ensure they have the correct positioning
+  for child in autos:
+    child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
 # Grid Layout Algorithm implementation following CSS Grid Level 2 spec
 proc runGridLayoutAlgorithm*(node: GridNode) =

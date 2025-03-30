@@ -191,6 +191,7 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
     check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
 
+    printLayout(parent, cmTerminal)
     # TODO: FIXME!!!
     # the min fr track len should account for the min-content size
     check nodes[0].box == uiBox(0, 0, 40, 40)

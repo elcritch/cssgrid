@@ -19,6 +19,21 @@ import prettyprints
 
 {.push stackTrace: off.}
 
+proc computeCssFuncs*(calc: Constraints, lhs, rhs: UiScalar): UiScalar =
+    case calc:
+    of UiNone, UiValue, UiEnd:
+      return 0.0.UiScalar
+    of UiAdd:
+      result = lhs + rhs
+    of UiSub:
+      result = lhs - rhs
+    of UiMin:
+      result = min(lhs, rhs)
+    of UiMax:
+      result = max(lhs, rhs)
+    of UiMinMax:
+      return min(max(lhs, rhs), rhs)
+
 proc calcBasicConstraintImpl(
     node: GridNode,
     dir: GridDir,
@@ -79,32 +94,17 @@ proc calcBasicConstraintImpl(
       node.cxPadSize[dir]
 
   debugPrint "calcBasicCx", "name=", node.name, "csValue:", csValue, "dir=", dir, "calc=", calc
-  match csValue:
-    UiNone:
-      discard
-    UiAdd(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      f = lv + rv
-    UiSub(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      f = lv - rv
-    UiMin(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      f = min(lv, rv)
-    UiMax(ls, rs):
-      let lv = ls.calcBasic()
-      let rv = rs.calcBasic()
-      f = max(lv, rv)
-      debugPrint "calcBasicCx:max: ", " name=", node.name, "dir=", dir, "calc=", calc, "lv=", lv, "rv= ", rv, "rs=", rs
-    UiValue(value):
-      f = calcBasic(value)
-    UiMinMax(ls, rs):
-      return
-    UiEnd:
-      return
+  case csValue.kind:
+  of UiNone:
+    discard
+  of UiAdd, UiSub, UiMin, UiMax, UiMinMax:
+    let (lv, rv) = csValue.cssFuncArgs()
+    f = computeCssFuncs(csValue.kind, lv.calcBasic(), rv.calcBasic())
+  
+  of UiValue:
+    f = calcBasic(csValue.value)
+  of UiEnd:
+    return
 
   # debugPrint "calcBasicCx:done: ", "name=", node.name, " val= ", f
   node.propogateCalcs(dir, calc, f)

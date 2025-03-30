@@ -21,21 +21,26 @@ proc computeLineOverflow*(
 ): UiScalar =
   let lines = lines[dir]
   let computedSizes = computedSizes[dir]
+
+  template processUiValue(value, i, computedSizes) =
+    debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
+    case value.kind
+    of UiFixed:
+      result += value.coord
+    of UiPerc:
+      discard
+    of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
+      if i in computedSizes:
+        result += computedSizes[i].content
+
   for i, grdLn in lines:
       match grdLn.track:
-        UiValue(value):
-          debugPrint "computeLineOverflow", "trackCxValue=", value, "autoSize=", computedSizes.getOrDefault(i).content
-          case value.kind
-          of UiFixed:
-            result += value.coord
-          of UiPerc:
-            discard
-          of UiContentMax, UiContentMin, UiContentFit, UiFrac, UiAuto:
-            if i in computedSizes:
-              result += computedSizes[i].content
-        
         UiNone:
           discard
+
+        UiValue(value):
+          processUiValue(value, i, computedSizes)
+        
         UiAdd(ls, rs):
           discard
         UiSub(ls, rs):

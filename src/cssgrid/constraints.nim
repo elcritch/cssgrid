@@ -77,12 +77,52 @@ proc csContentMax*(): Constraint =
 proc csContentFit*(): Constraint =
   csValue(ConstraintSize(kind: UiContentFit))
 
+proc isContentSized*(cx: ConstraintSize): bool =
+  cx.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac]
+
 proc isContentSized*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac] 
+  match cx:
+    UiNone:
+      result = false
+    UiValue(value):
+      result = isContentSized(value)
+    UiMin(lmin, rmin):
+      result = isContentSized(lmin) or isContentSized(rmin)
+    UiMax(lmax, rmax):
+      result = isContentSized(lmax) or isContentSized(rmax)
+    UiAdd(ladd, radd):
+      result = isContentSized(ladd) or isContentSized(radd)
+    UiSub(lsub, rsub):
+      result = isContentSized(lsub) or isContentSized(rsub)
+    UiMinMax(lmm, rmm):
+      result = isContentSized(lmm) or isContentSized(rmm)
+    UiEnd:
+      result = false
+
+
 proc isBasicContentSized*(cs: ConstraintSize): bool =
   cs.kind in [UiContentMin, UiContentMax, UiContentFit]
+
+proc isAuto*(cs: ConstraintSize): bool =
+  cs.kind == UiAuto
 proc isAuto*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiAuto, UiFrac]
+  match cx:
+    UiNone:
+      result = false
+    UiEnd:
+      result = false
+    UiValue(value):
+      result = isAuto(value)
+    UiMin(lmin, rmin):
+      result = isAuto(lmin) or isAuto(rmin)
+    UiMax(lmax, rmax):
+      result = isAuto(lmax) or isAuto(rmax)
+    UiAdd(ladd, radd):
+      result = isAuto(ladd) or isAuto(radd)
+    UiSub(lsub, rsub):
+      result = isAuto(lsub) or isAuto(rsub)
+    UiMinMax(lmm, rmm):
+      result = isAuto(lmm) or isAuto(rmm)
 
 proc csEnd*(): Constraint =
   Constraint(kind: UiEnd)

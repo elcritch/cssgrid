@@ -244,3 +244,11 @@ proc newGridTemplate*(
 
 proc newGridItem*(): GridItem =
   new(result)
+
+proc isAllFractionalTracks*(grid: GridTemplate, dir: GridDir): bool =
+  # Helper function to check if all tracks are fractional
+  result = true
+  for i, line in grid.lines[dir]:
+    if i < grid.lines[dir].high:  # Skip the end track
+      if not line.track.isFrac():
+        return false

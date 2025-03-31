@@ -6,6 +6,11 @@ type
   CalcKind* {.pure.} = enum
     PADXY, PADWH, XY, WH, MINSZ, MAXSZ
 
+type
+  ComputedTrackSize* = object of ComputedSize
+    minContribution*: UiScalar
+    maxContribution*: UiScalar
+
 {.push stackTrace: off.}
 
 proc childBMins*(node: GridNode, dir: GridDir): UiScalar =
@@ -58,45 +63,127 @@ proc propogateCalcs*(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScal
           _: discard
       _: discard
 
-proc isIndefiniteGridDimension*(grid: GridTemplate, node: GridNode, dir: GridDir): bool =
-  ## Determines if a grid dimension is "indefinite" according to the CSS Grid spec.
-  ## An indefinite dimension means the sizing algorithm should handle fractional units
-  ## differently - they don't expand to fill available space, but rather are sized
-  ## based on their content.
-  ##
-  ## A dimension is indefinite when:
-  ## - The grid container has 'auto' size in that dimension
-  ## - The grid container has content-based sizing (min-content, max-content)
-  ## - The grid container uses fr units for its own sizing and isn't sized by its parent
+
+# Helper function to get base size for constraint size
+proc getBaseSizeForConstraintSize*(
+    grid: GridTemplate, 
+    idx: int, 
+    dir: GridDir,
+    trackSizes: Table[int, ComputedTrackSize],
+    cs: ConstraintSize
+): UiScalar =
+  # Handle different constraint size types
+  case cs.kind
+  of UiFixed:
+    return cs.coord
+  of UiPerc:
+    # For percentage, we'd need container size
+    # Just return the percentage as pixels for now
+    return cs.perc.UiScalar
+  of UiFrac:
+    # For fractional, use min content if available
+    if idx in trackSizes:
+      return trackSizes[idx].minContribution
+    return 0.UiScalar
+  of UiAuto, UiContentMin, UiContentMax, UiContentFit:
+    # For auto and content-sized tracks, use content contributions
+    if idx in trackSizes:
+      let baseSize = trackSizes[idx].minContribution
+      
+      if cs.kind == UiContentMax or cs.kind == UiContentFit:
+        return max(baseSize, trackSizes[idx].maxContribution)
+      
+      return baseSize
+    return 0.UiScalar
+
+proc getBaseSize*(
+    grid: GridTemplate, 
+    idx: int, 
+    dir: GridDir,
+    trackSizes: Table[int, ComputedTrackSize]
+): UiScalar =
+  ## Get the base size for a track based on its constraint type and content contributions
+  ## According to CSS Grid spec section 12.4
   
-  # Check node's constraint size in this direction
-  let constraint = node.cxSize[dir]
+  # Return zero for out of range indices
+  if idx < 0 or idx >= grid.lines[dir].len:
+    return 0.UiScalar
   
-  # Auto, content-based sizing, or fr units make a dimension indefinite
-  match constraint:
-    UiValue(value):
-      if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac}:
-        return true
-    _: discard
-
-  # If parent container doesn't provide a definite constraint, the dimension is indefinite
-  # Root node without explicit size is indefinite
-  if dir == drow and node.cxSize[drow].kind == UiNone:
-      # Most UIs have indefinite height by default - this is represented by UiNone in this library
-      return true
-
-  # If parent has indefinite size in this direction, this direction is also indefinite
-  # if not node.parent.isNil:
-  #   let parentConstraint = node.getParent().cxSize[dir]
-  #   match parentConstraint:
-  #     UiValue(value):
-  #       if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit}:
-  #         return true
-  #     _: discard
-
-  # Check if the grid's auto template is using fr units in this direction
-  # This indicates a content-sized track which should be treated as indefinite
-  if grid.autos[dir].kind == UiValue and grid.autos[dir].value.kind == UiFrac:
-    return true
+  let trackConstraint = grid.lines[dir][idx].track
+  
+  # Handle different constraint types
+  case trackConstraint.kind
+  of UiValue:
+    case trackConstraint.value.kind
+    of UiFixed:
+      # For fixed-sized tracks, use the fixed size
+      return trackConstraint.value.coord
+    of UiPerc:
+      # For percentage tracks, we'd need container size
+      # This should be properly handled in a full implementation
+      # For now, return a default size or existing base size
+      if grid.lines[dir][idx].baseSize > 0:
+        return grid.lines[dir][idx].baseSize
+      return trackConstraint.value.perc.UiScalar  # Return percentage as pixels for now
+    of UiFrac:
+      # For fractional tracks, use content contributions
+      # to determine base size before distribution
+      if idx in trackSizes:
+        # Use the max of min-content and any existing base size
+        return max(trackSizes[idx].minContribution, grid.lines[dir][idx].baseSize)
+      return 0.UiScalar
+    of UiAuto, UiContentMin, UiContentMax, UiContentFit:
+      # For auto and content-sized tracks, use content contributions
+      if idx in trackSizes:
+        # Start with min contribution as base size
+        let baseSize = trackSizes[idx].minContribution
+        
+        # For auto tracks, consider existing base size too
+        if trackConstraint.value.kind == UiAuto and grid.lines[dir][idx].baseSize > 0:
+          return max(baseSize, grid.lines[dir][idx].baseSize)
+        
+        # For min-content, just use min contribution
+        if trackConstraint.value.kind == UiContentMin:
+          return baseSize
+        
+        # For max-content, use max contribution
+        if trackConstraint.value.kind == UiContentMax or trackConstraint.value.kind == UiContentFit:
+          return max(baseSize, trackSizes[idx].maxContribution)
+        
+        return baseSize
+      return 0.UiScalar
+  of UiMin:
+    # For min(), take the minimum of the two sizes
+    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lmin)
+    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rmin)
+    return min(lhsSize, rhsSize)
+  of UiMax:
+    # For max(), take the maximum of the two sizes
+    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lmax)
+    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rmax)
+    return max(lhsSize, rhsSize)
+  of UiMinMax:
+    # For minmax(), use the minimum as a floor and maximum as a ceiling
+    let minSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lmm)
+    let maxSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rmm)
     
-  return false
+    # Get content contribution if available
+    var contentSize = 0.UiScalar
+    if idx in trackSizes:
+      contentSize = trackSizes[idx].minContribution
+    
+    # Return content size clamped between min and max
+    return min(maxSize, max(minSize, contentSize))
+  of UiAdd:
+    # For addition, add the two sizes
+    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.ladd)
+    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.radd)
+    return lhsSize + rhsSize
+  of UiSub:
+    # For subtraction, subtract but ensure result is not negative
+    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lsub)
+    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rsub)
+    return max(0.UiScalar, lhsSize - rhsSize)
+  of UiNone, UiEnd:
+    # For none or end, return 0
+    return 0.UiScalar

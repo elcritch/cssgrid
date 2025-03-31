@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Layout Auto Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .scroll {
+            width: 768px;
+            height: 540px;
+            border: 1px solid #333;
+            background-color: #f5f5f5;
+            position: relative;
+        }
+
+        .scrollBody {
+            width: auto;
+            height: max-content;
+        }
+
+        .items {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-auto-flow: row;
+            grid-row-gap: 3px;
+            grid-auto-rows: auto;
+            justify-items: center;
+            align-items: center;
+            border: 1px dashed #999;
+            min-width: 400px;
+        }
+
+        .story {
+            padding-top: 21.01px;
+            padding-bottom: 22.20px;
+            border: 1px solid blue;
+            background-color: rgba(0, 0, 255, 0.1);
+        }
+
+        .text {
+            width: auto;
+            height: 33.33px;
+            min-width: 40px;
+            min-height: 20px;
+            max-width: 200px;
+            max-height: 300px;
+            background-color: #99ccff;
+            border: 1px solid navy;
+            box-sizing: border-box;
+        }
+
+        /* Debug measurements */
+        .measurements {
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+
+        .measurements div {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vertical Layout Auto Test</h1>
+    <p>This demonstrates the same layout behavior as the "vertical layout auto" test in the Nim code.</p>
+    
+    <div class="container">
+        <div class="scroll">
+            <div class="scrollBody">
+                <div class="items">
+                    <div class="story" id="story-0">
+                        <div class="text" id="text-0"></div>
+                    </div>
+                    <div class="story" id="story-1">
+                        <div class="text" id="text-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="measurements">
+        <h3>Key Measurements (from original test)</h3>
+        <div>Story x position: 364 (centered within container)</div>
+        <div>Story width: 40px (min-width of text element)</div>
+        <div>Story height: ~84.22px (composed of text height + padding)</div>
+        <div>Calculation: 33.33px (text) + 21.01px (top padding) + 22.20px (bottom padding) ≈ 76.54px</div>
+        <div>(The difference might be due to box-sizing or other layout calculations)</div>
+    </div>
+
+    <script>
+        // Add live measurements
+        window.onload = function() {
+            function updateMeasurements() {
+                const story0 = document.getElementById('story-0');
+                const text0 = document.getElementById('text-0');
+                
+                // Create or update measurements display
+                let measurementsLive = document.querySelector('.measurements-live');
+                if (!measurementsLive) {
+                    measurementsLive = document.createElement('div');
+                    measurementsLive.className = 'measurements measurements-live';
+                    document.body.appendChild(measurementsLive);
+                }
+                
+                const rect = story0.getBoundingClientRect();
+                const textRect = text0.getBoundingClientRect();
+                
+                measurementsLive.innerHTML = `
+                    <h3>Live Measurements</h3>
+                    <div>Story x position: ${Math.round(rect.left)} px</div>
+                    <div>Story width: ${Math.round(rect.width)} px</div>
+                    <div>Story height: ${Math.round(rect.height)} px</div>
+                    <div>Text width: ${Math.round(textRect.width)} px</div>
+                    <div>Text height: ${Math.round(textRect.height)} px</div>
+                `;
+            }
+            
+            updateMeasurements();
+            window.addEventListener('resize', updateMeasurements);
+        };
+    </script>
+</body>
+</html> 

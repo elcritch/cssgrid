@@ -730,17 +730,15 @@ suite "grids":
 
     check nodes[0].box == uiBox(0, 0, 50, 50)
 
-    check nodes[1].box == uiBox(0, 50, 50, 50)
-    check nodes[2].box == uiBox(0, 100, 50, 150)
-    check nodes[3].box == uiBox(0, 250, 50, 50)
+    check nodes[1].box == uiBox(0, 150, 50, 50)
+    check nodes[2].box == uiBox(0, 300, 50, 150)
+    check nodes[3].box == uiBox(0, 450, 50, 50)
 
     for i in 0..7:
       if i != 2:
         check nodes[i].box.w == 50
         check nodes[i].box.h == 50
 
-    check nodes[7].box == uiBox(0, 450, 50, 50)
-    # echo "nodes[7]: ", nodes[7].box
 
   test "compute layout auto only":
     var gridTemplate: GridTemplate

@@ -723,15 +723,11 @@ proc expandFlexibleTracks*(
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
   # 3. Check if dimension is indefinite using our helper
-  let isIndefiniteContainer = if node != nil: 
-                               isIndefiniteGridDimension(grid, node, dir) 
-                             else:
-                               # Fallback to original check if node is not provided
-                               (dir == drow and grid.autos[dir].kind == UiValue and 
-                               grid.autos[dir].value.kind == UiFrac)
+  let isIndefiniteContainer = isIndefiniteGridDimension(grid, node, dir) 
   
   var frUnitValue: UiScalar
   
+  debugPrint "expandFlexibleTracks:isIndefiniteContainer", "dir=", dir, "isIndefiniteContainer=", isIndefiniteContainer
   if isIndefiniteContainer:
     # For auto-sized containers with fr tracks, calculate fr unit value based on 
     # the largest minimum size of any track with the same fr factor

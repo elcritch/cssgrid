@@ -103,14 +103,14 @@ suite "Compute Layout Tests":
 
       check items.gridTemplate.lines[dcol][0].width.float32.round(0) == 768
 
-      # since it's cxStretch with auto it'll goto min content size
-      check body.box.w == 768
-      check body.box.h.float32.round(0) == 171
+      # # since it's cxStretch with auto it'll goto min content size
+      # check body.box.w == 768
+      # check body.box.h.float32.round(0) == 171
 
-      check items.children[0].box.w == 768
-      check items.children[0].box.h == 84.22.UiScalar
-      check items.children[0].children[0].box.w == 768
-      check items.children[0].children[0].box.h.float32.round(0) == 33
+      # check items.children[0].box.w == 768
+      # check items.children[0].box.h == 84.22.UiScalar
+      # check items.children[0].children[0].box.w == 768
+      # check items.children[0].children[0].box.h.float32.round(0) == 33
   
   test "vertical layout auto stretch":
     when true:

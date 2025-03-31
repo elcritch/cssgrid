@@ -643,6 +643,7 @@ proc calculateFractionSize*(
   
   # Step 1: Calculate leftover space after non-flexible tracks
   let leftoverSpace = max(0.UiScalar, spaceToFill - nonFlexSpace)
+  debugPrint "calculateFractionSize:leftoverSpace", "dir=", dir, "leftoverSpace=", leftoverSpace, "spaceToFill=", spaceToFill, "nonFlexSpace=", nonFlexSpace
   
   # Step 2: Calculate sum of flex factors
   var flexFactorSum = 0.0.UiScalar

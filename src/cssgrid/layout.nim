@@ -162,13 +162,20 @@ proc distributeSpaceToSpannedTracks(
     # Categorize tracks by their sizing function
     match track:
       UiValue(value):
-        case value.kind:
-        of UiContentMin, UiAuto:
-          affectedTracks.add(i)
-          intrinsicMinTracks.add(i)
-        of UiContentMax, UiContentFit:
-          affectedTracks.add(i)
-          contentMaxTracks.add(i)
+        # Use isIntrinsicSizing to identify intrinsic sizing functions
+        if isIntrinsicSizing(value):
+          case value.kind
+          of UiContentMin, UiAuto:
+            affectedTracks.add(i)
+            intrinsicMinTracks.add(i)
+          of UiContentMax, UiContentFit:
+            affectedTracks.add(i)
+            contentMaxTracks.add(i)
+          else: discard
+        # Handle flexible tracks separately
+        elif value.kind == UiFrac:
+          # Handle flexible tracks logic
+          discard
         else: discard
       _: discard
   
@@ -348,11 +355,16 @@ proc initializeTrackSizes*(
     # Set initial base size
     match track:
       UiValue(value):
-        case value.kind
-        of UiFixed:
+        # Here: Use isIntrinsicSizing instead of isContentSized
+        # For intrinsic sizing functions, start with base size of zero
+        if isIntrinsicSizing(value):
+          baseSize = 0.UiScalar
+        # For fixed sizing functions
+        elif value.kind == UiFixed:
           baseSize = value.coord
-        of UiPerc:
+        elif value.kind == UiPerc:
           baseSize = value.perc / 100.0.UiScalar * availableSpace
+        # Keep fr units with zero base size initially
         else:
           baseSize = 0.UiScalar
       _:
@@ -404,17 +416,21 @@ proc resolveIntrinsicTrackSizes*(
       
       match track:
         UiValue(value):
-          case value.kind
-          of UiContentMin, UiAuto:
-            # Set base size to min-content contribution
-            gridLine.baseSize = max(gridLine.baseSize, computed.minContribution)
-          of UiContentMax, UiContentFit:
-            # Set base size to max-content contribution
-            gridLine.baseSize = max(gridLine.baseSize, computed.maxContribution)
-            # For fit-content, clamp by the available space
-            if value.kind == UiContentFit:
-              gridLine.baseSize = min(gridLine.baseSize, gridLine.growthLimit)
-          else: discard
+          # Use isIntrinsicSizing to check if it's an intrinsic sizing function
+          # but not a flexible sizing function
+          if isIntrinsicSizing(value) and value.kind != UiFrac:
+            # Handle different intrinsic sizing functions
+            case value.kind
+            of UiContentMin, UiAuto:
+              # Set base size to min-content contribution
+              gridLine.baseSize = max(gridLine.baseSize, computed.minContribution)
+            of UiContentMax, UiContentFit:
+              # Set base size to max-content contribution  
+              gridLine.baseSize = max(gridLine.baseSize, computed.maxContribution)
+              # For fit-content, clamp by the available space
+              if value.kind == UiContentFit:
+                gridLine.baseSize = min(gridLine.baseSize, gridLine.growthLimit)
+            else: discard
         _: discard
       
       # Also update growth limits for intrinsic maximums

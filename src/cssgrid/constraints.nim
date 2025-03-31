@@ -278,3 +278,24 @@ template `cx`*(n: static string): auto =
     csContentFit()
   else:
     {.error: "unknown constraint constant: " & n.}
+
+proc isIntrinsicSizing*(cs: ConstraintSize): bool =
+  ## Check if a constraint size is an intrinsic sizing function according to CSS Grid spec.
+  ## Intrinsic sizing functions are: min-content, max-content, auto, and fit-content().
+  case cs.kind
+  of UiContentMin, UiContentMax, UiContentFit, UiAuto:
+    result = true
+  else:
+    result = false
+
+proc isIntrinsicSizing*(cx: Constraint): bool =
+  ## Check if a constraint is an intrinsic sizing function according to CSS Grid spec.
+  ## For compound constraints, returns true if either component is an intrinsic sizing function.
+  case cx.kind
+  of UiNone, UiEnd:
+    result = false
+  of UiValue:
+    result = isIntrinsicSizing(cx.value)
+  of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+    let args = cssFuncArgs(cx)
+    result = isIntrinsicSizing(args.l) or isIntrinsicSizing(args.r)

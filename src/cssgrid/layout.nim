@@ -885,9 +885,8 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     containerSize = max(containerSize, node.cxMin[dir].value.coord)
   
   # Apply max constraint if applicable
-  if node.cxMax[dir].kind == UiValue and node.cxMax[dir].value.kind == UiFixed and 
-     node.cxMax[dir].value.coord > 0:  # Only apply non-zero max constraints
-    containerSize = min(containerSize, node.cxMax[dir].value.coord)
+  if node.cxMax[dir].getFixedSize() > 0:  # Only apply non-zero max constraints
+    containerSize = min(containerSize, node.cxMax[dir].getFixedSize())
   
   # For fractional tracks, if we have a definite container size and
   # all tracks are fractional, handle according to spec section 12.3

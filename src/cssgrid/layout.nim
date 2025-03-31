@@ -128,6 +128,47 @@ proc computeBox*(
   calcBoxFor(x, w, dcol, justify)
   calcBoxFor(y, h, drow, align)
 
+proc isIndefiniteGridDimension*(grid: GridTemplate, node: GridNode, dir: GridDir): bool =
+  ## Determines if a grid dimension is "indefinite" according to the CSS Grid spec.
+  ## An indefinite dimension means the sizing algorithm should handle fractional units
+  ## differently - they don't expand to fill available space, but rather are sized
+  ## based on their content.
+  ##
+  ## A dimension is indefinite when:
+  ## - The grid container has 'auto' size in that dimension
+  ## - The grid container has content-based sizing (min-content, max-content)
+  ## - The grid container uses fr units for its own sizing and isn't sized by its parent
+  
+  # Check node's constraint size in this direction
+  let constraint = node.cxSize[dir]
+  
+  # Auto, content-based sizing, or fr units make a dimension indefinite
+  match constraint:
+    UiValue(value):
+      if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac}:
+        return true
+    _: discard
+
+  # If parent container doesn't provide a definite constraint, the dimension is indefinite
+  # Root node without explicit size is indefinite
+  if dir == drow and node.cxSize[drow].kind == UiNone:
+      # Most UIs have indefinite height by default - this is represented by UiNone in this library
+      return true
+
+  # If parent has indefinite size in this direction, this direction is also indefinite
+  let parentConstraint = node.parent.cxSize[dir]
+  match parentConstraint:
+    UiValue(value):
+      if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit}:
+        return true
+    _: discard
+
+  # Check if the grid's auto template is using fr units in this direction
+  # This indicates a content-sized track which should be treated as indefinite
+  if grid.autos[dir].kind == UiValue and grid.autos[dir].value.kind == UiFrac:
+    return true
+    
+  return false
 
 proc distributeSpaceToSpannedTracks(
     grid: GridTemplate, 
@@ -296,13 +337,13 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, container: UiBo
   # 1. Resolve sizes of grid columns
   debugPrint "GridSizingAlgorithm:resolveColumns", "container=", container
   contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
-  grid.trackSizingAlgorithm(dcol, contentSizes[dcol], container.w)
+  grid.trackSizingAlgorithm(dcol, contentSizes[dcol], container.w, node)
   
   # 2. Resolve sizes of grid rows
   debugPrint "GridSizingAlgorithm:resolveRows", "container=", container
   # Collect new contributions that might depend on column sizes
   contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
-  grid.trackSizingAlgorithm(drow, contentSizes[drow], container.h)
+  grid.trackSizingAlgorithm(drow, contentSizes[drow], container.h, node)
   
   # 3. If min-content of any item changed based on row sizes, re-resolve columns (once)
   debugPrint "GridSizingAlgorithm:reResolveColumnsIfNeeded", "container=", container
@@ -318,7 +359,7 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, container: UiBo
   
   if columnsNeedResize:
     debugPrint "GridSizingAlgorithm:reResolvingColumns", "reason=contributions_changed"
-    grid.trackSizingAlgorithm(dcol, contentSizes[dcol], container.w)
+    grid.trackSizingAlgorithm(dcol, contentSizes[dcol], container.w, node)
   
   # 4. If min-content of any item changed based on column sizes, re-resolve rows (once)
   debugPrint "GridSizingAlgorithm:reResolveRowsIfNeeded", "container=", container
@@ -333,7 +374,7 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, container: UiBo
   
   if rowsNeedResize:
     debugPrint "GridSizingAlgorithm:reResolvingRows", "reason=contributions_changed"
-    grid.trackSizingAlgorithm(drow, contentSizes[drow], container.h)
+    grid.trackSizingAlgorithm(drow, contentSizes[drow], container.h, node)
   
   # 5. Align tracks according to align-content and justify-content
   # This functionality would be implemented in the track positioning logic
@@ -634,7 +675,8 @@ proc maximizeTracks*(
 proc expandFlexibleTracks*(
     grid: GridTemplate, 
     dir: GridDir,
-    availableSpace: UiScalar
+    availableSpace: UiScalar,
+    node: GridNode = nil  # Add optional node parameter
 ) =
   ## Expand flexible tracks using fr units (Step 12.7 in spec)
   
@@ -677,9 +719,13 @@ proc expandFlexibleTracks*(
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
-  # 3. Handle indefinite container sizing (auto height) specially
-  let isIndefiniteContainer = (dir == drow and grid.autos[dir].kind == UiValue and 
-                              grid.autos[dir].value.kind == UiFrac)
+  # 3. Check if dimension is indefinite using our new helper
+  let isIndefiniteContainer = if node != nil: 
+                                isIndefiniteGridDimension(grid, node, dir) 
+                              else:
+                                # Fallback to original check if node is not provided
+                                (dir == drow and grid.autos[dir].kind == UiValue and 
+                                grid.autos[dir].value.kind == UiFrac)
   
   var frUnitValue: UiScalar
   
@@ -704,7 +750,7 @@ proc expandFlexibleTracks*(
     # Apply the sizes - all tracks with the same fr factor get the same size
     for factor, tracks in tracksByFactor:
       let minSizeForFactor = maxMinByFactor[factor]
-      let sizePerTrack = minSizeForFactor * factor  # Scale by fr factor
+      let sizePerTrack = max(minSizeForFactor, largestMinTrackSize / totalFlex * factor)
       
       for trackIdx in tracks:
         grid.lines[dir][trackIdx].baseSize = sizePerTrack
@@ -812,7 +858,8 @@ proc trackSizingAlgorithm*(
     grid: GridTemplate,
     dir: GridDir, 
     trackSizes: Table[int, ComputedTrackSize],
-    availableSpace: UiScalar
+    availableSpace: UiScalar,
+    node: GridNode = nil  # Add optional node parameter
 ) =
   ## Track sizing algorithm as defined in Section 12.3 of the spec
   
@@ -828,7 +875,7 @@ proc trackSizingAlgorithm*(
   maximizeTracks(grid, dir, availableSpace)
   
   # 4. Expand Flexible Tracks
-  expandFlexibleTracks(grid, dir, availableSpace)
+  expandFlexibleTracks(grid, dir, availableSpace, node)
   
   # 5. Expand Stretched Auto Tracks
   expandStretchedAutoTracks(grid, dir, availableSpace)
@@ -1166,29 +1213,3 @@ proc computeLineOverflow*(
           discard
 
   debugPrint "computeLineOverflow:post", "dir=", dir, "overflow=", result
-
-proc computeTracks*(
-    grid: GridTemplate,
-    contentSize: UiBox,
-    computedSizes: array[GridDir, Table[int, ComputedTrackSize]],
-) =
-  ## Compute the grid tracks based on the content size and computed sizes
-  ## This is the main entry point for the track sizing algorithm
-  
-  # Set overflow sizes from content
-  grid.overflowSizes[dcol] = computeLineOverflow(dcol, grid.lines, computedSizes)
-  grid.overflowSizes[drow] = computeLineOverflow(drow, grid.lines, computedSizes)
-
-  var
-    colLen = contentSize.w
-    rowLen = contentSize.h
-
-  # Use the larger of content size and overflow size
-  colLen = max(colLen, grid.overflowSizes[dcol])
-  rowLen = max(rowLen, grid.overflowSizes[drow])
-
-  debugPrint "computeTracks:lengths:", "contentSize=", contentSize, "grid.overflowSizes=", grid.overflowSizes
-
-  # Run track sizing algorithm for each direction
-  trackSizingAlgorithm(grid, dcol, computedSizes[dcol], colLen)
-  trackSizingAlgorithm(grid, drow, computedSizes[drow], rowLen)

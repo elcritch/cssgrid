@@ -25,51 +25,65 @@ suite "grids":
     check gt.lines[drow].len() == 1
 
   test "basic grid compute":
-    var gt = newGridTemplate(
-      columns = @[initGridLine 1'fr, initGridLine 1'fr],
-      rows = @[gl 1'fr, gl 1'fr],
+    # Create a parent node with 2x2 grid template
+    var parent = TestNode(name: "parent")
+    parent.gridTemplate = newGridTemplate(
+      columns = @[initGridLine 1'fr, initGridLine 1'fr], 
+      rows = @[gl 1'fr, gl 1'fr]
     )
-
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
-    # print "grid template: ", gt
-
-    check gt.lines[dcol][0].start == 0.UiScalar
-    check gt.lines[dcol][1].start == 50.UiScalar
-    check gt.lines[drow][0].start == 0.UiScalar
-    check gt.lines[drow][1].start == 50.UiScalar
+    parent.cxSize = [100'ux, 100'ux]  # Fixed size container
+    parent.frame = Frame(windowSize: uiBox(0, 0, 100, 100))
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check grid line positions
+    check parent.gridTemplate.lines[dcol][0].start == 0.UiScalar
+    check parent.gridTemplate.lines[dcol][1].start == 50.UiScalar
+    check parent.gridTemplate.lines[drow][0].start == 0.UiScalar
+    check parent.gridTemplate.lines[drow][1].start == 50.UiScalar
 
   test "3x3 grid compute with frac's":
-    var gt = newGridTemplate(
+    # Create a parent node with 3x3 grid template
+    var parent = TestNode(name: "parent")
+    parent.gridTemplate = newGridTemplate(
       columns = @[gl 1'fr, gl 1'fr, gl 1'fr],
-      rows = @[gl 1'fr, gl 1'fr, gl 1'fr],
+      rows = @[gl 1'fr, gl 1'fr, gl 1'fr]
     )
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
-    # print "grid template: ", gt
-
-    checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 33.3333.toVal
-    checks gt.lines[dcol][2].start.float == 66.6666.toVal
-    checks gt.lines[drow][0].start.float == 0.0
-    checks gt.lines[drow][1].start.float == 33.3333.toVal
-    checks gt.lines[drow][2].start.float == 66.6666.toVal
+    parent.cxSize = [100'ux, 100'ux]  # Fixed size container
+    parent.frame = Frame(windowSize: uiBox(0, 0, 100, 100))
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check grid line positions
+    checks parent.gridTemplate.lines[dcol][0].start.float == 0.0
+    checks parent.gridTemplate.lines[dcol][1].start.float == 33.3333.toVal
+    checks parent.gridTemplate.lines[dcol][2].start.float == 66.6666.toVal
+    checks parent.gridTemplate.lines[drow][0].start.float == 0.0
+    checks parent.gridTemplate.lines[drow][1].start.float == 33.3333.toVal
+    checks parent.gridTemplate.lines[drow][2].start.float == 66.6666.toVal
 
   test "4x1 grid test":
-    var gt = newGridTemplate(
+    # Create a parent node with 4x1 grid template
+    var parent = TestNode(name: "parent")
+    parent.gridTemplate = newGridTemplate(
       columns = @[1'fr.gl, initGridLine(5.csFixed), 1'fr.gl, 1'fr.gl, initGridLine(csEnd())],
-      rows = @[initGridLine(csEnd())],
+      rows = @[initGridLine(csEnd())]
     )
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gt.computeTracks(uiBox(0, 0, 100, 100), computedSizes)
-    # echo "grid template: ", gt
-
-    checks gt.lines[dcol][0].start.float == 0.0
-    checks gt.lines[dcol][1].start.float == 31.6666.toVal
-    checks gt.lines[dcol][2].start.float == 36.6666.toVal
+    parent.cxSize = [100'ux, 100'ux]  # Fixed size container
+    parent.frame = Frame(windowSize: uiBox(0, 0, 100, 100))
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check grid line positions
+    checks parent.gridTemplate.lines[dcol][0].start.float == 0.0
+    checks parent.gridTemplate.lines[dcol][1].start.float == 31.6666.toVal
+    checks parent.gridTemplate.lines[dcol][2].start.float == 36.6666.toVal
     when distinctBase(UiScalar) is SomeFloat:
-      checks gt.lines[dcol][3].start.float == 68.3333.toVal
-    checks gt.lines[drow][0].start.float == 0.0
+      checks parent.gridTemplate.lines[dcol][3].start.float == 68.3333.toVal
+    checks parent.gridTemplate.lines[drow][0].start.float == 0.0
 
   test "initial macros":
     var gridTemplate: GridTemplate
@@ -102,36 +116,45 @@ suite "grids":
     # echo "grid template: ", repr gridTemplate
 
   test "compute macros":
-    var tmpl: GridTemplate
-
-    parseGridTemplateColumns tmpl, ["first"] 40'ux \
-                                   ["second", "line2"] 50'ux \
-                                   ["line3"] auto \
-                                   ["col4-start"] 50'ux \
-                                   ["five"] 40'ux \
-                                   ["end"]
-    parseGridTemplateRows tmpl, ["row1-start"] 25'pp \
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Same grid template definition as before
+    parseGridTemplateColumns parent.gridTemplate, ["first"] 40'ux \
+                                  ["second", "line2"] 50'ux \
+                                  ["line3"] auto \
+                                  ["col4-start"] 50'ux \
+                                  ["five"] 40'ux \
+                                  ["end"]
+    parseGridTemplateRows parent.gridTemplate, ["row1-start"] 25'pp \
                                 ["row1-end"] 100'ux \
                                 ["third-line"] auto \
                                 ["last-line"]
-
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    tmpl.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    let gt = tmpl
-    # print "grid template: ", gridTemplate
-    checks gt.lines[dcol][0].start.float, 0.0
-    checks gt.lines[dcol][1].start.float, 40.0
-    checks gt.lines[dcol][2].start.float, 90.0
-    checks gt.lines[dcol][3].start.float, 910.0
-    checks gt.lines[dcol][4].start.float, 960.0
-    checks gt.lines[dcol][5].start.float, 1000.0
-
-    checks gt.lines[drow][0].start.float, 0.0
-    checks gt.lines[drow][1].start.float, 250.0
-    checks gt.lines[drow][2].start.float, 350.0
-    checks gt.lines[drow][3].start.float, 1000.0
-    # echo "grid template: ", repr tmpl
     
+    # Set explicit container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check grid line positions
+    let gt = parent.gridTemplate
+    checks gt.lines[dcol][0].start.float == 0.0
+    checks gt.lines[dcol][1].start.float == 40.0
+    checks gt.lines[dcol][2].start.float == 90.0
+    checks gt.lines[dcol][3].start.float == 910.0
+    checks gt.lines[dcol][4].start.float == 960.0
+    checks gt.lines[dcol][5].start.float == 1000.0
+
+    checks gt.lines[drow][0].start.float == 0.0
+    checks gt.lines[drow][1].start.float == 250.0
+    checks gt.lines[drow][2].start.float == 350.0
+    checks gt.lines[drow][3].start.float == 1000.0
+
   test "compute others":
     var gt: GridTemplate
 

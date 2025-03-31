@@ -716,28 +716,45 @@ proc expandFlexibleTracks*(
   if flexibleTracks.len == 0:
     return
   
-  # Step 2: Determine the used flex fraction (size of 1fr)
-  # This is more complex in the spec with multiple considerations
-  # but fundamentally relies on the calculateFractionSize algorithm
+  # Step 2: Calculate sum of flex factors (needed for later comparison)
+  var flexFactorSum = 0.0.UiScalar
+  for (_, factor) in flexibleTracks:
+    flexFactorSum += factor
+  
+  # Ensure flex factor sum is at least 1
+  flexFactorSum = max(1.0.UiScalar, flexFactorSum)
+  
+  # Step 3: Determine the used flex fraction (size of 1fr)
   let usedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, availableSpace, nonFlexibleSpace)
   
-  # Step 3: Check if using this flex fraction would violate container constraints
+  # Step 4: Check if using this flex fraction would violate container constraints
+  var containerMinSize = 0.0.UiScalar
+  
+  if node != nil and node.cxMin[dir].kind != UiNone:
+    # Get minimum size from node constraint if available - provide content size of 0
+    containerMinSize = getMinSize(node.cxMin[dir], 0.0.UiScalar)
+  
   if grid.lines[dir].len() > 0:
     let lastTrackIndex = grid.lines[dir].len() - 1
     let lastTrack = grid.lines[dir][lastTrackIndex]
-    let containerMinSize = lastTrack.start + lastTrack.width
-    if usedFlexFraction < containerMinSize:
-      # Recalculate using container's min size
-      let recalculatedUsedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, containerMinSize, nonFlexibleSpace)
-      let newSize = recalculatedUsedFlexFraction * usedFlexFraction
-      for i, (trackIndex, flexFactor) in flexibleTracks:
-        if newSize > grid.lines[dir][trackIndex].baseSize:
-          grid.lines[dir][trackIndex].baseSize = newSize
-  elif availableSpace < nonFlexibleSpace:
+    let gridMinSize = lastTrack.start + lastTrack.width
+    containerMinSize = max(containerMinSize, gridMinSize)
+  
+  # Apply the sizing
+  if containerMinSize > 0 and usedFlexFraction * flexFactorSum < containerMinSize:
     # Recalculate using container's min size
-    let recalculatedUsedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, nonFlexibleSpace, 0.0.UiScalar)
-    let newSize = recalculatedUsedFlexFraction * usedFlexFraction
-    for i, (trackIndex, flexFactor) in flexibleTracks:
+    let recalculatedUsedFlexFraction = calculateFractionSize(
+        grid, dir, flexibleTracks, containerMinSize, nonFlexibleSpace)
+    
+    # Apply to tracks
+    for (trackIndex, flexFactor) in flexibleTracks:
+      let newSize = recalculatedUsedFlexFraction * flexFactor
+      if newSize > grid.lines[dir][trackIndex].baseSize:
+        grid.lines[dir][trackIndex].baseSize = newSize
+  else:
+    # Apply regular flexible sizing
+    for (trackIndex, flexFactor) in flexibleTracks:
+      let newSize = usedFlexFraction * flexFactor
       if newSize > grid.lines[dir][trackIndex].baseSize:
         grid.lines[dir][trackIndex].baseSize = newSize
 

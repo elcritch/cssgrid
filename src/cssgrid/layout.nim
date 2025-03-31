@@ -463,27 +463,34 @@ proc maximizeTracks*(
     availableSpace: UiScalar
 ) =
   ## Maximize tracks by distributing free space (Step 12.6 in spec)
-  ## Important: This should NOT apply to flexible tracks
+  ## Important: This should NOT apply to intrinsic min-sized or fixed-sized tracks
   
   # Calculate current used space
   var 
     usedSpace = 0.UiScalar
-    growableTracks: seq[int]  # Track indices that can grow (non-fr tracks)
+    growableTracks: seq[int]  # Track indices that can grow
   
-  # First pass: calculate used space and identify non-fr tracks that can grow
+  # First pass: calculate used space and identify tracks that can grow
   for i, gridLine in grid.lines[dir].pairs:
     usedSpace += gridLine.baseSize
     
-    # Only consider non-fr tracks for growth in this step
-    var isFlexTrack = false
+    # Check if this track can grow during maximization
+    var canGrow = true
+    
+    # Determine if this track can grow based on track type
     match gridLine.track:
       UiValue(value):
-        if value.kind == UiFrac:
-          isFlexTrack = true
+        # min-content tracks should remain at their content size 
+        # and not grow during maximization
+        if value.kind == UiContentMin:
+          canGrow = false
+        # fr tracks are handled separately in expandFlexibleTracks
+        elif value.kind == UiFrac:
+          canGrow = false
       _: discard
     
-    # If it's not a flex track and can grow, add it to growable list
-    if not isFlexTrack and gridLine.baseSize < gridLine.growthLimit:
+    # If it can grow and hasn't hit its growth limit, add to growable list
+    if canGrow and gridLine.baseSize < gridLine.growthLimit:
       growableTracks.add(i)
   
   # Add in gap space
@@ -495,7 +502,7 @@ proc maximizeTracks*(
             "availableSpace=", availableSpace, "freeSpace=", freeSpace, 
             "growableTracks=", growableTracks.len
   
-  # Distribute free space to non-fr tracks
+  # Distribute free space to growable tracks
   if freeSpace > 0 and growableTracks.len > 0:
     var remainingSpace = freeSpace
     var trackCount = growableTracks.len
@@ -531,7 +538,6 @@ proc expandFlexibleTracks*(
     availableSpace: UiScalar
 ) =
   ## Expand flexible tracks using fr units (Step 12.7 in spec)
-  ## This follows the "Find the Size of an fr" algorithm in section 12.7.1
   
   # 1. Identify all tracks with fr units and calculate their total flex factor
   var 
@@ -546,6 +552,7 @@ proc expandFlexibleTracks*(
           flexTracks.add((index: i, factor: value.frac))
           totalFlex += value.frac
         else:
+          # Include non-fr track sizes in nonFlexSpace
           nonFlexSpace += gridLine.baseSize
       _:
         nonFlexSpace += gridLine.baseSize
@@ -571,49 +578,16 @@ proc expandFlexibleTracks*(
              "nonFlexSpace=", nonFlexSpace, "flexSpace=", flexSpace,
              "totalFlex=", totalFlex, "frUnitValue=", frUnitValue
   
-  # 6. First pass: determine if any tracks need to remain at their base size
-  var 
-    inflexibleTracks: seq[int]
-    inflexibleSpace = 0.0.UiScalar
-    remainingFlexSum = totalFlex
-  
-  for i, (trackIdx, factor) in flexTracks:
-    let calculatedSize = frUnitValue * factor
-    let baseSize = grid.lines[dir][trackIdx].baseSize
+  # Apply calculated sizes to all flex tracks
+  for (trackIdx, factor) in flexTracks:
+    let finalSize = frUnitValue * factor
     
-    if baseSize > calculatedSize:
-      inflexibleTracks.add(i)
-      inflexibleSpace += baseSize
-      remainingFlexSum -= factor
-  
-  # 7. Recalculate frUnitValue if we have inflexible tracks
-  var finalFrUnitValue = frUnitValue
-  if inflexibleTracks.len > 0 and remainingFlexSum > 0:
-    let remainingSpace = flexSpace - inflexibleSpace
-    
-    if remainingSpace > 0:
-      finalFrUnitValue = remainingSpace / max(remainingFlexSum, 1.0.UiScalar)
-      
-      debugPrint "expandFlexibleTracks:recalculated", "remainingSpace=", remainingSpace,
-                "remainingFlexSum=", remainingFlexSum, "finalFrUnitValue=", finalFrUnitValue
-  
-  # 8. Apply calculated sizes to ALL tracks - THIS IS THE KEY FIX
-  for i, (trackIdx, factor) in flexTracks:
-    var finalSize: UiScalar
-    
-    if i in inflexibleTracks:
-      # Keep at base size
-      finalSize = grid.lines[dir][trackIdx].baseSize
-    else:
-      # Apply the fr unit calculation
-      finalSize = finalFrUnitValue * factor
-    
-    # CRITICAL: Update both baseSize and width for proper track sizing
+    # Update both baseSize and width
     grid.lines[dir][trackIdx].baseSize = finalSize
     grid.lines[dir][trackIdx].width = finalSize
     
     debugPrint "expandFlexibleTracks:track", "index=", trackIdx, "factor=", factor, 
-               "finalSize=", finalSize, "inflexible=", i in inflexibleTracks
+               "finalSize=", finalSize
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 

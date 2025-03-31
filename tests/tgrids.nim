@@ -768,8 +768,6 @@ suite "grids":
     parent.children = nodes
     let box1 = gridTemplate.computeNodeLayout(parent)
     let box = gridTemplate.computeNodeLayout(parent)
-    echo "grid template:post: ", gridTemplate
-    echo ""
     # printChildrens()
     # print gridTemplate.overflowSizes
 

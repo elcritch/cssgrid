@@ -148,8 +148,8 @@ suite "grids":
     gt.gaps[drow] = 10.UiScalar
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
 
-    setPrettyPrintMode(cmTerminal)
-    defer: setPrettyPrintMode(cmNone)
+    # setPrettyPrintMode(cmTerminal)
+    # defer: setPrettyPrintMode(cmNone)
 
     gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # printGrid(gt, cmTerminal)
@@ -482,8 +482,6 @@ suite "grids":
     check nodes[3].box == uiBox(0, 300, 100, 100)
 
   test "compute layout auto flow overflow (colums)":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
 
     var gridTemplate: GridTemplate
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -502,15 +500,18 @@ suite "grids":
     var nodes = newSeq[TestNode](4)
 
     # ==== item a's ====
-    for i in 0 ..< nodes.len():
-      nodes[i] = TestNode(name: "b" & $(i), box: uiBox(0,0,50,50), parent: parent)
+    nodes[0] = newTestNode("b0", parent=parent)
+    nodes[1] = newTestNode("b1", parent=parent)
+    nodes[2] = newTestNode("b2", parent=parent)
+    nodes[3] = newTestNode("b3", parent=parent)
 
     nodes[0].cxSize = [40'ux, 40'ux]
     # ==== process grid ====
     parent.children = nodes
-    # discard gridTemplate.computeNodeLayout(parent)
-    # let box = gridTemplate.computeNodeLayout(parent)
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
+    # printLayout(parent, cmTerminal)
 
     # TODO: FIXME!!!
     # check box.w == 750

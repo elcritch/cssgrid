@@ -695,7 +695,8 @@ suite "grids":
     gridTemplate.autoFlow = grRow
     var parent = TestNode(name: "parent", gridTemplate: gridTemplate)
     parent.cxSize[dcol] = csFixed(50)  # set fixed parent
-    parent.cxSize[drow] = cx"max-content"  # set fixed parent
+    parent.cxSize[drow] = cx"auto"  # set fixed parent
+    # parent.cxSize[drow] = cx"max-content"  # set fixed parent
     # parent.cxSize[drow] = cx"auto"  # set fixed parent
     parent.frame = Frame(windowSize: uiBox(0, 0, 50, 400))
 
@@ -715,10 +716,13 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
+    printLayout(parent, cmTerminal)
 
     check parent.box.w == 50
-    check parent.box.h == 500
+    check parent.box.h == 1200
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Manual Overflow Rows with Fractions Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .grid-container {
+            display: grid;
+            /* 1fr column template */
+            grid-template-columns: 1fr;
+            /* 1fr row template with auto rows */
+            grid-template-rows: 1fr;
+            grid-auto-rows: 1fr;
+            /* Auto flow in row direction */
+            grid-auto-flow: row;
+            /* Align items to start */
+            justify-items: start;
+            
+            /* Fixed width and max-content height */
+            width: 50px;
+            /* height: 50px; */
+            height: auto;
+            /* height: auto; */
+            /* min-height: 500px; */
+            
+            /* For visualization */
+            border: 2px solid #333;
+            margin-bottom: 20px;
+            background-color: #eee;
+        }
+
+        .grid-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #6495ED;
+            color: white;
+            border: 1px solid #333;
+            width: 50px;
+            height: 50px;
+            box-sizing: border-box;
+            font-size: 12px;
+        }
+
+        /* Special height for item 2 */
+        #item2 {
+            height: 150px;
+            background-color: #FF7F50;
+        }
+
+        .description {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+
+        /* Add position markers */
+        .position-marker {
+            position: absolute;
+            left: -25px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grid Manual Overflow Rows with Fractions Example</h1>
+    
+    <div class="description">
+        <p>This example demonstrates a CSS Grid layout with manual row placement and overflow handling. 
+        The grid has the following properties:</p>
+        <ul>
+            <li>Fixed width: 50px</li>
+            <li>Height: max-content (grows with content)</li>
+            <li>Grid template: 1fr for both columns and rows</li>
+            <li>Items manually placed in rows</li>
+            <li>Item 2 has special height: 150px</li>
+            <li>All other items are 50x50px</li>
+        </ul>
+    </div>
+
+    <div style="position: relative;">
+        <div class="grid-container">
+            <div class="grid-item" id="item0" style="grid-row: 1">b0</div>
+            <div class="grid-item" id="item1" style="grid-row: 2">b1</div>
+            <div class="grid-item" id="item2" style="grid-row: 3">b2</div>
+            <div class="grid-item" id="item3" style="grid-row: 4">b3</div>
+            <div class="grid-item" id="item4" style="grid-row: 5">b4</div>
+            <div class="grid-item" id="item5" style="grid-row: 6">b5</div>
+            <div class="grid-item" id="item6" style="grid-row: 7">b6</div>
+            <div class="grid-item" id="item7" style="grid-row: 8">b7</div>
+        </div>
+        
+        <!-- Position markers -->
+        <div class="position-marker" style="top: 0px">0px</div>
+        <div class="position-marker" style="top: 150px">150px</div>
+        <div class="position-marker" style="top: 300px">300px</div>
+        <div class="position-marker" style="top: 450px">450px</div>
+        <div class="position-marker" style="top: 600px">600px</div>
+        <div class="position-marker" style="top: 750px">750px</div>
+        <div class="position-marker" style="top: 900px">900px</div>
+        <div class="position-marker" style="top: 1050px">1050px</div>
+        <div class="position-marker" style="top: 1200px">1200px</div>
+    </div>
+
+    <h2>Original Test Code</h2>
+    <div class="code-block">
+var gridTemplate: GridTemplate
+parseGridTemplateColumns gridTemplate, 1'fr
+parseGridTemplateRows gridTemplate, 1'fr
+gridTemplate.autos[drow] = 1'fr
+gridTemplate.justifyItems = CxStart
+gridTemplate.autoFlow = grRow
+
+var parent = TestNode(name: "parent", gridTemplate: gridTemplate)
+parent.cxSize[dcol] = csFixed(50)  # set fixed parent
+parent.cxSize[drow] = cx"max-content"  # set fixed parent
+parent.frame = Frame(windowSize: uiBox(0, 0, 50, 400))
+
+var nodes = newSeq[TestNode](8)
+
+# ==== item a's ====
+for i in 0 ..< nodes.len():
+    nodes[i] = TestNode(name: "b" & $(i),
+                        cxMin: [50'ux, 50'ux],
+                        gridItem: GridItem())
+    nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
+    nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
+    
+nodes[2].cxMin[drow] = csFixed(150)  # Special height for item 2
+    </div>
+
+    <h2>Explanation</h2>
+    <div class="description">
+        <p>In this example:</p>
+        <ul>
+            <li>Each item is manually placed in consecutive rows</li>
+            <li>The third item (b2) has a height of 150px</li>
+            <li>All other items are 50x50px</li>
+            <li>The container grows to fit all items (max-content height)</li>
+            <li>Items start at their row positions: 0px, 50px, 100px, 250px, etc.</li>
+            <li>The total height reaches 500px to accommodate all items</li>
+        </ul>
+        <p>This demonstrates how CSS Grid handles manual row placement with varying item sizes
+        and max-content container height.</p>
+    </div>
+</body>
+</html> 

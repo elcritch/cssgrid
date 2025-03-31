@@ -874,11 +874,11 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
         else:
           containerSize = 0.UiScalar
       else:
-        # Default to overflow size if constraint type not handled
+        # Default for compound constraints or other cases
         containerSize = node.gridTemplate.overflowSizes[dir]
     else:
-      # Default for compound constraints or other cases
-      containerSize = node.gridTemplate.overflowSizes[dir]
+      # Default for indefinite sizing
+      containerSize = 0.UiScalar
   
   # Apply min constraint if applicable
   if node.cxMin[dir].kind == UiValue and node.cxMin[dir].value.kind == UiFixed:

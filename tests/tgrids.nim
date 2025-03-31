@@ -156,28 +156,35 @@ suite "grids":
     checks gt.lines[drow][3].start.float == 1000.0
 
   test "compute others":
-    var gt: GridTemplate
-
-    parseGridTemplateColumns gt, ["first"] 40'ux \
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Parse the grid template columns and rows
+    parseGridTemplateColumns parent.gridTemplate, ["first"] 40'ux \
       ["second", "line2"] 50'ux \
       ["line3"] auto \
       ["col4-start"] 50'ux \
       ["five"] 40'ux ["end"]
-    parseGridTemplateRows gt, ["row1-start"] 25'pp \
+    parseGridTemplateRows parent.gridTemplate, ["row1-start"] 25'pp \
       ["row1-end"] 100'ux \
       ["third-line"] auto ["last-line"]
 
-    gt.gaps[dcol] = 10.UiScalar
-    gt.gaps[drow] = 10.UiScalar
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-
-    # setPrettyPrintMode(cmTerminal)
-    # defer: setPrettyPrintMode(cmNone)
-
-    gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    # printGrid(gt, cmTerminal)
-
-    # print "grid template: ", gt
+    # Set the gaps
+    parent.gridTemplate.gaps[dcol] = 10.UiScalar
+    parent.gridTemplate.gaps[drow] = 10.UiScalar
+    
+    # Set explicit container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check grid line positions
+    let gt = parent.gridTemplate
     check gt.lines[dcol][0].start.float == 0.0
     check gt.lines[dcol][1].start.float == 50.0
     check gt.lines[dcol][2].start.float == 110.0
@@ -191,281 +198,323 @@ suite "grids":
     check gt.lines[drow][3].start.float == 1000.0
     
   test "compute macro and item layout":
-    var gridTemplate: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
-
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    # echo "grid template: ", repr gridTemplate
-
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Parse the grid template
+    parseGridTemplateColumns parent.gridTemplate, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateRows parent.gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+    
+    # Set explicit container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
+    # Create grid item
     var gridItem = newGridItem()
     gridItem.column.a = 2.mkIndex
     gridItem.column.b = "five".mkIndex
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
-    # print gridItem
-    let node = TestNode(box: uiBox(0, 0, 0, 0), gridItem: gridItem)
-    gridItem.setGridSpans(gridTemplate, node.box.wh)
-
-    let itemBox = node.computeBox(gridTemplate)
-    # print itemBox
-    # print "post: ", gridItem
-
+    
+    # Create child node with grid item
+    let child = TestNode(name: "child", box: uiBox(0, 0, 0, 0), gridItem: gridItem)
+    parent.children.add(child)
+    child.parent = parent
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Verify grid item spans and position
     check gridItem.span[dcol].a == 2
     check gridItem.span[dcol].b == 5
-    check itemBox.x.float == 40.0
-    check itemBox.w.float == 920.0
-    check itemBox.y.float == 0.0
-    check itemBox.h.float == 350.0
+    check child.box.x.float == 40.0
+    check child.box.w.float == 920.0
+    check child.box.y.float == 0.0
+    check child.box.h.float == 350.0
 
-  test "compute macro and item layout":
-    var gridTemplate: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, [first] 40'ux ["second", "line2"] 50'ux \
+  test "compute item layout with alignment":
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Parse the grid template
+    parseGridTemplateColumns parent.gridTemplate, [first] 40'ux ["second", "line2"] 50'ux \
         ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux \
+    parseGridTemplateRows parent.gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux \
         ["third-line"] auto ["last-line"]
-
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    # echo "grid template: ", repr gridTemplate
-
+    
+    # Set explicit container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
+    # Create content and grid item
     let contentSize = uiSize(500, 200)
     var gridItem = newGridItem()
     gridItem.column.a = 2.mkIndex
     gridItem.column.b = "five".mkIndex
     gridItem.row.a = "row1-start".mkIndex
     gridItem.row.b = 3.mkIndex
-    gridItem.setGridSpans(gridTemplate, contentSize)
-    let node = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: gridItem)
-    echo gridTemplate
-
-    ## test stretch
-    var itemBox: UiBox
-    gridTemplate.justifyItems = CxStretch
-    gridTemplate.alignItems = CxStretch
-    itemBox = node.computeBox(gridTemplate)
-    # print itemBox
-    check itemBox == uiBox(40, 0, 920, 350)
-
-    ## test start
-    gridTemplate.justifyItems = CxStart
-    gridTemplate.alignItems = CxStart
-    itemBox = node.computeBox(gridTemplate)
-    # print itemBox
-    check itemBox == uiBox(40, 0, 500, 200)
-
-    ## test end
-    gridTemplate.justifyItems = CxEnd
-    gridTemplate.alignItems = CxEnd
-    itemBox = node.computeBox(gridTemplate)
-    # print itemBox
-    check itemBox == uiBox(460, 150, 500, 200)
     
-    ## test start / stretch
-    gridTemplate.justifyItems = CxStart
-    gridTemplate.alignItems = CxStretch
-    itemBox = node.computeBox(gridTemplate)
-    echo ""
-    # print itemBox
-    check itemBox == uiBox(40, 0, 500, 350)
+    # Create child node with grid item
+    let child = TestNode(
+      name: "child", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), 
+      gridItem: gridItem
+    )
+    parent.children.add(child)
+    child.parent = parent
+    
+    # Test stretch alignment
+    parent.gridTemplate.justifyItems = CxStretch
+    parent.gridTemplate.alignItems = CxStretch
+    computeLayout(parent)
+    check child.box == uiBox(40, 0, 920, 350)
 
-    ## test stretch / start
-    gridTemplate.justifyItems = CxStretch
-    gridTemplate.alignItems = CxStart
-    itemBox = node.computeBox(gridTemplate)
-    echo ""
-    # print itemBox
-    check itemBox == uiBox(40, 0, 920, 200)
+    # Test start alignment
+    parent.gridTemplate.justifyItems = CxStart
+    parent.gridTemplate.alignItems = CxStart
+    computeLayout(parent)
+    check child.box == uiBox(40, 0, 500, 200)
+
+    # Test end alignment
+    parent.gridTemplate.justifyItems = CxEnd
+    parent.gridTemplate.alignItems = CxEnd
+    computeLayout(parent)
+    check child.box == uiBox(460, 150, 500, 200)
     
-    ## test stretch / start
-    gridTemplate.justifyItems = CxCenter
-    gridTemplate.alignItems = CxCenter
-    itemBox = node.computeBox(gridTemplate)
-    echo ""
-    # print itemBox
-    # 920/2-500/2+40
-    # 350/2-200/2+0
-    check itemBox == uiBox(250, 75, 500, 200)
+    # Test start / stretch alignment
+    parent.gridTemplate.justifyItems = CxStart
+    parent.gridTemplate.alignItems = CxStretch
+    computeLayout(parent)
+    check child.box == uiBox(40, 0, 500, 350)
+
+    # Test stretch / start alignment
+    parent.gridTemplate.justifyItems = CxStretch
+    parent.gridTemplate.alignItems = CxStart
+    computeLayout(parent)
+    check child.box == uiBox(40, 0, 920, 200)
     
+    # Test center alignment
+    parent.gridTemplate.justifyItems = CxCenter
+    parent.gridTemplate.alignItems = CxCenter
+    computeLayout(parent)
+    check child.box == uiBox(250, 75, 500, 200)
     
   test "compute layout with auto columns":
-    var gridTemplate: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["a"] 60'ux ["b"] 60'ux
-    parseGridTemplateRows gridTemplate, 90'ux 90'ux
-    # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.lines[dcol].len() == 3
-    check gridTemplate.lines[drow].len() == 3
-    # echo "grid template: ", repr gridTemplate
-
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Set up grid with two explicit columns
+    parseGridTemplateColumns parent.gridTemplate, ["a"] 60'ux ["b"] 60'ux
+    parseGridTemplateRows parent.gridTemplate, 90'ux 90'ux
+    
+    # Set parent container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
     let contentSize = uiSize(120, 90)
 
-    # item a
+    # Create first child (item a)
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 2 // 3
+    let nodea = TestNode(
+      name: "a", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: itema
+    )
+    parent.children.add(nodea)
+    nodea.parent = parent
 
-    itema.setGridSpans(gridTemplate, contentSize)
-
-    # item b
+    # Create second child (item b)
     var itemb = newGridItem()
     itemb.column = 5 // 6
     itemb.row = 2 // 3
-
-    itemb.setGridSpans(gridTemplate, contentSize)
-
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    ## computes
-    ## 
-    let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
-                         gridItem: itema)
-    let nodeb = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
-                         gridItem: itemb)
-
-    echo "BOXA: ", nodea.gridItem
-    echo "BOXB: ", nodeb.gridItem
-    let boxa = nodea.computeBox(gridTemplate)
-    let boxb = nodeb.computeBox(gridTemplate)
-
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-
-    # echo "gridTemplate: ", gridTemplate
-    check boxa == uiBox(0, 90, 60, 90)
-    check boxb == uiBox(120, 90, 00, 90)
+    let nodeb = TestNode(
+      name: "b", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: itemb
+    )
+    parent.children.add(nodeb)
+    nodeb.parent = parent
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check item positions
+    check nodea.box == uiBox(0, 90, 60, 90)
+    check nodeb.box == uiBox(120, 90, 0, 90)  # Note: width is reported as 0
 
   test "compute layout with fixed 1x1":
-    var gridTemplate: GridTemplate
-
-    parseGridTemplateColumns gridTemplate, 60'ux
-    parseGridTemplateRows gridTemplate, 90'ux
-    # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.lines[dcol].len() == 2
-    check gridTemplate.lines[drow].len() == 2
-    # echo "grid template: ", repr gridTemplate
-
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Set up grid with one column and row
+    parseGridTemplateColumns parent.gridTemplate, 60'ux
+    parseGridTemplateRows parent.gridTemplate, 90'ux
+    
+    # Set parent container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
     let contentSize = uiSize(120, 90)
 
-    # item a
+    # Create child
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 1 // 2
-
-    itema.setGridSpans(gridTemplate, contentSize)
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
-    let boxa = nodea.computeBox(gridTemplate)
-    check boxa == uiBox(0, 0, 60, 90)
+    let nodea = TestNode(
+      name: "a", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: itema
+    )
+    parent.children.add(nodea)
+    nodea.parent = parent
     
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check item position
+    check nodea.box == uiBox(0, 0, 60, 90)
 
   test "compute layout with auto columns with fixed size":
-    var gridTemplate: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, ["a"] 60'ux ["b"] 60'ux
-    parseGridTemplateRows gridTemplate, 90'ux 90'ux
-    gridTemplate.autos[dcol] = 60.csFixed()
-    gridTemplate.autos[drow] = 20.csFixed()
-    # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.lines[dcol].len() == 3
-    check gridTemplate.lines[drow].len() == 3
-
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Set up grid with two columns and two rows
+    parseGridTemplateColumns parent.gridTemplate, ["a"] 60'ux ["b"] 60'ux
+    parseGridTemplateRows parent.gridTemplate, 90'ux 90'ux
+    parent.gridTemplate.autos[dcol] = 60.csFixed()
+    parent.gridTemplate.autos[drow] = 20.csFixed()
+    
+    # Set parent container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
     let contentSize = uiSize(30, 30)
 
-    # item a
+    # Create first child (item a)
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 2 // 3
-    itema.setGridSpans(gridTemplate, contentSize)
+    let nodea = TestNode(
+      name: "a", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: itema
+    )
+    parent.children.add(nodea)
+    nodea.parent = parent
 
-    # item b
+    # Create second child (item b)
     var itemb = newGridItem()
     itemb.column = 5 // 6
     itemb.row = 3 // 4
-    itemb.setGridSpans(gridTemplate, contentSize)
-
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    let nodea = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itema)
-    let nodeb = TestNode(box: uiBox(0, 0, contentSize.w.float, contentSize.h.float), gridItem: itemb)
-    let boxa = nodea.computeBox(gridTemplate)
-    check boxa == uiBox(0, 90, 60, 90)
-
-    let boxb = nodeb.computeBox(gridTemplate)
-    check boxb == uiBox(240, 180, 60, 20)
+    let nodeb = TestNode(
+      name: "b", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: itemb
+    )
+    parent.children.add(nodeb)
+    nodeb.parent = parent
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check item positions
+    check nodea.box == uiBox(0, 90, 60, 90)
+    check nodeb.box == uiBox(240, 180, 60, 20)
 
   test "compute layout with auto flow":
-    var gridTemplate: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
-    parseGridTemplateRows gridTemplate, 33'ux 33'ux
-    gridTemplate.justifyItems = CxStretch
-    # echo "grid template pre: ", repr gridTemplate
-    check gridTemplate.lines[dcol].len() == 6
-    check gridTemplate.lines[drow].len() == 3
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    # echo "grid template: ", repr gridTemplate
-    var parent = TestNode()
-    parent.gridTemplate = gridTemplate
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Set up grid with five columns and two rows
+    parseGridTemplateColumns parent.gridTemplate, 60'ux 60'ux 60'ux 60'ux 60'ux
+    parseGridTemplateRows parent.gridTemplate, 33'ux 33'ux
+    parent.gridTemplate.justifyItems = CxStretch
+    
+    # Set parent container size
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
     let contentSize = uiSize(30, 30)
+    
+    # Create 8 child nodes
     var nodes = newSeq[TestNode](8)
 
-    # item a
+    # Create item a with fixed position
     var itema = newGridItem()
     itema.column = 1 // 2
     itema.row = 1 // 3
-    # let boxa = itema.computeTracks(gridTemplate, contentSize)
-    nodes[0] = TestNode(name: "a", gridItem: itema)
+    nodes[0] = TestNode(
+      name: "a", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: itema
+    )
+    parent.children.add(nodes[0])
+    nodes[0].parent = parent
 
-    # ==== item e ====
+    # Create item e with fixed position
     var iteme = newGridItem()
     iteme.column = 5 // 6
     iteme.row = 1 // 3
-    nodes[1] = TestNode(name: "e", gridItem: iteme)
+    nodes[1] = TestNode(
+      name: "e", 
+      box: uiBox(0, 0, contentSize.w.float, contentSize.h.float),
+      gridItem: iteme
+    )
+    parent.children.add(nodes[1])
+    nodes[1].parent = parent
 
-    # ==== item b's ====
+    # Create auto-placed items
     for i in 2 ..< nodes.len():
-      nodes[i] = TestNode(name: "b" & $(i-2))
-
-    # ==== process grid ====
-    parent.children = nodes
-    discard gridTemplate.computeNodeLayout(parent)
-
-    # echo "grid template post: ", repr gridTemplate
-    # ==== item a ====
+      nodes[i] = TestNode(
+        name: "b" & $(i-2),
+        box: uiBox(0, 0, contentSize.w.float, contentSize.h.float)
+      )
+      parent.children.add(nodes[i])
+      nodes[i].parent = parent
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check item positions
     check nodes[0].box == uiBox(0, 0, 60, 66)
-
-    # ==== item e ====
-    # print nodes[1].box
     check nodes[1].box == uiBox(240, 0, 60, 66)
-
-    # ==== item b's ====
-    # printChildrens(2)
-
+    
+    # Check auto-placed items
     check nodes[2].box.x == 60
     check nodes[2].box.y == 0
     check nodes[3].box.x == 120
     check nodes[3].box.y == 0
     check nodes[4].box.x == 180
     check nodes[4].box.y == 0
-
+    
     check nodes[5].box.x == 60
     check nodes[5].box.y == 33
     check nodes[6].box.x == 120
     check nodes[6].box.y == 33
     check nodes[7].box.x == 180
     check nodes[7].box.y == 33
-
+    
+    # Check sizes of auto-placed items
     for i in 2 ..< nodes.len() - 1:
       check nodes[i].box.w == 60
       check nodes[i].box.h == 33

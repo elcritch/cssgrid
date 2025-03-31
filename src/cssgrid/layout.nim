@@ -156,9 +156,10 @@ proc isIndefiniteGridDimension*(grid: GridTemplate, node: GridNode, dir: GridDir
       return true
 
   # If parent has indefinite size in this direction, this direction is also indefinite
-  let parentConstraint = node.parent.cxSize[dir]
-  match parentConstraint:
-    UiValue(value):
+  if not node.parent.isNil:
+    let parentConstraint = node.parent.cxSize[dir]
+    match parentConstraint:
+      UiValue(value):
       if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit}:
         return true
     _: discard

@@ -717,17 +717,22 @@ proc expandFlexibleTracks*(
   # If no flexible tracks, nothing to do
   if flexTracks.len() == 0:
     return
+
+  # 2. If totalFlex is less than 1.0, set it to 1.0
+  totalFlex = max(1.0.UiScalar, totalFlex)
   
   # 2. Calculate gap space
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
   # 3. Check if dimension is indefinite using our helper
-  let isIndefiniteContainer = isIndefiniteGridDimension(grid, node, dir) 
+  var isIndefiniteContainer = isIndefiniteGridDimension(grid, node, dir) 
   
   var frUnitValue: UiScalar
   
   debugPrint "expandFlexibleTracks:isIndefiniteContainer", "dir=", dir, "isIndefiniteContainer=", isIndefiniteContainer
+  isIndefiniteContainer = false
+
   if isIndefiniteContainer:
     # For auto-sized containers with fr tracks, calculate fr unit value based on 
     # the largest minimum size of any track with the same fr factor

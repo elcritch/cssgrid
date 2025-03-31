@@ -506,6 +506,10 @@ suite "grids":
     nodes[3] = newTestNode("b3", parent=parent)
 
     nodes[0].cxSize = [40'ux, 40'ux]
+    nodes[1].cxSize = [50'ux, 50'ux]
+    nodes[2].cxSize = [50'ux, 50'ux]
+    nodes[3].cxSize = [50'ux, 50'ux]
+
     # ==== process grid ====
     parent.children = nodes
     prettyPrintWriteMode = cmTerminal

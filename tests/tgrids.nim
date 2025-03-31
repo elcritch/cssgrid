@@ -148,8 +148,12 @@ suite "grids":
     gt.gaps[dcol] = 10.UiScalar
     gt.gaps[drow] = 10.UiScalar
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
+
+    setPrettyPrintMode(cmTerminal)
+    defer: setPrettyPrintMode(cmNone)
+
     gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    printGrid(gt, cmTerminal)
+    # printGrid(gt, cmTerminal)
 
     # print "grid template: ", gt
     check gt.lines[dcol][0].start.float == 0.0

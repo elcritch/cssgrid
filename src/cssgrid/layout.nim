@@ -643,8 +643,9 @@ proc expandFlexibleTracks*(
     flexTracks: seq[tuple[index: int, factor: UiScalar]]
     totalFlex = 0.0.UiScalar
     nonFlexSpace = 0.0.UiScalar
+    largestMinTrackSize = 0.0.UiScalar
   
-  # First collect all tracks with fr units
+  # First collect all tracks with fr units and find the largest minimum size
   for i, gridLine in grid.lines[dir]:
     var isFrTrack = false
     var flexFactor = 0.0.UiScalar
@@ -663,6 +664,8 @@ proc expandFlexibleTracks*(
     if isFrTrack:
       flexTracks.add((index: i, factor: flexFactor))
       totalFlex += flexFactor
+      # Track the largest base size for fr tracks
+      largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
     else:
       nonFlexSpace += gridLine.baseSize
   
@@ -674,67 +677,60 @@ proc expandFlexibleTracks*(
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
-  # Implementation of Find the Size of an fr (Section 12.7.1)
-  # Iterative approach that handles minimum contributions properly
+  # 3. Handle indefinite container sizing (auto height) specially
+  let isIndefiniteContainer = availableSpace >= 10000.UiScalar or 
+                             (dir == drow and grid.autos[dir].kind == UiValue and 
+                              grid.autos[dir].value.kind == UiFrac)
   
-  var 
-    leftoverSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
-    activeTracks = flexTracks
-    activeFlexSum = totalFlex
-    frozenSpace = 0.UiScalar
+  var frUnitValue: UiScalar
   
-  # Iterative approach to find the correct fr unit value
-  while activeTracks.len > 0:
-    # Ensure flex sum is at least 1
-    let effectiveFlexSum = max(activeFlexSum, 1.0.UiScalar)
+  if isIndefiniteContainer:
+    # For auto-sized containers with fr tracks, calculate fr unit value based on 
+    # the largest minimum size of any track with the same fr factor
+    # This matches browser behavior better
     
-    # Calculate hypothetical fr size
-    let frUnitValue = (leftoverSpace - frozenSpace) / effectiveFlexSum
+    # Group tracks by their fr factor to ensure equal distribution
+    var tracksByFactor = initTable[UiScalar, seq[int]]()
+    var maxMinByFactor = initTable[UiScalar, UiScalar]()
     
-    var 
-      tracksToFreeze: seq[int]
-      newFrozenSpace = 0.UiScalar
-    
-    # Find tracks that need to be frozen at their base size
-    for i, (trackIdx, factor) in activeTracks:
-      let flexSize = frUnitValue * factor
-      let minSize = grid.lines[dir][trackIdx].baseSize
+    # Find the largest minimum size for each fr factor
+    for (trackIdx, factor) in flexTracks:
+      if factor notin tracksByFactor:
+        tracksByFactor[factor] = @[]
+        maxMinByFactor[factor] = 0.UiScalar
       
-      if flexSize < minSize:
-        tracksToFreeze.add(i)
-        newFrozenSpace += minSize
-        activeFlexSum -= factor
-      
-    # If no tracks need freezing, we're done
-    if tracksToFreeze.len == 0:
-      # Apply the final fr unit value to all active tracks
-      for (trackIdx, factor) in activeTracks:
-        let flexSize = frUnitValue * factor
-        grid.lines[dir][trackIdx].baseSize = flexSize
-        grid.lines[dir][trackIdx].width = flexSize
-      break
+      tracksByFactor[factor].add(trackIdx)
+      maxMinByFactor[factor] = max(maxMinByFactor[factor], grid.lines[dir][trackIdx].baseSize)
     
-    # Freeze tracks that can't satisfy minimum size
-    for idx in countdown(tracksToFreeze.len - 1, 0):
-      let trackPos = tracksToFreeze[idx]
-      let (trackIdx, _) = activeTracks[trackPos]
+    # Apply the sizes - all tracks with the same fr factor get the same size
+    for factor, tracks in tracksByFactor:
+      let minSizeForFactor = maxMinByFactor[factor]
+      let sizePerTrack = minSizeForFactor * factor  # Scale by fr factor
       
-      # Keep the track at its minimum size
-      grid.lines[dir][trackIdx].width = grid.lines[dir][trackIdx].baseSize
-      
-      # Remove from active tracks
-      activeTracks.delete(trackPos)
+      for trackIdx in tracks:
+        grid.lines[dir][trackIdx].baseSize = sizePerTrack
+        grid.lines[dir][trackIdx].width = sizePerTrack
+        
+      debugPrint "expandFlexibleTracks:equalDistribution", "dir=", dir, 
+                "factor=", factor, "minSize=", minSizeForFactor, 
+                "sizePerTrack=", sizePerTrack, "tracks=", tracks.len
+  
+  else:
+    # For definite container sizes, distribute space proportionally
+    let leftoverSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
+    let effectiveTotalFlex = max(totalFlex, 1.0.UiScalar)
+    frUnitValue = leftoverSpace / effectiveTotalFlex
     
-    # Update frozen space
-    frozenSpace += newFrozenSpace
-    
-    # If all tracks are frozen, we're done
-    if activeTracks.len == 0:
-      break
+    # Apply calculated sizes to all flexible tracks
+    for (trackIdx, factor) in flexTracks:
+      let flexSize = max(grid.lines[dir][trackIdx].baseSize, frUnitValue * factor)
+      grid.lines[dir][trackIdx].baseSize = flexSize
+      grid.lines[dir][trackIdx].width = flexSize
   
   debugPrint "expandFlexibleTracks", "dir=", dir, "availableSpace=", availableSpace, 
-             "nonFlexSpace=", nonFlexSpace, "leftoverSpace=", leftoverSpace,
-             "totalFlex=", totalFlex, "frozenSpace=", frozenSpace
+           "nonFlexSpace=", nonFlexSpace, "totalFlex=", totalFlex,
+           "largestMinTrackSize=", largestMinTrackSize, 
+           "isIndefiniteContainer=", isIndefiniteContainer
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 

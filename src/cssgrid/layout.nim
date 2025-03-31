@@ -676,38 +676,298 @@ proc trackSizingAlgorithm*(
   
   debugPrint "trackSizingAlgorithm:start", "dir=", dir, "availableSpace=", availableSpace
   
-  # 1. Initialize Track Sizes
-  initializeTrackSizes(grid, dir, trackSizes, availableSpace)
+  # Step 1. Initialize Track Sizes
+  for i, gridLine in grid.lines[dir].mpairs:
+    let track = gridLine.track
+    var baseSize = 0.UiScalar
+    var growthLimit = UiScalar.high()
+    
+    # Set initial base size
+    match track:
+      UiValue(value):
+        case value.kind
+        of UiFixed:
+          baseSize = value.coord
+        of UiPerc:
+          baseSize = value.perc / 100.0.UiScalar * availableSpace
+        of UiContentMin, UiAuto:
+          # For intrinsic sizes, set to min-content contribution if available
+          if i in trackSizes:
+            baseSize = trackSizes[i].minContribution
+        of UiContentMax, UiContentFit:
+          # For max-content, also use min-content initially
+          if i in trackSizes:
+            baseSize = trackSizes[i].minContribution
+        of UiFrac:
+          # Flexible tracks start at 0
+          baseSize = 0.UiScalar
+      UiMin(lmin, rmin):
+        # For minmax(), use min value for base size
+        case lmin.kind
+        of UiFixed:
+          baseSize = lmin.coord
+        of UiPerc:
+          baseSize = lmin.perc / 100.0.UiScalar * availableSpace
+        of UiContentMin, UiAuto:
+          if i in trackSizes:
+            baseSize = trackSizes[i].minContribution
+        of UiContentMax, UiContentFit:
+          if i in trackSizes:
+            baseSize = trackSizes[i].maxContribution
+        of UiFrac:
+          # min with fr is treated as 0 or auto
+          baseSize = 0.UiScalar
+      _:
+        baseSize = 0.UiScalar
+    
+    # Set initial growth limit
+    match track:
+      UiValue(value):
+        case value.kind
+        of UiFixed:
+          growthLimit = value.coord
+        of UiPerc:
+          growthLimit = value.perc / 100.0.UiScalar * availableSpace
+        of UiContentMin:
+          if i in trackSizes:
+            growthLimit = trackSizes[i].minContribution
+        of UiContentMax, UiContentFit:
+          if i in trackSizes:
+            growthLimit = trackSizes[i].maxContribution
+        of UiAuto, UiFrac:
+          growthLimit = UiScalar.high()
+      UiMin(lmin, rmin):
+        # For minmax(), use max value for growth limit
+        case rmin.kind
+        of UiFixed:
+          growthLimit = rmin.coord
+        of UiPerc:
+          growthLimit = rmin.perc / 100.0.UiScalar * availableSpace
+        of UiContentMin:
+          if i in trackSizes:
+            growthLimit = trackSizes[i].minContribution
+        of UiContentMax, UiContentFit:
+          if i in trackSizes:
+            growthLimit = trackSizes[i].maxContribution
+        of UiAuto, UiFrac:
+          growthLimit = UiScalar.high()
+      _:
+        growthLimit = baseSize
+    
+    # Ensure growth limit >= base size
+    growthLimit = max(growthLimit, baseSize)
+    
+    gridLine.baseSize = baseSize
+    gridLine.growthLimit = growthLimit
+    
+    debugPrint "initializeTrackSizes", "dir=", dir, "track=", i, 
+               "baseSize=", baseSize, "growthLimit=", growthLimit, "track=", track
   
-  # 2. Resolve Intrinsic Track Sizes
-  resolveIntrinsicTrackSizes(grid, dir, trackSizes, availableSpace)
+  # Step 2. Resolve Intrinsic Track Sizes
+  for i, gridLine in grid.lines[dir].mpairs:
+    let track = gridLine.track
+    
+    if i in trackSizes:
+      let computed = trackSizes[i]
+      
+      match track:
+        UiValue(value):
+          case value.kind
+          of UiContentMin, UiAuto:
+            # Set base size to min-content contribution
+            gridLine.baseSize = max(gridLine.baseSize, computed.minContribution)
+            if value.kind == UiContentMin:
+              gridLine.growthLimit = max(gridLine.growthLimit, computed.minContribution)
+          of UiContentMax, UiContentFit:
+            # Set base size to max-content contribution
+            gridLine.baseSize = max(gridLine.baseSize, computed.maxContribution)
+            gridLine.growthLimit = max(gridLine.growthLimit, computed.maxContribution)
+          else: discard
+        UiMin(lmin, rmin):
+          # For minmax(), apply content sizing to both min and max
+          if lmin.kind in {UiContentMin, UiAuto}:
+            gridLine.baseSize = max(gridLine.baseSize, computed.minContribution)
+          elif lmin.kind in {UiContentMax, UiContentFit}:
+            gridLine.baseSize = max(gridLine.baseSize, computed.maxContribution)
+          
+          if rmin.kind in {UiContentMin, UiAuto}:
+            gridLine.growthLimit = max(gridLine.growthLimit, computed.minContribution)
+          elif rmin.kind in {UiContentMax, UiContentFit}:
+            gridLine.growthLimit = max(gridLine.growthLimit, computed.maxContribution)
+        _: discard
+      
+      # Always ensure growth limit >= base size
+      gridLine.growthLimit = max(gridLine.growthLimit, gridLine.baseSize)
   
-  # 3. Maximize Tracks
-  maximizeTracks(grid, dir, availableSpace)
+  # Step 3. Maximize Tracks
+  var 
+    usedSpace = 0.UiScalar
+    growableTracks: seq[int]
+    frTracks: seq[int]
   
-  # 4. Expand Flexible Tracks
-  expandFlexibleTracks(grid, dir, availableSpace)
-  
-  # 5. Expand Stretched Auto Tracks
-  expandStretchedAutoTracks(grid, dir, availableSpace)
-  
-  # Now compute final positions
-  computeTrackPositions(grid, dir)
-  
-  # Debug output of final track sizes
+  # First identify which tracks can grow and calculate used space
   for i, gridLine in grid.lines[dir]:
-    debugPrint "trackSizingAlgorithm:finalTrack", "dir=", dir, "track=", i, 
-               "start=", gridLine.start, "width=", gridLine.width, "baseSize=", gridLine.baseSize
-
-  # Add to trackSizingAlgorithm after calling expandFlexibleTracks:
-  debugPrint "trackSizingAlgorithm:afterExpandingFlexibleTracks", "dir=", dir
-  for i, gridLine in grid.lines[dir]:
+    usedSpace += gridLine.baseSize
+    
+    var canGrow = true
+    var isFrTrack = false
+    
     match gridLine.track:
       UiValue(value):
         if value.kind == UiFrac:
-          debugPrint "  flexTrack", "index=", i, "factor=", value.frac, 
-                    "baseSize=", gridLine.baseSize, "width=", gridLine.width
+          canGrow = false
+          isFrTrack = true
+      UiMin(lmin, rmin):
+        if rmin.kind == UiFrac:
+          canGrow = false
+          isFrTrack = true
       _: discard
+    
+    if isFrTrack:
+      frTracks.add(i)
+    elif canGrow and gridLine.baseSize < gridLine.growthLimit:
+      growableTracks.add(i)
+  
+  # Add gap space
+  if grid.lines[dir].len() > 1:
+    usedSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
+  
+  # Calculate free space
+  var freeSpace = max(0.UiScalar, availableSpace - usedSpace)
+  
+  debugPrint "maximizeTracks", "dir=", dir, "usedSpace=", usedSpace, 
+            "availableSpace=", availableSpace, "freeSpace=", freeSpace, 
+            "growableTracks=", growableTracks.len, "frTracks=", frTracks.len
+  
+  # Skip maximizing tracks if we have fr tracks - fr gets priority
+  if frTracks.len() == 0 and freeSpace > 0 and growableTracks.len() > 0:
+    # Distribute to non-fr tracks only if no fr tracks exist
+    var remainingSpace = freeSpace
+    var trackCount = growableTracks.len()
+    
+    while remainingSpace > 0 and trackCount > 0:
+      let spacePerTrack = remainingSpace / trackCount.UiScalar
+      var spaceDistributed = 0.UiScalar
+      var stillGrowable = 0
+      
+      for i in growableTracks:
+        var gridLine = addr grid.lines[dir][i]
+        if gridLine.baseSize < gridLine.growthLimit:
+          let growth = min(spacePerTrack, gridLine.growthLimit - gridLine.baseSize)
+          gridLine.baseSize += growth
+          spaceDistributed += growth
+          
+          if gridLine.baseSize < gridLine.growthLimit:
+            stillGrowable += 1
+      
+      remainingSpace -= spaceDistributed
+      trackCount = stillGrowable
+      
+      if spaceDistributed < 0.001.UiScalar:
+        break
+      
+      debugPrint "maximizeTracks:distributed", "spaceDistributed=", spaceDistributed,
+                "remainingSpace=", remainingSpace, "stillGrowable=", stillGrowable
+  
+  # Step 4. Expand Flexible Tracks
+  if frTracks.len() > 0:
+    # Recalculate used space after maximization
+    usedSpace = 0.UiScalar
+    var totalFlex = 0.0.UiScalar
+    var flexSizes: seq[tuple[index: int, factor: UiScalar]]
+    
+    for i, gridLine in grid.lines[dir]:
+      if i notin frTracks:
+        usedSpace += gridLine.baseSize
+      else:
+        var flexFactor = 0.0.UiScalar
+        match gridLine.track:
+          UiValue(value):
+            if value.kind == UiFrac:
+              flexFactor = value.frac
+          UiMin(lmin, rmin):
+            if rmin.kind == UiFrac:
+              flexFactor = rmin.frac
+          _: discard
+        
+        flexSizes.add((index: i, factor: flexFactor))
+        totalFlex += flexFactor
+    
+    # Add gap space
+    if grid.lines[dir].len() > 1:
+      usedSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
+    
+    # Recalculate free space for flexible tracks
+    freeSpace = max(0.UiScalar, availableSpace - usedSpace)
+    
+    # Ensure minimum flex factor sum is 1
+    let effectiveTotalFlex = max(totalFlex, 1.0.UiScalar)
+    
+    # Calculate fr unit value
+    let frUnitValue = freeSpace / effectiveTotalFlex
+    
+    debugPrint "expandFlexibleTracks", "dir=", dir, "availableSpace=", availableSpace, 
+              "usedSpace=", usedSpace, "freeSpace=", freeSpace,
+              "totalFlex=", totalFlex, "frUnitValue=", frUnitValue
+    
+    # Apply to all flex tracks
+    for (trackIdx, factor) in flexSizes:
+      let flexSize = frUnitValue * factor
+      let finalSize = max(grid.lines[dir][trackIdx].baseSize, flexSize)
+      
+      grid.lines[dir][trackIdx].baseSize = finalSize
+      debugPrint "expandFlexibleTracks:track", "index=", trackIdx, "factor=", factor, 
+                "flexSize=", flexSize, "finalSize=", finalSize
+  
+  # Step 5. Expand Stretched Auto Tracks
+  var 
+    autoTracks: seq[int]
+    finalUsedSpace = 0.UiScalar
+  
+  for i, gridLine in grid.lines[dir]:
+    finalUsedSpace += gridLine.baseSize
+    
+    match gridLine.track:
+      UiValue(value):
+        if value.kind == UiAuto:
+          autoTracks.add(i)
+      _: discard
+  
+  # Add gap space
+  if grid.lines[dir].len() > 1:
+    finalUsedSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
+  
+  # Final free space
+  let finalFreeSpace = max(0.UiScalar, availableSpace - finalUsedSpace)
+  
+  # Only expand auto tracks if we have free space and no fr tracks
+  if finalFreeSpace > 0 and autoTracks.len() > 0 and frTracks.len() == 0:
+    let spacePerTrack = finalFreeSpace / autoTracks.len().UiScalar
+    
+    for i in autoTracks:
+      grid.lines[dir][i].baseSize += spacePerTrack
+      
+      debugPrint "expandStretchedAutoTracks:track", "index=", i, 
+                "baseSize=", grid.lines[dir][i].baseSize
+  
+  # Now compute the final positions and set widths = base sizes
+  computeTrackPositions(grid, dir)
+  
+  # Debug output
+  for i, gridLine in grid.lines[dir]:
+    debugPrint "trackSizingAlgorithm:finalTrack", "dir=", dir, "track=", i, 
+              "start=", gridLine.start, "width=", gridLine.width, "baseSize=", gridLine.baseSize
+  
+  if frTracks.len() > 0:
+    debugPrint "trackSizingAlgorithm:afterExpandingFlexibleTracks", "dir=", dir
+    for i in frTracks:
+      let gridLine = grid.lines[dir][i]
+      match gridLine.track:
+        UiValue(value):
+          if value.kind == UiFrac:
+            debugPrint "  flexTrack", "index=", i, "factor=", value.frac, 
+                      "baseSize=", gridLine.baseSize, "width=", gridLine.width
+        _: discard
 
 # Add computeAutoFlow function here (copied from layout.nim to make sure it's available)
 proc computeAutoFlow(

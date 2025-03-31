@@ -80,8 +80,8 @@ suite "Compute Layout Tests":
       items.gridTemplate.autoFlow = grRow
       items.gridTemplate.gaps[drow] = 3
       items.gridTemplate.autos[drow] = csAuto()
-      items.gridTemplate.justifyItems = CxCenter
-      items.gridTemplate.alignItems = CxCenter
+      items.gridTemplate.justifyItems = CxStretch
+      items.gridTemplate.alignItems = CxStretch
 
       for i in 0..1:
         let child = newTestNode("story-" & $i, items)
@@ -96,17 +96,19 @@ suite "Compute Layout Tests":
         text.cxMin = [40'ux, 20.00'ux]
         text.cxMax = [200'ux, 300.00'ux]
       
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
+      prettyPrintWriteMode = cmTerminal
+      defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
 
       # since it's cxStretch with auto it'll goto min content size
       check body.box.w == 768
       check body.box.h.float32.round(0) == 171
 
-      check items.children[0].box.w == 40
+      check items.children[0].box.w == 768
       check items.children[0].box.h == 84.22.UiScalar
+      check items.children[0].children[0].box.w == 768
+      check items.children[0].children[0].box.h.float32.round(0) == 33
   
   test "vertical layout auto stretch":
     when true:

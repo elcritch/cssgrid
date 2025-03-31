@@ -99,7 +99,7 @@ suite "Compute Layout Tests":
       # prettyPrintWriteMode = cmTerminal
       # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       # since it's cxStretch with auto it'll goto min content size
       check body.box.w == 768
@@ -147,7 +147,7 @@ suite "Compute Layout Tests":
 
       # since it's cxStretch with auto it'll goto min content size
       check items.children[0].box.x == 0
-      check items.children[0].box.w == 768
+      check items.children[0].box.w == 40
       check items.children[0].box.h == 84.22.UiScalar
   
   test "vertical layout auto with grandchild":

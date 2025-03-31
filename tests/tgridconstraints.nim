@@ -83,13 +83,16 @@ suite "CSS Grid Content Sizing":
     parent.cxSize = [500'ux, 100'ux]
 
     parent.gridTemplate = newGridTemplate()
-    parent.gridTemplate.justifyItems = CxCenter
-    parent.gridTemplate.alignItems = CxCenter
+    parent.gridTemplate.justifyItems = CxStretch
+    parent.gridTemplate.alignItems = CxStretch
 
     parent.gridTemplate.lines[dcol] = @[
       initGridLine(csContentMin()),
       initGridLine(csAuto()),
       initGridLine(csFrac(1))
+    ]
+    parent.gridTemplate.lines[drow] = @[
+      initGridLine(csAuto())
     ]
 
     # Create children to establish content sizes
@@ -110,7 +113,6 @@ suite "CSS Grid Content Sizing":
     child3.gridItem.column = 3 // 4
     child3.gridItem.row = 1 // 2
     child3.cxMin = [100'ux, 100'ux]
-    child3.cxSize = [cx"auto", 100'ux]
 
     # Enable debug output
     setPrettyPrintMode(cmTerminal)

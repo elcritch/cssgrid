@@ -637,10 +637,15 @@ proc calculateFractionSize*(
     dir: GridDir,
     tracks: seq[tuple[index: int, factor: UiScalar]],
     spaceToFill: UiScalar,
-    nonFlexSpace: UiScalar
+    nonFlexSpace: UiScalar,
+    isDefinite: bool = true
 ): UiScalar =
-  ## Find the size of an fr unit (implements step 12.7.1 in the CSS Grid spec)
-  
+  # For indefinite lengths, the algorithm changes
+  if not isDefinite:
+    # Return a value that will make flexible tracks their base size or min contribution
+    return 0.UiScalar
+    
+  # Otherwise use the normal algorithm for definite lengths
   # Step 1: Calculate leftover space after non-flexible tracks
   let leftoverSpace = max(0.UiScalar, spaceToFill - nonFlexSpace)
   debugPrint "calculateFractionSize:leftoverSpace", "dir=", dir, "leftoverSpace=", leftoverSpace, "spaceToFill=", spaceToFill, "nonFlexSpace=", nonFlexSpace
@@ -716,7 +721,7 @@ proc expandFlexibleTracks*(
   if flexibleTracks.len == 0:
     return
   
-  # Step 2: Calculate sum of flex factors (needed for later comparison)
+  # Step 2: Calculate sum of flex factors
   var flexFactorSum = 0.0.UiScalar
   for (_, factor) in flexibleTracks:
     flexFactorSum += factor
@@ -724,40 +729,51 @@ proc expandFlexibleTracks*(
   # Ensure flex factor sum is at least 1
   flexFactorSum = max(1.0.UiScalar, flexFactorSum)
   
-  # Step 3: Determine the used flex fraction (size of 1fr)
-  let usedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, availableSpace, nonFlexibleSpace)
-  debugPrint "expandFlexibleTracks:", "dir=", dir, "usedFlexFraction=", usedFlexFraction, "availableSpace=", availableSpace, "nonFlexibleSpace=", nonFlexibleSpace
+  # Step 3: CHECK IF AVAILABLE SPACE IS DEFINITE OR INDEFINITE
+  # A length is definite if it's a fixed value, or a percentage of a definite length
+  var isDefiniteLength = true
+  var parentIsDefinite = true # Assume parent is definite initially
   
-  # Step 4: Check if using this flex fraction would violate container constraints
-  var containerMinSize = 0.0.UiScalar
-  
-  if node != nil and node.cxMin[dir].kind != UiNone:
-    # Get minimum size from node constraint if available - provide content size of 0
-    containerMinSize = getMinSize(node.cxMin[dir], 0.0.UiScalar)
-  
-  if grid.lines[dir].len() > 0:
-    let lastTrackIndex = grid.lines[dir].len() - 1
-    let lastTrack = grid.lines[dir][lastTrackIndex]
-    let gridMinSize = lastTrack.start + lastTrack.width
-    containerMinSize = max(containerMinSize, gridMinSize)
-  
-  # Apply the sizing
-  if containerMinSize > 0 and usedFlexFraction * flexFactorSum < containerMinSize:
-    # Recalculate using container's min size
-    let recalculatedUsedFlexFraction = calculateFractionSize(
-        grid, dir, flexibleTracks, containerMinSize, nonFlexibleSpace)
+  if node != nil:
+    # For percentage-based containers, we need to check parent definite status
+    let constraint = node.cxSize[dir]
     
-    # Apply to tracks
-    for (trackIndex, flexFactor) in flexibleTracks:
-      let newSize = recalculatedUsedFlexFraction * flexFactor
-      if newSize > grid.lines[dir][trackIndex].baseSize:
-        grid.lines[dir][trackIndex].baseSize = newSize
-  else:
-    # Apply regular flexible sizing
-    for (trackIndex, flexFactor) in flexibleTracks:
-      let newSize = usedFlexFraction * flexFactor
-      if newSize > grid.lines[dir][trackIndex].baseSize:
-        grid.lines[dir][trackIndex].baseSize = newSize
+    # If parent is auto or content-based, percentage children are indefinite
+    if node.parent != nil:
+      let parentNode = node.parent
+      let parentConstraint = parentNode.cxSize[dir]
+      parentIsDefinite = isDefinite(parentConstraint)
+    
+    # Check current node's constraint
+    isDefiniteLength = isDefinite(constraint, parentIsDefinite)
+  
+  # If length is indefinite, use minimum contribution sizing
+  if not isDefiniteLength:
+    debugPrint "expandFlexibleTracks:indefinite", "dir=", dir, "using min sizing"
+    for (trackIndex, _) in flexibleTracks:
+      # For indefinite sizing with fr units, fr tracks should
+      # grow to their content-based minima:
+      
+      # When distributing space to fr tracks in an indefinite context,
+      # we give each track its baseSize which contains content contributions
+      # collected by the resolveIntrinsicTrackSizes step
+      let minSize = grid.lines[dir][trackIndex].baseSize
+      grid.lines[dir][trackIndex].baseSize = minSize
+      
+      debugPrint "expandFlexibleTracks:indefinite:track", "dir=", dir, 
+                "trackIndex=", trackIndex, "baseSize=", minSize
+    return
+  
+  # Step 4: For definite lengths, determine the used flex fraction
+  let usedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, availableSpace, nonFlexibleSpace)
+  debugPrint "expandFlexibleTracks:definite", "dir=", dir, "usedFlexFraction=", usedFlexFraction, 
+            "availableSpace=", availableSpace, "nonFlexibleSpace=", nonFlexibleSpace
+  
+  # Step 5: Apply the sizing
+  for (trackIndex, flexFactor) in flexibleTracks:
+    let newSize = usedFlexFraction * flexFactor
+    if newSize > grid.lines[dir][trackIndex].baseSize:
+      grid.lines[dir][trackIndex].baseSize = newSize
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 

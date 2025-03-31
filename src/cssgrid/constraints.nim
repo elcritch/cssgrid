@@ -380,3 +380,50 @@ proc getMinSize*(cs: Constraint, contentSize: UiScalar): UiScalar =
     # For subtraction, the minimum is the difference of minimums
     # with a floor of 0 to prevent negative sizes
     result = max(0.UiScalar, getMinSize(cs.lsub, contentSize) - getMinSize(cs.rsub, contentSize))
+
+proc isDefinite*(cs: ConstraintSize, parentIsDefinite: bool = false): bool =
+  ## Determines if a constraint size represents a definite length
+  ## 
+  ## According to CSS Grid spec, a length is definite if:
+  ## - Fixed sizes are always definite
+  ## - Percentages are definite only if the parent size is definite
+  ## - Fractions, auto, and content-based sizes are always indefinite
+  case cs.kind
+  of UiFixed:
+    # Fixed sizes are always definite
+    result = true
+  of UiPerc:
+    # Percentages are definite only if the parent size is definite
+    result = parentIsDefinite
+  of UiFrac, UiAuto, UiContentMin, UiContentMax, UiContentFit:
+    # These are always indefinite
+    result = false
+
+proc isDefinite*(cx: Constraint, parentIsDefinite: bool = false): bool =
+  ## Determines if a constraint represents a definite length
+  ##
+  ## For compound constraints:
+  ## - min() is definite if either component is definite
+  ## - max() is definite if either component is definite
+  ## - add/sub are definite if both components are definite
+  ## - minmax() is definite if the max component is definite
+  case cx.kind
+  of UiNone:
+    result = false
+  of UiEnd:
+    result = true
+  of UiValue:
+    result = isDefinite(cx.value, parentIsDefinite)
+  of UiMin:
+    # min() is definite if either component is definite
+    result = isDefinite(cx.lmin, parentIsDefinite) or isDefinite(cx.rmin, parentIsDefinite)
+  of UiMax:
+    # max() is definite if either component is definite
+    result = isDefinite(cx.lmax, parentIsDefinite) or isDefinite(cx.rmax, parentIsDefinite)
+  of UiAdd, UiSub:
+    # add/sub are definite if both components are definite
+    let args = cssFuncArgs(cx)
+    result = isDefinite(args.l, parentIsDefinite) and isDefinite(args.r, parentIsDefinite)
+  of UiMinMax:
+    # minmax() is definite if the max component is definite
+    result = isDefinite(cx.rmm, parentIsDefinite)

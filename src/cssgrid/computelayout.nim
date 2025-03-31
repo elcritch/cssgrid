@@ -369,7 +369,7 @@ proc initializeTrackSizes*(
         of UiFixed:
           growthLimit = value.coord
         of UiPerc:
-          growthLimit = value.perc / 100.0.UiScalar * availableSpace
+          growthLimit = value.perc * availableSpace / 100.0.UiScalar 
         of UiFrac:
           growthLimit = UiScalar.high()
         else:
@@ -385,7 +385,7 @@ proc initializeTrackSizes*(
     gridLine.growthLimit = growthLimit
     
     debugPrint "initializeTrackSizes", "dir=", dir, "track=", i, 
-              "baseSize=", baseSize, "growthLimit=", growthLimit
+              "baseSize=", baseSize, "growthLimit=", growthLimit, "track=", track
 
 proc resolveIntrinsicTrackSizes*(
     grid: GridTemplate, 

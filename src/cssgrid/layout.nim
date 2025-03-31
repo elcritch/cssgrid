@@ -454,24 +454,30 @@ proc maximizeTracks*(
     usedSpace = 0.UiScalar
     growableTracks: seq[int]  # Track indices that can grow (non-fr tracks)
   
-  # First pass: calculate used space and identify non-fr tracks that can grow
+  # First pass: calculate used space and identify tracks that can grow
   for i, gridLine in grid.lines[dir].pairs:
     usedSpace += gridLine.baseSize
     
     # Only consider non-fr tracks for growth in this step
     var isFlexTrack = false
+    var isIntrinsicTrack = false
+    
     match gridLine.track:
       UiValue(value):
         if value.kind == UiFrac:
           isFlexTrack = true
+        # Only content-based auto tracks should grow in this step, not min-content
+        elif value.kind == UiContentMin:
+          isIntrinsicTrack = true
       _: discard
     
-    # If it's not a flex track and can grow, add it to growable list
-    if not isFlexTrack and gridLine.baseSize < gridLine.growthLimit:
+    # If it's not a flex track or min-content track and can grow, add it to growable list
+    if not isFlexTrack and not isIntrinsicTrack and gridLine.baseSize < gridLine.growthLimit:
       growableTracks.add(i)
   
   # Add in gap space
-  usedSpace += grid.gaps[dir] * max(grid.lines[dir].len() - 2, 0).UiScalar
+  if grid.lines[dir].len() > 1:
+    usedSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
   # Calculate free space
   let freeSpace = max(0.UiScalar, availableSpace - usedSpace)
@@ -479,12 +485,11 @@ proc maximizeTracks*(
             "availableSpace=", availableSpace, "freeSpace=", freeSpace, 
             "growableTracks=", growableTracks.len
   
-  # Distribute free space to non-fr tracks
+  # Distribute free space only to growable tracks
   if freeSpace > 0 and growableTracks.len > 0:
     var remainingSpace = freeSpace
     var trackCount = growableTracks.len
     
-    # Distribute space, freezing tracks as they reach growth limits
     while remainingSpace > 0 and trackCount > 0:
       let spacePerTrack = remainingSpace / trackCount.UiScalar
       var spaceDistributed = 0.UiScalar
@@ -505,9 +510,6 @@ proc maximizeTracks*(
       
       if spaceDistributed < 0.001.UiScalar:  # Break if we're not making progress
         break
-      
-      debugPrint "maximizeTracks:distributed", "spaceDistributed=", spaceDistributed,
-                "remainingSpace=", remainingSpace, "stillGrowable=", stillGrowable
 
 proc expandFlexibleTracks*(
     grid: GridTemplate, 

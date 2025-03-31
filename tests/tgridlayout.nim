@@ -101,6 +101,8 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       printLayout(parent, cmTerminal)
 
+      check items.gridTemplate.lines[dcol][0].width.float32.round(0) == 768
+
       # since it's cxStretch with auto it'll goto min content size
       check body.box.w == 768
       check body.box.h.float32.round(0) == 171

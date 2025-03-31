@@ -91,7 +91,6 @@ suite "grids":
     # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
     parseGridTemplateColumns gridTemplate, ["first"] 40'ux ["second", "line2"] 50'pp ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
 
-    # gridTemplate.computeTracks(uiBox(0, 0, 100, 100))
     let gt = gridTemplate
 
     check gt.lines[dcol][0].track.value.kind == UiFixed
@@ -520,35 +519,49 @@ suite "grids":
       check nodes[i].box.h == 33
 
   test "compute layout auto flow overflow":
-    var gridTemplate: GridTemplate
-
-    parseGridTemplateColumns gridTemplate, 100'ux
-    parseGridTemplateRows gridTemplate, 100'ux
-    gridTemplate.autos[drow] = csFixed 100.0
-    gridTemplate.justifyItems = CxStretch
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    var parent = TestNode()
-    parent.gridTemplate = gridTemplate
-
+    # Create a parent node
+    var parent = TestNode(name: "parent")
+    
+    # Create and configure the grid template
+    parent.gridTemplate = GridTemplate()
+    
+    # Configure grid with one column and row
+    parseGridTemplateColumns parent.gridTemplate, 100'ux
+    parseGridTemplateRows parent.gridTemplate, 100'ux
+    
+    # Set auto row height and alignment
+    parent.gridTemplate.autos[drow] = csFixed 100.0
+    parent.gridTemplate.justifyItems = CxStretch
+    parent.gridTemplate.autoFlow = grRow
+    
+    # Set parent container size
+    parent.cxSize = [100'ux, 100'ux]  # Using same width as the column
+    parent.frame = Frame(windowSize: uiBox(0, 0, 100, 100))
+    
+    # Create four child nodes
     var nodes = newSeq[TestNode](4)
-
-    # ==== item a's ====
     for i in 0 ..< nodes.len():
-      nodes[i] = TestNode(name: "b" & $(i))
-
-    # ==== process grid ====
-    parent.children = nodes
-    let box = gridTemplate.computeNodeLayout(parent)
-
-    check box.w == 100
-    check box.h == 400
-
+      nodes[i] = TestNode(
+        name: "b" & $(i),
+        box: uiBox(0, 0, 100, 100)  # Set content size equal to grid cell
+      )
+      parent.children.add(nodes[i])
+      nodes[i].parent = parent
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Check the parent box dimensions (height expanded to fit all auto rows)
+    check parent.box.w == 100
+    check parent.box.h == 400
+    
+    # Check that grid items were placed correctly
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
-
+    
+    # Check positions of the grid items
     check nodes[0].box == uiBox(0, 0, 100, 100)
     check nodes[1].box == uiBox(0, 100, 100, 100)
     check nodes[3].box == uiBox(0, 300, 100, 100)

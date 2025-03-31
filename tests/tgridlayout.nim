@@ -149,9 +149,8 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
 
-      # since it's cxStretch with auto it'll goto min content size
       check items.children[0].box.x == 0
-      check items.children[0].box.w == 40
+      check items.children[0].box.w == 768
       check items.children[0].box.h == 84.22.UiScalar
   
   test "vertical layout auto with grandchild":

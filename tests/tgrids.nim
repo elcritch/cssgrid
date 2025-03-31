@@ -512,8 +512,8 @@ suite "grids":
 
     # ==== process grid ====
     parent.children = nodes
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # printLayout(parent, cmTerminal)
 
@@ -533,6 +533,8 @@ suite "grids":
     # the min fr track len should account for the min-content size
     check nodes[0].box == uiBox(0, 0, 40, 40)
     check nodes[1].box == uiBox(100, 0, 50, 50)
+    check nodes[2].box == uiBox(200, 0, 50, 50)
+    check nodes[3].box == uiBox(300, 0, 50, 50)
 
   test "compute layout overflow (columns)":
 

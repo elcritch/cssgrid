@@ -59,6 +59,41 @@ type
       lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
 
+proc cssFuncArgs*(cx: Constraint): tuple[l, r: ConstraintSize] =
+  match cx:
+    UiMin(lmin, rmin):
+      result = (lmin, rmin)
+    UiMax(lmax, rmax):
+      result = (lmax, rmax)
+    UiAdd(ladd, radd):
+      result = (ladd, radd)
+    UiSub(lsub, rsub):
+      result = (lsub, rsub)
+    UiMinMax(lmm, rmm):
+      result = (lmm, rmm)
+    _:
+      discard
+
+proc isFixed*(cs: ConstraintSize): bool =
+  case cs.kind:
+    of UiFixed, UiPerc:
+      return true
+    else:
+      return false
+
+proc isFixed*(cx: Constraint): bool =
+  case cx.kind:
+    of UiValue:
+      return isFixed(cx.value)
+    of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+      let args = cssFuncArgs(cx)
+      return isFixed(args.l) or isFixed(args.r)
+    of UiNone, UiEnd:
+      return true
+
+proc isCssFunc*(cx: Constraint): bool =
+  cx.kind in [UiAdd, UiSub, UiMin, UiMax, UiMinMax]
+
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)
 proc csAuto*(): Constraint =
@@ -77,12 +112,36 @@ proc csContentMax*(): Constraint =
 proc csContentFit*(): Constraint =
   csValue(ConstraintSize(kind: UiContentFit))
 
+proc isContentSized*(cx: ConstraintSize): bool =
+  cx.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac]
+
 proc isContentSized*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac] 
+  case cx.kind:
+  of UiNone, UiEnd:
+    result = false
+  of UiValue:
+    result = isContentSized(cx.value)
+  of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+    let args = cssFuncArgs(cx)
+    result = isContentSized(args.l) or isContentSized(args.r)
+
+
 proc isBasicContentSized*(cs: ConstraintSize): bool =
   cs.kind in [UiContentMin, UiContentMax, UiContentFit]
+
+proc isAuto*(cs: ConstraintSize): bool =
+  cs.kind in [UiAuto, UiFrac]
+
 proc isAuto*(cx: Constraint): bool =
-  cx.kind == UiValue and cx.value.kind in [UiAuto, UiFrac]
+  case cx.kind:
+  of UiNone, UiEnd:
+    result = false
+  of UiValue:
+    result = isAuto(cx.value)
+  of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+    let args = cssFuncArgs(cx)
+    result = isAuto(args.l) or isAuto(args.r)
+      
 
 proc csEnd*(): Constraint =
   Constraint(kind: UiEnd)
@@ -117,6 +176,7 @@ proc csMax*[U, T](a: U, b: T): Constraint =
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
+  
   Constraint(kind: UiMax, lmax: a, rmax: b)
 
 proc csMin*[U, T](a: U, b: T): Constraint =
@@ -127,10 +187,11 @@ proc csMin*[U, T](a: U, b: T): Constraint =
   let b = when b is ConstraintSize: b
           elif b is Constraint: b.value
           else: csFixed(b).value
+  
   Constraint(kind: UiMin, lmin: a, rmin: b)
 
 proc csMinMax*[U, T](a: U, b: T): Constraint =
-  ## create minmin op
+  ## create minmax op
   let a = when a is ConstraintSize: a
           elif a is Constraint: a.value
           else: csFixed(a).value
@@ -163,15 +224,9 @@ proc `==`*(a, b: ConstraintSize): bool =
 
 proc `==`*(a, b: Constraint): bool =
   if a.kind == b.kind:
-    match a:
-      UiNone(): return true
-      UiValue(value): return value == b.value
-      UiMin(lmin, rmin): return lmin == b.lmin and rmin == b.rmin
-      UiMax(lmax, rmax): return lmax == b.lmax and rmax == b.rmax
-      UiAdd(ladd, radd): return ladd == b.ladd and radd == b.radd
-      UiSub(lsub, rsub): return lsub == b.lsub and rsub == b.rsub
-      UiMinMax(lmm, rmm): return lmm == b.lmm and rmm == b.rmm
-      UiEnd(): return true
+    case a.kind:
+      of UiNone, UiEnd: return true
+      of UiValue, UiMin, UiMax, UiAdd, UiSub, UiMinMax: return cssFuncArgs(a) == cssFuncArgs(b)
 
 proc `$`*(a: ConstraintSize): string =
   match a:

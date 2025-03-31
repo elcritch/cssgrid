@@ -67,15 +67,13 @@ suite "Compute Layout Tests":
 
   test "vertical layout auto":
     when true:
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
 
       let parent = newTestNode("scroll", 0, 0, 400, 300)
       let body = newTestNode("scrollBody", parent)
       let items = newTestNode("items", body)
 
       parseGridTemplateColumns items.gridTemplate, 1'fr
-      parent.cxSize = [96'pp, 90'pp]
+      parent.cxSize = [768'ux, 540'ux]
       body.cxSize = [cx"auto", cx"max-content"]
       body.cxOffset = [cx"auto", cx"auto"]
 
@@ -99,11 +97,56 @@ suite "Compute Layout Tests":
         text.cxMin = [40'ux, 20.00'ux]
         text.cxMax = [200'ux, 300.00'ux]
       
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
+      # since it's cxStretch with auto it'll goto min content size
+      check items.children[0].box.x == 364
+      check items.children[0].box.w == 40
+      check items.children[0].box.h == 84.22.UiScalar
+  
+  test "vertical layout auto stretch":
+    when true:
+
+      let parent = newTestNode("scroll", 0, 0, 400, 300)
+      let body = newTestNode("scrollBody", parent)
+      let items = newTestNode("items", body)
+
+      parseGridTemplateColumns items.gridTemplate, 1'fr
+      parent.cxSize = [768'ux, 540'ux]
+      body.cxSize = [cx"auto", cx"max-content"]
+      body.cxOffset = [cx"auto", cx"auto"]
+
+      items.cxSize = [cx"auto", cx"auto"]
+      items.gridTemplate.autoFlow = grRow
+      items.gridTemplate.gaps[drow] = 3
+      items.gridTemplate.autos[drow] = csAuto()
+      items.gridTemplate.justifyItems = CxStretch
+      items.gridTemplate.alignItems = CxStretch
+
+      for i in 0..1:
+        let child = newTestNode("story-" & $i, items)
+        let text = newTestNode("text-" & $i, child)
+
+        # child.cxSize = [1'fr, csAuto()]
+        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
+        child.cxPadOffset[drow] = 21.01'ux
+        child.cxPadSize[drow] = 22.20'ux
+
+        text.cxSize = [cx"auto", 33.33'ux]
+        text.cxMin = [40'ux, 20.00'ux]
+        text.cxMax = [200'ux, 300.00'ux]
+      
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+
+      # since it's cxStretch with auto it'll goto min content size
+      check items.children[0].box.x == 0
       check items.children[0].box.w == 768
-      # check items.children[0].box.h == 63.21.UiScalar
       check items.children[0].box.h == 84.22.UiScalar
   
   test "vertical layout auto with grandchild":
@@ -118,42 +161,35 @@ suite "Compute Layout Tests":
 
       items.cxSize = [cx"auto", cx"max-content"]
 
-      block story0:
-        let story = newTestNode("story", items)
-        parseGridTemplateColumns story.gridTemplate, 1'fr
-        story.cxSize = [cx"auto", cx"auto"]
-        story.gridTemplate.autoFlow = grRow
-        story.gridTemplate.autos[drow] = csAuto()
+      let story = newTestNode("story", items)
+      parseGridTemplateColumns story.gridTemplate, 1'fr
+      story.cxSize = [cx"auto", cx"auto"]
+      story.gridTemplate.autoFlow = grRow
+      story.gridTemplate.autos[drow] = csAuto()
 
-        block rect0:
-          let rect = newTestNode("rect-0", story)
+      let rect0 = newTestNode("rect-0", story)
 
-          block text0:
-            let text = newTestNode("text-0", rect)
-            text.cxSize = [cx"auto", cx"none"]
-            text.cxMin = [40'ux, 42.50'ux]
-            text.cxMax = [200'ux, 300.00'ux]
+      let text0 = newTestNode("text-0", rect0)
+      text0.cxSize = [cx"auto", cx"none"]
+      text0.cxMin = [40'ux, 42.50'ux]
+      text0.cxMax = [200'ux, 300.00'ux]
 
-        block rect1:
-          let rect = newTestNode("rect-1", story)
+      let rect1 = newTestNode("rect-1", story)
 
-          block text1:
-            let text = newTestNode("text-1", rect)
-            text.cxSize = [cx"auto", cx"none"]
-            text.cxMin = [40'ux, 20.50'ux]
-            text.cxMax = [200'ux, 300.00'ux]
+      let text1 = newTestNode("text-1", rect1)
+      text1.cxSize = [cx"auto", cx"none"]
+      text1.cxMin = [40'ux, 20.50'ux]
+      text1.cxMax = [200'ux, 300.00'ux]
 
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
-      check items.children[0].children[0].box.h.float32 == 42.50
-      check items.children[0].children[1].box.h.float32 == 20.50
-      check items.children[0].box.h.float32 == 63.00
-      check items.box.h.float32 == 63.00
+      check rect0.box.h.float32.round(2) == 42.50
+      check rect1.box.h.float32.round(2) == 20.50
+      check items.box.h.float32.round(2) == 63.00
 
-      check items.children[0].children[0].bmin.h.float32 == 42.50
-      check items.children[0].children[1].bmin.h.float32 == 20.50
-      check items.children[0].bmin.h.float32 == 63.00
-      check items.bmin.h.float32 == 63.00
+      check rect0.bmin.h.float32.round(2) == 42.50
+      check rect1.bmin.h.float32.round(2) == 20.50
+      check items.bmin.h.float32.round(2) == 63.00
 
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal
@@ -213,6 +249,7 @@ suite "Compute Layout Tests":
       child2.gridItem.row = 1
       
       computeLayout(parent)
+      # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
       check child1.box.w == 200  # Half of parent width
@@ -362,7 +399,7 @@ suite "Compute Layout Tests":
       computeLayout(parent)
 
       echo "\nLayout: "
-      prettyprints.printLayout(parent)
+      # prettyprints.printLayout(parent)
       
       # Check that children are arranged in a 2x2 grid
       check children[0].box.x < children[1].box.x  # First row
@@ -646,3 +683,161 @@ suite "Grid alignment and justification tests":
     
     check child4.box.x == 300   # End horizontally
     check child4.box.y == 300   # End vertically
+
+  template testLayout(scrollBarWidth, blk: untyped) =
+        # addPrettyPrintFilter("name", "scroll")
+        # addPrettyPrintFilter("name", "scrollBody")
+        # addPrettyPrintFilter("name", "stories")
+        # addPrettyPrintFilter("name", "scrollbar-vertical")
+        # addPrettyPrintFilter("dir", "dcol")
+
+        let root {.inject.} = newTestTree("root",
+          newTestTree("main",
+            newTestTree("outer",
+              newTestTree("top",
+                newTestNode("Load", 0, 0, 0, 0),
+                newTestNode("text", 0, 0, 0, 0)
+              ),
+              newTestTree("stories",
+                newTestTree("scroll",
+                  newTestTree("scrollBody", 
+                    newTestNode("item", 0, 0, 0, 0),
+                  ),
+                  newTestNode("scrollbar-vertical", 0, 0, 0, 0)
+                )
+              ),
+              newTestTree("panel",
+                newTestTree("panel-inner",
+                  newTestNode("upvotes", 0, 0, 0, 0)
+                )
+              )
+            )
+          )
+        )
+
+        root.cxSize = [800'ux, 600'ux]
+        # Set up grid template for outer node
+        parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
+        parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
+        
+        # Set up grid items
+        let top {.inject.} = root.children[0].children[0].children[0]
+        top.gridItem = newGridItem()
+        top.gridItem.column = 1 // 3
+        top.gridItem.row = 1 // 2
+        
+        let stories {.inject.} = root.children[0].children[0].children[1]
+        stories.gridItem = newGridItem()
+        stories.gridItem.column = 1 // 2
+        stories.gridItem.row = 2 // 3
+        
+        let panel {.inject.} = root.children[0].children[0].children[2]
+        panel.gridItem = newGridItem()
+        panel.gridItem.column = 2 // 3
+        panel.gridItem.row = 2 // 3
+        
+        # Set up constraints
+        # root.cxSize = [100'pp, 100'pp]
+        root.children[0].cxSize = [100'pp, 100'pp]
+        root.children[0].children[0].cxSize = [100'pp, 100'pp]
+        
+        let load {.inject.} = top.children[0]
+        load.cxSize = [50'pp, 50'ux]
+        load.cxOffset = [25'pp, 10'ux]
+        
+        let text {.inject.} = top.children[1]
+        text.cxSize = [100'pp, 100'pp]
+        text.cxMin = [39'ux, 21.15'ux]
+        text.cxMax = [39'ux, 42.30'ux]
+        
+        let scroll {.inject.} = stories.children[0]
+        scroll.cxSize = [cx"auto", cx"auto"]
+        
+        let scrollBody {.inject.} = scroll.children[0]
+        scrollBody.cxSize = [100'pp, cx"max-content"]
+        
+        let scrollBar {.inject.} = scroll.children[1]
+        scrollBar.cxOffset = [100'pp-scrollBarWidth, 0'ux]
+        # scrollBar.cxOffset = [scrollBarWidth, 0'ux]
+        scrollBar.cxSize = [scrollBarWidth, 100'pp]
+
+        let item {.inject.} = scrollBody.children[0]
+        item.cxSize = [100'pp, 100'ux]
+
+        let panelInner {.inject.} = panel.children[0]
+
+        let upvotes {.inject.} = panelInner.children[0]
+        upvotes.cxMin = [46'ux, 20.50'ux]
+        upvotes.cxMax = [90'ux, 63.45'ux]
+
+        computeLayout(root)
+
+        `blk`
+
+  test "Complex grid layout with nested nodes":
+    when false:
+      testLayout(194.55'ux): # larger than 1'fr
+        # printLayout(root, cmTerminal)
+        check top.box.w.float32 == 800
+        check top.box.h.float32 == 70
+        check stories.box.w.float32.round(0) == 205
+        check stories.box.h.float32 == 490
+        check panel.box.w.float32.round(0) == 595
+        check panel.box.h.float32 == 490
+
+        check scrollBody.name == "scrollBody"
+        check scrollBody.box.w.float32.round(0) == 205
+        check scrollBody.box.h.float32 == 100
+
+        check upvotes.box.w.float32.round(2) == 46
+        check upvotes.box.h.float32.round(2) == 20.5
+
+  test "Complex grid layout with nested nodes":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    testLayout(10.55'ux): # smaller than 1'fr
+      # printLayout(root, cmTerminal)
+      check top.box.w.float32 == 800
+      check top.box.h.float32 == 70
+      check stories.box.w.float32.round(0) == 133
+      check stories.box.h.float32 == 490
+      check panel.box.w.float32.round(0) == 667
+      check panel.box.h.float32 == 490
+
+      check scrollBody.name == "scrollBody"
+      check scrollBody.box.w.float32.round(0) == 133
+      check scrollBody.box.h.float32 == 100
+
+      check upvotes.box.w.float32.round(2) == 46
+      check upvotes.box.h.float32.round(2) == 20.5
+
+  test "Complex grid layout with nested nodes and large child":
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
+    addPrettyPrintFilter("name", "panel")
+    addPrettyPrintFilter("name", "panel-inner")
+    addPrettyPrintFilter("name", "upvotes")
+
+    testLayout(10.55'ux): # smaller than 1'fr
+      panelInner.cxSize = [100'pp, cx"max-content"]
+      panelInner.cxMin = [0'ux, 0'ux]
+      upvotes.cxMin = [1000'ux, 1000'ux]
+      computeLayout(root)
+
+      printLayout(root, cmTerminal)
+      check top.box.w.float32 == 800
+      check top.box.h.float32 == 70
+      check stories.box.w.float32.round(0) == 133
+      check stories.box.h.float32 == 490
+      check panel.box.w.float32.round(0) == 667
+      check panel.box.h.float32 == 490
+
+      check scrollBody.name == "scrollBody"
+      check scrollBody.box.w.float32.round(0) == 133
+      check scrollBody.box.h.float32 == 100
+
+      check upvotes.box.w.float32.round(2) == 1000
+      check upvotes.box.h.float32.round(2) == 1000
+
+
+

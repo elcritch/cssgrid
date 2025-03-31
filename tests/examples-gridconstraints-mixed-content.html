@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Grid Mixed Content Sizing Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 500px;
+      height: 100px;
+      margin-bottom: 30px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+    }
+
+    .grid {
+      display: grid;
+      width: 500px;
+      height: 100px;
+      /* Mixed column sizing - content-min, auto, and 1fr */
+      grid-template-columns: min-content auto 1fr;
+    }
+
+    .grid-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    .item1 {
+      width: 50px;
+      background-color: #ff5252;
+      grid-column: 1 / 2;
+    }
+
+    .item2 {
+      width: 75px;
+      background-color: #4caf50;
+      grid-column: 2 / 3;
+    }
+
+    .item3 {
+      min-width: 100px;
+      width: auto; /* Minimum width, will expand */
+      background-color: #2196f3;
+      grid-column: 3 / 4;
+    }
+
+    .visualization {
+      margin-top: 30px;
+      width: 500px;
+      height: 60px;
+      background-color: #f0f0f0;
+      position: relative;
+      border: 1px solid #ccc;
+    }
+
+    .track {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      text-align: center;
+      color: #333;
+      font-size: 14px;
+      padding-top: 20px;
+      box-sizing: border-box;
+    }
+
+    .col1 {
+      left: 0;
+      width: 50px;
+      background-color: rgba(255, 82, 82, 0.3);
+      border-right: 1px dashed #999;
+    }
+
+    .col2 {
+      left: 50px;
+      width: 75px;
+      background-color: rgba(76, 175, 80, 0.3);
+      border-right: 1px dashed #999;
+    }
+
+    .col3 {
+      left: 125px;
+      width: 375px;
+      background-color: rgba(33, 150, 243, 0.3);
+    }
+
+    .explanation {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSS Grid Mixed Content Sizing Example</h1>
+  
+  <h2>Grid Container (500px width)</h2>
+  <div class="container">
+    <div class="grid">
+      <div class="grid-item item1">50px<br>min-content</div>
+      <div class="grid-item item2">75px<br>auto</div>
+      <div class="grid-item item3">Flex (1fr)<br>375px</div>
+    </div>
+  </div>
+
+  <h2>Track Size Visualization</h2>
+  <div class="visualization">
+    <div class="track col1">50px</div>
+    <div class="track col2">75px</div>
+    <div class="track col3">375px</div>
+  </div>
+
+  <div class="explanation">
+    <h3>How Mixed Content Sizing Works:</h3>
+    <p>This example demonstrates how a CSS grid with mixed column sizing distributes space:</p>
+    <ul>
+      <li><strong>min-content</strong>: Takes the minimum width needed for content (50px)</li>
+      <li><strong>auto</strong>: When used with fractional units, takes only the space needed for content (75px)</li>
+      <li><strong>1fr</strong>: Takes all remaining space (375px)</li>
+    </ul>
+    
+    <p>The grid template columns definition:</p>
+    <pre>grid-template-columns: min-content auto 1fr;</pre>
+
+    <p>Key behavior: When <code>auto</code> is used with <code>fr</code> units, the auto column takes just enough space for its content, 
+    and any remaining space goes to the fractional column(s).</p>
+    
+    <h3>Nim Test Equivalent:</h3>
+    <pre>
+parent.gridTemplate.lines[dcol] = @[
+  initGridLine(csContentMin()),
+  initGridLine(csAuto()),
+  initGridLine(csFrac(1))
+]
+
+// With child elements of widths 50px, 75px, and 100px minimum
+// In 500px container, the resulting widths are:
+// - Column 1: 50px (min-content)
+// - Column 2: 75px (auto)
+// - Column 3: 375px (remaining space)</pre>
+  </div>
+</body>
+</html> 

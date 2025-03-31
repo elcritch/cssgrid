@@ -112,11 +112,6 @@ suite "CSS Grid Content Sizing":
     child3.cxMin = [100'ux, 100'ux]
     child3.cxSize = [cx"auto", 100'ux]
 
-    # Add children to parent
-    parent.children.add(child1)
-    parent.children.add(child2)
-    parent.children.add(child3)
-
     # Enable debug output
     setPrettyPrintMode(cmTerminal)
     defer: setPrettyPrintMode(cmNone)

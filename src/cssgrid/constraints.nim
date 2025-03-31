@@ -333,3 +333,50 @@ proc isIntrinsicSizing*(cx: Constraint): bool =
   of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
     let args = cssFuncArgs(cx)
     result = isIntrinsicSizing(args.l) or isIntrinsicSizing(args.r)
+
+proc getMinSize*(cs: ConstraintSize, contentSize: UiScalar = 0.UiScalar): UiScalar =
+  ## Extract the minimum size from a ConstraintSize
+  ## For intrinsic sizing, uses contentSize if provided
+  case cs.kind
+  of UiFixed, UiPerc:
+    # Fixed sizes and percentages are their own minimum
+    result = cs.coord
+  of UiFrac:
+    # Flex units have a default minimum of 0
+    result = 0.UiScalar
+  of UiContentMin, UiAuto:
+    # For min-content and auto, use provided content size
+    result = contentSize
+  of UiContentMax, UiContentFit:
+    # For max-content and fit-content, also use content size
+    result = contentSize
+
+proc getMinSize*(cs: Constraint, contentSize: UiScalar): UiScalar =
+  ## Extract the minimum size from a Constraint
+  ## If constraint is a compound expression like minmax(), returns appropriate minimum
+  case cs.kind
+  of UiNone, UiEnd:
+    result = 0.UiScalar
+  of UiValue:
+    result = getMinSize(cs.value, contentSize)
+  of UiMin:
+    # For min(), take the smaller of the two minimums as the result could be the smaller
+    let lmin = getMinSize(cs.lmin, contentSize)
+    let rmin = getMinSize(cs.rmin, contentSize)
+    result = min(lmin, rmin)
+  of UiMax:
+    # For max(), the minimum is the larger of the two minimums
+    # since the result will always be at least the larger minimum
+    let lmin = getMinSize(cs.lmax, contentSize)
+    let rmin = getMinSize(cs.rmax, contentSize)
+    result = max(lmin, rmin)
+  of UiMinMax:
+    # For minmax(), the minimum is simply the first argument
+    result = getMinSize(cs.lmm, contentSize)
+  of UiAdd:
+    # For addition, the minimum is the sum of minimums
+    result = getMinSize(cs.ladd, contentSize) + getMinSize(cs.radd, contentSize)
+  of UiSub:
+    # For subtraction, the minimum is the difference of minimums
+    # with a floor of 0 to prevent negative sizes
+    result = max(0.UiScalar, getMinSize(cs.lsub, contentSize) - getMinSize(cs.rsub, contentSize))

@@ -136,6 +136,27 @@ proc isAuto*(cs: ConstraintSize): bool =
 proc isFrac*(cs: ConstraintSize): bool =
   cs.kind in [UiFrac]
 
+proc getFrac*(cs: ConstraintSize): UiScalar =
+  ## Extract the flex factor from a ConstraintSize
+  case cs.kind
+  of UiFrac:
+    result = cs.frac
+  else:
+    result = 0.UiScalar
+
+proc getFrac*(cs: Constraint): UiScalar =
+  ## Extract the flex factor from a Constraint
+  case cs.kind
+  of UiValue:
+    result = getFrac(cs.value)
+  of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+    let args = cssFuncArgs(cs)
+    # For compound constraints, take the maximum flex factor from either side
+    result = max(getFrac(args.l), getFrac(args.r))
+  of UiNone, UiEnd:
+    result = 0.UiScalar
+
+
 proc isFrac*(cs: Constraint): bool =
   case cs.kind:
   of UiNone, UiEnd:

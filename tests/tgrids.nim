@@ -520,11 +520,15 @@ suite "grids":
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
     check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[2].gridItem.span[dcol] == 3'i16 .. 4'i16
+    check nodes[2].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[3].gridItem.span[dcol] == 4'i16 .. 5'i16
+    check nodes[3].gridItem.span[drow] == 1'i16 .. 2'i16
 
     # TODO: FIXME!!!
     # the min fr track len should account for the min-content size
     check nodes[0].box == uiBox(0, 0, 40, 40)
-    # check nodes[1].box == uiBox(40, 0, 50, 50)
+    check nodes[1].box == uiBox(100, 0, 50, 50)
 
   test "compute layout overflow (columns)":
 

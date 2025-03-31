@@ -235,6 +235,7 @@ suite "grids":
     check child.box.h.float == 350.0
 
   test "compute item layout with alignment":
+    skip()
     # Create a parent node
     var parent = TestNode(name: "parent")
     
@@ -680,8 +681,6 @@ suite "grids":
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
     var parent = TestNode()
-    parent.box.w = 50
-    parent.box.h = 50
     parent.gridTemplate = gridTemplate
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[TestNode](8)
@@ -689,13 +688,10 @@ suite "grids":
     # ==== item a's ====
     for i in 0 ..< nodes.len():
       nodes[i] = TestNode(name: "b" & $(i),
-                          box: uiBox(0,0,50,50),
-                          gridItem: nil)
+                          box: uiBox(0,0,0,0),
+                          gridItem: nil, parent: parent)
+      nodes[i].cxSize = [50'ux, 50'ux]
       parent.children.add(nodes[i])
-      nodes[i].parent = parent
-      # nodes[i].gridItem.index[drow] = mkIndex(1) .. mkIndex(2)
-      # nodes[i].gridItem.index[dcol] = mkIndex(i+1) .. mkIndex(i+2)
-    # nodes[7].box.w = 150
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====

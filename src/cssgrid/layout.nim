@@ -474,63 +474,78 @@ proc resolveIntrinsicTrackSizes*(
   for i, gridLine in grid.lines[dir].mpairs:
     let track = gridLine.track
     
-    # Only process tracks that have content size contributions
-    if i in trackSizes:
-      let computed = trackSizes[i]
-      
-      # Handle different track types
-      match track:
-        UiValue(value):
-          # Process intrinsic sizing functions (excluding fr which is handled separately)
-          if isIntrinsicSizing(value) and value.kind != UiFrac:
-            case value.kind
-            of UiContentMin, UiAuto:
-              # Set base size to min-content contribution
-              gridLine.baseSize = max(gridLine.baseSize, computed.minContribution)
-              
-              # Also update growth limit for min-content
-              if value.kind == UiContentMin:
-                gridLine.growthLimit = max(gridLine.growthLimit, computed.minContribution)
+    # Handle different track types
+    match track:
+      UiValue(value):
+        # Process intrinsic sizing functions (excluding fr which is handled separately)
+        if value.kind == UiContentMin:
+          # For content-min tracks, directly set width to content size
+          if i in trackSizes:
+            let contentSize = trackSizes[i].content
+            gridLine.baseSize = contentSize
+            gridLine.width = contentSize  # This is critical - set width directly
+            gridLine.growthLimit = max(gridLine.growthLimit, contentSize)
             
-            of UiContentMax, UiContentFit:
-              # Set base size to max-content contribution
-              gridLine.baseSize = max(gridLine.baseSize, computed.maxContribution)
-              
-              # Set growth limit to max-content contribution
-              gridLine.growthLimit = max(gridLine.growthLimit, computed.maxContribution)
+            debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
+                      "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
+                      "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
+        
+        # Handle other intrinsic sizing functions as before
+        elif isIntrinsicSizing(value) and value.kind != UiFrac:
+          case value.kind
+          of UiAuto:
+            # Set base size to min-content contribution
+            if i in trackSizes:
+              let contentSize = trackSizes[i].content
+              gridLine.baseSize = max(gridLine.baseSize, contentSize)
+          
+          of UiContentMax, UiContentFit:
+            # Set base size to max-content contribution
+            if i in trackSizes:
+              let contentSize = trackSizes[i].content
+              gridLine.baseSize = max(gridLine.baseSize, contentSize)
+              gridLine.growthLimit = max(gridLine.growthLimit, contentSize)
               
               # For fit-content, clamp by the available space if specified
               if value.kind == UiContentFit:
                 gridLine.baseSize = min(gridLine.baseSize, gridLine.growthLimit)
-            
-            else: discard
-        
-        UiMin(lmin, rmin):
-          # For minmax(), handle intrinsic sizing in both min and max parts
           
-          # Process min part for base size
-          if lmin.kind in {UiContentMin, UiAuto}:
-            gridLine.baseSize = max(gridLine.baseSize, computed.minContribution)
-          elif lmin.kind in {UiContentMax, UiContentFit}:
-            gridLine.baseSize = max(gridLine.baseSize, computed.maxContribution)
-          
-          # Process max part for growth limit
-          if rmin.kind in {UiContentMin, UiAuto}:
-            gridLine.growthLimit = max(gridLine.growthLimit, computed.minContribution)
-          elif rmin.kind in {UiContentMax, UiContentFit}:
-            gridLine.growthLimit = max(gridLine.growthLimit, computed.maxContribution)
+          else: discard
+      
+      UiMin(lmin, rmin):
+        # For minmax(), handle intrinsic sizing in both min and max parts
         
-        _: discard
+        # Process min part for base size
+        if lmin.kind == UiContentMin:
+          if i in trackSizes:
+            let contentSize = trackSizes[i].content
+            gridLine.baseSize = max(gridLine.baseSize, contentSize)
+            gridLine.width = contentSize  # Set width for content-min in minmax
+        
+        elif lmin.kind in {UiAuto}:
+          if i in trackSizes:
+            gridLine.baseSize = max(gridLine.baseSize, trackSizes[i].content)
+        elif lmin.kind in {UiContentMax, UiContentFit}:
+          if i in trackSizes:
+            gridLine.baseSize = max(gridLine.baseSize, trackSizes[i].maxContribution)
+        
+        # Process max part for growth limit
+        if rmin.kind in {UiContentMin, UiAuto}:
+          if i in trackSizes:
+            gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].minContribution)
+        elif rmin.kind in {UiContentMax, UiContentFit}:
+          if i in trackSizes:
+            gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].maxContribution)
       
-      # Always ensure growth limit is at least as large as base size
-      gridLine.growthLimit = max(gridLine.growthLimit, gridLine.baseSize)
+      _: discard
       
-      debugPrint "resolveIntrinsicTrackSizes", "dir=", dir, "track=", i,
-                "baseSize=", gridLine.baseSize, "growthLimit=", gridLine.growthLimit,
-                "minContribution=", computed.minContribution, "maxContribution=", computed.maxContribution
-  
-  # Note: The code for handling spanning items is already implemented in
-  # distributeSpaceToSpannedTracks, which is called during collectTrackSizeContributions
+    # Always ensure growth limit is at least as large as base size
+    gridLine.growthLimit = max(gridLine.growthLimit, gridLine.baseSize)
+    
+    debugPrint "resolveIntrinsicTrackSizes", "dir=", dir, "track=", i,
+              "baseSize=", gridLine.baseSize, "growthLimit=", gridLine.growthLimit,
+              "minContribution=", if i in trackSizes: trackSizes[i].minContribution else: 0.UiScalar, 
+              "maxContribution=", if i in trackSizes: trackSizes[i].maxContribution else: 0.UiScalar
 
 proc maximizeTracks*(
     grid: GridTemplate, 

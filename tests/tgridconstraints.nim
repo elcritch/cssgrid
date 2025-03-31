@@ -29,7 +29,10 @@ suite "CSS Grid Content Sizing":
       {0: ComputedTrackSize(content: 150.UiScalar)}.toTable
     ]
 
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     gt.computeTracks(uiBox(0, 0, 50, 50), computedSizes)
+    # printGrid(gt, cmTerminal)
 
     check gt.lines[dcol][0].width == 100.UiScalar
     check gt.lines[drow][0].width == 150.UiScalar

@@ -707,7 +707,9 @@ proc expandFlexibleTracks*(
     if isFrTrack:
       flexTracks.add((index: i, factor: flexFactor))
       totalFlex += flexFactor
-      # Track the largest base size for fr tracks
+      
+      # For indefinite contexts, consider both baseSize and the minimum content contribution
+      # This is the crucial change - we need to look at both baseSize and minContribution
       largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
     else:
       nonFlexSpace += gridLine.baseSize
@@ -720,38 +722,70 @@ proc expandFlexibleTracks*(
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
-  # 3. Check if dimension is indefinite using our new helper
+  # 3. Check if dimension is indefinite using our helper
   let isIndefiniteContainer = if node != nil: 
-                                isIndefiniteGridDimension(grid, node, dir) 
-                              else:
-                                # Fallback to original check if node is not provided
-                                (dir == drow and grid.autos[dir].kind == UiValue and 
-                                grid.autos[dir].value.kind == UiFrac)
+                               isIndefiniteGridDimension(grid, node, dir) 
+                             else:
+                               # Fallback to original check if node is not provided
+                               (dir == drow and grid.autos[dir].kind == UiValue and 
+                               grid.autos[dir].value.kind == UiFrac)
   
   var frUnitValue: UiScalar
   
   if isIndefiniteContainer:
     # For auto-sized containers with fr tracks, calculate fr unit value based on 
     # the largest minimum size of any track with the same fr factor
-    # This matches browser behavior better
     
     # Group tracks by their fr factor to ensure equal distribution
     var tracksByFactor = initTable[UiScalar, seq[int]]()
     var maxMinByFactor = initTable[UiScalar, UiScalar]()
     
-    # Find the largest minimum size for each fr factor
+    # For indefinite containers, we need to properly account for content sizes
+    # This is where we need to look at the content contributions from grid items
     for (trackIdx, factor) in flexTracks:
       if factor notin tracksByFactor:
         tracksByFactor[factor] = @[]
         maxMinByFactor[factor] = 0.UiScalar
       
       tracksByFactor[factor].add(trackIdx)
-      maxMinByFactor[factor] = max(maxMinByFactor[factor], grid.lines[dir][trackIdx].baseSize)
+      
+      # NEW: Account for both base size and content-based minimums
+      # This is critical - we need to use the minimum content contribution
+      var minSize = grid.lines[dir][trackIdx].baseSize
+      
+      # Get the minimum content contribution for this track from grid items
+      if node != nil:
+        for child in node.children:
+          if not child.gridItem.isNil:
+            let span = child.gridItem.span[dir]
+            # If this item is in this track, consider its minimum contribution
+            if trackIdx >= (span.a-1) and trackIdx < (span.b-1):
+              # For single-track spans, use the full contribution
+              if span.b - span.a == 1:
+                minSize = max(minSize, child.bmin[dir])
+              else:
+                # For multi-track spans, divide by the span length
+                let contributionPerTrack = child.bmin[dir] / (span.b - span.a).UiScalar
+                minSize = max(minSize, contributionPerTrack)
+      
+      # Update the max min size for this factor
+      maxMinByFactor[factor] = max(maxMinByFactor[factor], minSize)
+      
+      # Also update the global largest min track size
+      largestMinTrackSize = max(largestMinTrackSize, minSize)
     
     # Apply the sizes - all tracks with the same fr factor get the same size
     for factor, tracks in tracksByFactor:
       let minSizeForFactor = maxMinByFactor[factor]
-      let sizePerTrack = max(minSizeForFactor, largestMinTrackSize / totalFlex * factor)
+      
+      # Ensure minimum size is at least the largest contribution
+      # Or proportional to the fr factor if we have a single track definition
+      let sizePerTrack = if totalFlex == factor:
+                           # Single track case - use the direct minimum
+                           max(minSizeForFactor, largestMinTrackSize)
+                         else:
+                           # Multiple tracks with different fr values - distribute proportionally
+                           max(minSizeForFactor, largestMinTrackSize * factor / totalFlex)
       
       for trackIdx in tracks:
         grid.lines[dir][trackIdx].baseSize = sizePerTrack

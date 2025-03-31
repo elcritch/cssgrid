@@ -809,16 +809,16 @@ suite "grids":
     check nodes[1].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[1].gridItem.span[drow] == 2'i16 .. 3'i16
 
-    check nodes[0].box == uiBox(0, 0, 50, 50)
+    check nodes[0].box == uiBox(0, 0, 50, 150)
 
-    check nodes[1].box == uiBox(0, 150, 50, 50)
+    check nodes[1].box == uiBox(0, 150, 50, 150)
     check nodes[2].box == uiBox(0, 300, 50, 150)
-    check nodes[3].box == uiBox(0, 450, 50, 50)
+    check nodes[3].box == uiBox(0, 450, 50, 150)
 
     for i in 0..7:
       if i != 2:
         check nodes[i].box.w == 50
-        check nodes[i].box.h == 50
+        check nodes[i].box.h == 150
 
 
   test "compute layout auto only":

@@ -471,8 +471,7 @@ proc maximizeTracks*(
       growableTracks.add(i)
   
   # Add in gap space
-  if grid.lines[dir].len() > 1:
-    usedSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
+  usedSpace += grid.gaps[dir] * max(grid.lines[dir].len() - 2, 0).UiScalar
   
   # Calculate free space
   let freeSpace = max(0.UiScalar, availableSpace - usedSpace)
@@ -669,8 +668,6 @@ proc computeTrackPositions*(grid: GridTemplate, dir: GridDir) =
                "start=", gridLine.start, "width=", gridLine.width, 
                "cursor=", cursor
   
-  # Add final padding (10px, same as gap)
-  cursor += grid.gaps[dir]
   
   # Update the end track position if it exists
   if grid.lines[dir].len() > 0 and grid.lines[dir][^1].track.kind == UiEnd:

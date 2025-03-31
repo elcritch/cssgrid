@@ -897,7 +897,7 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     # Calculate the total flex factor
     var totalFlex = 0.UiScalar
     for i, line in node.gridTemplate.lines[dir]:
-      if i < node.gridTemplate.lines[dir].high:  # Skip the end track
+      if line.track.kind != UiEnd:  # Skip the end track
         totalFlex += line.track.getFrac()
     
     # For equally distributed fractions, size accordingly

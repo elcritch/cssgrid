@@ -133,6 +133,19 @@ proc isBasicContentSized*(cs: ConstraintSize): bool =
 proc isAuto*(cs: ConstraintSize): bool =
   cs.kind in [UiAuto, UiFrac]
 
+proc isFrac*(cs: ConstraintSize): bool =
+  cs.kind in [UiFrac]
+
+proc isFrac*(cs: Constraint): bool =
+  case cs.kind:
+  of UiNone, UiEnd:
+    result = false
+  of UiValue:
+    result = isFrac(cs.value)
+  of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
+    let args = cssFuncArgs(cs)
+    result = isFrac(args.l) or isFrac(args.r)
+
 proc isAuto*(cx: Constraint): bool =
   case cx.kind:
   of UiNone, UiEnd:

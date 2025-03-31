@@ -695,146 +695,50 @@ proc expandFlexibleTracks*(
 ) =
   ## Expand flexible tracks using fr units (implements step 12.7 in the CSS Grid spec)
   
-  # Calculate free space and find flexible tracks
-  var 
-    flexTracks: seq[tuple[index: int, factor: UiScalar]] = @[]
-    totalFlex = 0.0.UiScalar
-    nonFlexSpace = 0.0.UiScalar
-    largestMinTrackSize = 0.0.UiScalar
+  # Step 1: Find all flexible tracks (tracks with fr units)
+  var flexibleTracks: seq[tuple[index: int, factor: UiScalar]] = @[]
+  var nonFlexibleSpace = 0.0.UiScalar
   
-  # First identify all tracks with fr units and calculate their total flex factor
-  # (This implements the initial part of 12.7)
-  for i, gridLine in grid.lines[dir]:
-    var isFrTrack = false
-    var flexFactor = 0.0.UiScalar
-    
-    match gridLine.track:
-      UiValue(value):
-        if value.kind == UiFrac:
-          isFrTrack = true
-          flexFactor = value.frac
-          largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
-        else:
-          nonFlexSpace += gridLine.baseSize
-      UiMin(lmin, rmin):
-        if rmin.kind == UiFrac:
-          isFrTrack = true
-          flexFactor = rmin.frac
-          largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
-        else:
-          nonFlexSpace += gridLine.baseSize
-      _: 
-        nonFlexSpace += gridLine.baseSize
-    
-    if isFrTrack:
-      flexTracks.add((index: i, factor: flexFactor))
-      totalFlex += flexFactor
+  for i, track in grid.lines[dir].mpairs:
+    if isFrac(track.track):
+      flexibleTracks.add((index: i, factor: track.track.frac))
+    else:
+      nonFlexibleSpace += track.baseSize
   
-  # If no flexible tracks, nothing to do
-  if flexTracks.len() == 0:
+  # Add gap space
+  nonFlexibleSpace += grid.gaps[dir] * (grid.lines[dir].len() - 2).UiScalar
+  
+  # Calculate remaining space for flexible tracks
+  let freeSpace = max(0.UiScalar, availableSpace - nonFlexibleSpace)
+  
+  # If no flexible tracks, we're done
+  if flexibleTracks.len == 0:
     return
-
-  # If the sum of flex factors is less than 1, use 1 instead
-  # (This implements 12.7.1 step 2)
-  totalFlex = max(1.0.UiScalar, totalFlex)
   
-  # Add gap space to non-flexible space
-  if grid.lines[dir].len() > 1:
-    nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
+  # Step 2: Determine the used flex fraction (size of 1fr)
+  # This is more complex in the spec with multiple considerations
+  # but fundamentally relies on the calculateFractionSize algorithm
+  let usedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, availableSpace, nonFlexibleSpace)
   
-  # Determine if this is an indefinite container dimension
-  # (This implements the container sizing condition in 12.7)
-  let isIndefiniteContainer = isIndefiniteGridDimension(grid, node, dir)
-  
-  debugPrint "expandFlexibleTracks", "dir=", dir, "availableSpace=", availableSpace, 
-           "nonFlexSpace=", nonFlexSpace, "freeSpace=", max(0.UiScalar, availableSpace - nonFlexSpace), 
-           "totalFlex=", totalFlex, "isIndefiniteContainer=", isIndefiniteContainer,
-           "nodeBox=", if node != nil: $node.box else: "nil"
-  
-  # Handle according to whether free space is definite or indefinite
-  # (This implements the two main cases in 12.7)
-  if isIndefiniteContainer:
-    # For auto-sized containers with fr tracks (indefinite free space case)
-    # Use the largest min size for tracks with the same flex factor
-    # (This implements the "indefinite length" case in 12.7)
-    
-    var tracksByFactor = initTable[UiScalar, seq[int]]()
-    var maxMinByFactor = initTable[UiScalar, UiScalar]()
-    
-    # Group tracks by their fr factor and find max min size for each factor
-    for (trackIdx, factor) in flexTracks:
-      if factor notin tracksByFactor:
-        tracksByFactor[factor] = @[]
-        maxMinByFactor[factor] = 0.UiScalar
-      
-      tracksByFactor[factor].add(trackIdx)
-      
-      # Account for both base size and content-based minimums
-      var minSize = grid.lines[dir][trackIdx].baseSize
-      
-      # Get the minimum content contribution for this track from grid items
-      if node != nil:
-        for child in node.children:
-          if not child.gridItem.isNil:
-            let span = child.gridItem.span[dir]
-            if trackIdx >= (span.a-1) and trackIdx < (span.b-1):
-              if span.b - span.a == 1:
-                minSize = max(minSize, child.bmin[dir])
-              else:
-                let contributionPerTrack = child.bmin[dir] / (span.b - span.a).UiScalar
-                minSize = max(minSize, contributionPerTrack)
-      
-      # Update the max min size for this factor 
-      maxMinByFactor[factor] = max(maxMinByFactor[factor], minSize)
-      largestMinTrackSize = max(largestMinTrackSize, minSize)
-    
-    debugPrint "expandFlexibleTracks:tracksByFactor", "dir=", dir,
-              "maxMinByFactor=", $maxMinByFactor, 
-              "largestMinTrackSize=", largestMinTrackSize
-
-    # Apply the sizes based on flex factors
-    for factor, tracks in tracksByFactor:
-      let minSizeForFactor = maxMinByFactor[factor]
-      
-      let sizePerTrack = if totalFlex == factor:
-                           max(minSizeForFactor, largestMinTrackSize)
-                         else:
-                           max(minSizeForFactor, largestMinTrackSize * factor / totalFlex)
-      
-      for trackIdx in tracks:
-        grid.lines[dir][trackIdx].baseSize = sizePerTrack
-        grid.lines[dir][trackIdx].width = sizePerTrack  # Ensure width is updated too
-        
-      debugPrint "expandFlexibleTracks:equalDistribution", "dir=", dir, 
-                "factor=", factor, "minSize=", minSizeForFactor, 
-                "sizePerTrack=", sizePerTrack, "tracks=", tracks.len
-  else:
-    # For definite container sizes, distribute space proportionally
-    # (This implements the "definite length" case in 12.7 and 12.7.1)
-    
-    # Use the calculateFractionSize function to determine fr unit value
-    let frUnitValue = calculateFractionSize(
-      grid, 
-      dir, 
-      flexTracks, 
-      availableSpace, 
-      nonFlexSpace
-    )
-    
-    # Apply calculated sizes to all flexible tracks (12.7 final paragraph)
-    for (trackIdx, factor) in flexTracks:
-      # Calculate size with the fr unit value
-      let flexProduct = frUnitValue * factor
-      let flexSize = max(grid.lines[dir][trackIdx].baseSize, flexProduct)
-      
-      # Update both base size and width (12.7 final paragraph)
-      grid.lines[dir][trackIdx].baseSize = flexSize
-      grid.lines[dir][trackIdx].width = flexSize  # Ensure width is updated
-      
-    debugPrint "expandFlexibleTracks:definite", "dir=", dir, 
-              "freeSpace=", max(0.UiScalar, availableSpace - nonFlexSpace), 
-              "frUnitValue=", frUnitValue,
-              "availableSpace=", availableSpace
+  # Step 3: Check if using this flex fraction would violate container constraints
+  if grid.lines[dir].len() > 0:
+    let lastTrackIndex = grid.lines[dir].len() - 1
+    let lastTrack = grid.lines[dir][lastTrackIndex]
+    let containerMinSize = lastTrack.start + lastTrack.width
+    if usedFlexFraction < containerMinSize:
+      # Recalculate using container's min size
+      let recalculatedUsedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, containerMinSize, nonFlexibleSpace)
+      let newSize = recalculatedUsedFlexFraction * usedFlexFraction
+      for i, (trackIndex, flexFactor) in flexibleTracks:
+        if newSize > grid.lines[dir][trackIndex].baseSize:
+          grid.lines[dir][trackIndex].baseSize = newSize
+  elif availableSpace < nonFlexibleSpace:
+    # Recalculate using container's min size
+    let recalculatedUsedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, nonFlexibleSpace, 0.0.UiScalar)
+    let newSize = recalculatedUsedFlexFraction * usedFlexFraction
+    for i, (trackIndex, flexFactor) in flexibleTracks:
+      if newSize > grid.lines[dir][trackIndex].baseSize:
+        grid.lines[dir][trackIndex].baseSize = newSize
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 

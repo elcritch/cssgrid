@@ -17,11 +17,6 @@ type
 
   ComputedSize* = object of RootObj
     content*: UiScalar
-    # minContent*: UiScalar
-    # maxContent*: UiScalar
-    # autoSize*: UiScalar
-    # fracMinSize*: UiScalar
-    # contentFit*: UiScalar
 
   GridNode* = concept node
     typeof(node.box) is UiBox

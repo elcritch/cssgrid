@@ -701,7 +701,7 @@ proc expandFlexibleTracks*(
   
   for i, track in grid.lines[dir].mpairs:
     if isFrac(track.track):
-      flexibleTracks.add((index: i, factor: track.track.frac))
+      flexibleTracks.add((index: i, factor: track.track.getFrac()))
     else:
       nonFlexibleSpace += track.baseSize
   

@@ -111,7 +111,7 @@ proc computeLineOverflow*(
 
   debugPrint "computeLineOverflow:post: ", "dir=", dir, "overflow=", result
 
-proc computeTrackLayout*(
+proc computeLineLayout*(
     lines: var seq[GridLine];
     dir: GridDir,
     computedSizes: Table[int, ComputedTrackSize],
@@ -122,71 +122,109 @@ proc computeTrackLayout*(
     fixed = 0.UiScalar
     totalFracs = 0.0.UiScalar
     totalAuto = 0.0.UiScalar
-    hasFracs = false
 
-  # First pass: identify if we have fractional units
-  for i, grdLn in lines.mpairs():
-    if grdLn.track.kind == UiValue and grdLn.track.value.kind == UiFrac:
-      hasFracs = true
-      break
-
-  # Second pass: calculate fixed sizes and identify auto/frac tracks
+  # First pass: calculate fixed sizes and identify auto/frac tracks
   for i, grdLn in lines.mpairs():
     case grdLn.track.kind:
       of UiValue:
         let value = grdLn.track.value
 
         case value.kind:
-          of UiFixed, UiPerc:
+          of UiFixed, UiPerc, UiContentMin, UiContentMax, UiContentFit:
             grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
             fixed += grdLn.width
-          of UiContentMin, UiContentMax, UiContentFit:
-            # Content-sized tracks should use their content size
-            if i in computedSizes:
-              grdLn.width = computedSizes[i].content
-              fixed += grdLn.width
-          of UiAuto:
-            if hasFracs:
-              # When fr units are present, auto takes content size
-              if i in computedSizes:
-                grdLn.width = computedSizes[i].content
-                fixed += grdLn.width
-            else:
-              # Auto gets a share of remaining space if no fr units
-              totalAuto += 1.0.UiScalar
-          of UiFrac:
-            totalFracs += value.frac
+          of UiFrac, UiAuto:
+            grdLn.width = processUiValue(value, i, computedSizes, totalAuto, totalFracs, length)
       of UiMin, UiMax, UiAdd, UiSub, UiMinMax:
         let args = cssFuncArgs(grdLn.track)
         let lv = processUiValue(args.l, i, computedSizes, totalAuto, totalFracs)
         let rv = processUiValue(args.r, i, computedSizes, totalAuto, totalFracs)
         grdLn.width = computeCssFuncs(grdLn.track.kind, lv, rv)
-        fixed += grdLn.width
       else:
-        discard
+        debugPrint "computeLineLayout:unknown: ", "track=", grdLn.track
+        discard  # Handle other cases
 
-  # Account for spacing between tracks
+  # Account for spacing between tracks (minus the last [end] track)
   fixed += spacing * max(UiScalar(lines.len() - 2), 0.UiScalar)
 
   # Calculate available free space
   let
     freeSpace = max(length - fixed, 0.0.UiScalar)
     autoSpace = if totalFracs > 0: 0.0.UiScalar else: freeSpace
-    fracUnit = if totalFracs > 0: freeSpace / totalFracs else: 0.0.UiScalar
-    autoUnit = if totalAuto > 0: autoSpace / totalAuto else: 0.0.UiScalar
+    fracUnit = freeSpace / totalFracs
+    autoUnit = autoSpace / totalAuto
 
-  # Third pass: distribute remaining space to flexible tracks
+  var
+    fixedMinSizes = 0.0.UiScalar
+    totalFlexFracs = 0.0.UiScalar
+    totalFlexAuto = 0.0.UiScalar
+
+  template processFlexibleTracks(res: var UiScalar, value: ConstraintSize, minSize: UiScalar) =
+      block:
+        case value.kind:
+          of UiFrac:
+            if totalFracs > 0:
+              let frSize = fracUnit * value.frac
+              if frSize < minSize:
+                fixedMinSizes += minSize
+                res = minSize
+              else:
+                res = UiScalar.low()
+                totalFlexFracs += value.frac
+          of UiAuto:
+            if totalFracs > 0 or autoUnit < minSize:
+              fixedMinSizes += minSize
+              res = minSize
+            else:
+              res = UiScalar.low()
+              totalFlexAuto += 1
+          else:
+            discard  # Handle other cases
+
+  # Second pass: distribute space for flex items and find any min flex sizes
   for i, grdLn in lines.mpairs():
-    if grdLn.track.kind == UiValue:
+    case grdLn.track.kind:
+    of UiValue:
       let value = grdLn.track.value
-      case value.kind:
-        of UiFrac:
-          grdLn.width = fracUnit * value.frac
-        of UiAuto:
-          if not hasFracs:  # Only distribute space to auto if no fr units
-            grdLn.width = autoUnit
-        else:
-          discard  # Other track types already sized
+      processFlexibleTracks( grdLn.width, value, computedSizes.getOrDefault(i).content)
+    of UiAdd, UiSub, UiMin, UiMax, UiMinMax:
+      let args = cssFuncArgs(grdLn.track)
+      let lv = processUiValue(args.l, i, computedSizes, totalAuto, totalFracs)
+      let rv = processUiValue(args.r, i, computedSizes, totalAuto, totalFracs)
+      grdLn.width = computeCssFuncs(grdLn.track.kind, lv, rv)
+    else:
+      discard  # Handle other cases
+
+  let freeSpaceMinusMin = freeSpace - fixedMinSizes
+  let fracFlexUnit = freeSpaceMinusMin / totalFlexFracs
+  let autoFlexUnit = freeSpaceMinusMin / totalFlexAuto
+
+  debugPrint "computeLineLayout:metrics",
+    "dir=", dir,
+    "length=", length,
+    "fixed=", fixed,
+    "freeSpace=", freeSpace,
+    "freeSpaceMinusMin=", freeSpaceMinusMin,
+    "totalFlexFracs=", totalFlexFracs,
+    "fracFlexUnit=", fracFlexUnit,
+    "totalFlexAuto=", totalFlexAuto,
+    "autoFlexUnit=", autoFlexUnit
+
+
+  # Second pass: distribute space and set track widths
+  for i, grdLn in lines.mpairs():
+    match grdLn.track:
+      UiValue(value):
+        match value:
+          UiFrac(frac):
+            if grdLn.width == UiScalar.low():
+              grdLn.width = freeSpaceMinusMin * frac/totalFlexFracs
+              debugPrint "computeLineLayout:frac: ", "width=", grdLn.width, "frac=", frac, "freeSpaceMinusMin=", freeSpaceMinusMin, "totalFlexFracs=", totalFlexFracs, "fracFlexUnit=", fracFlexUnit
+          UiAuto():
+            if grdLn.width == UiScalar.low():
+              grdLn.width = autoFlexUnit
+          _: discard  # Handle other cases
+      _: discard  # Handle other cases
 
   # Final pass: calculate positions
   var cursor = 0.0.UiScalar
@@ -226,15 +264,13 @@ proc computeTracks*(
   debugPrint "computeTracks:lengths:", "contentSize=", contentSize, "grid.overflowSizes=", grid.overflowSizes
 
   # Pass computed sizes to layout
-  computeTrackLayout(
-    grid.lines[dcol],
+  grid.lines[dcol].computeLineLayout(
     dcol,
     computedSizes[dcol],
     length=colLen,
     spacing=grid.gaps[dcol]
   )
-  computeTrackLayout(
-    grid.lines[drow],
+  grid.lines[drow].computeLineLayout(
     drow,
     computedSizes[drow],
     length=rowLen,

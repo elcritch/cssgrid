@@ -899,13 +899,6 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     for i, line in node.gridTemplate.lines[dir]:
       if line.track.kind != UiEnd:  # Skip the end track
         totalFlex += line.track.getFrac()
-    
-    # For equally distributed fractions, size accordingly
-    if totalFlex > 0:
-      # Account for the test case where fractions should have equal sizes
-      # The track sizing algorithm will handle distribution later
-      containerSize = max(containerSize, 
-                         node.gridTemplate.overflowSizes[dir])
   
   return containerSize
 

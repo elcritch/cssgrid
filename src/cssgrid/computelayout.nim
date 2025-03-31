@@ -669,10 +669,13 @@ proc computeTrackPositions*(grid: GridTemplate, dir: GridDir) =
                "start=", gridLine.start, "width=", gridLine.width, 
                "cursor=", cursor
   
+  # Add final padding (10px, same as gap)
+  cursor += grid.gaps[dir]
+  
   # Update the end track position if it exists
   if grid.lines[dir].len() > 0 and grid.lines[dir][^1].track.kind == UiEnd:
     grid.lines[dir][^1].start = cursor
-    grid.lines[dir][^1].width = 0.UiScalar
+    grid.lines[dir][^1].width = 0.0.UiScalar
   
   debugPrint "computeTrackPositions:done", "dir=", dir, "cursor=", cursor
 

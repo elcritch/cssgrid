@@ -696,7 +696,6 @@ proc expandFlexibleTracks*(
   
   debugPrint "expandFlexibleTracks", "dir=", dir, "availableSpace=", availableSpace, 
            "nonFlexSpace=", nonFlexSpace, "freeSpace=", freeSpace, "totalFlex=", totalFlex,
-           "largestMinTrackSize=", largestMinTrackSize, 
            "isIndefiniteContainer=", isIndefiniteContainer,
            "nodeBox=", if node != nil: $node.box else: "nil"
   
@@ -737,6 +736,10 @@ proc expandFlexibleTracks*(
       maxMinByFactor[factor] = max(maxMinByFactor[factor], minSize)
       largestMinTrackSize = max(largestMinTrackSize, minSize)
     
+    debugPrint "expandFlexibleTracks:tracksByFactor", "dir=", dir,
+              "maxMinByFactor=", $maxMinByFactor, 
+              "largestMinTrackSize=", largestMinTrackSize
+
     # Apply the sizes based on flex factors
     for factor, tracks in tracksByFactor:
       let minSizeForFactor = maxMinByFactor[factor]

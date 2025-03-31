@@ -2268,6 +2268,7 @@ Otherwise, if the free space is an indefinite length:
 The used flex fraction is the maximum of:
 
 - For each flexible track, if the flexible track’s flex factor is greater than one, the result of dividing the track’s base size by its flex factor; otherwise, the track’s base size.
+
 - For each grid item that crosses a flexible track, the result of finding the size of an fr using all the grid tracks that the item crosses and a space to fill of the item’s max-content contribution.
 
 If using this flex fraction would cause the grid to be smaller than the grid container’s min-width/height (or larger than the grid container’s max-width/height), then redo this step, treating the free space as definite and the available grid space as equal to the grid container’s inner size when it’s sized to its min-width/height (max-width/height).

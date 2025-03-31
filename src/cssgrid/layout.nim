@@ -1,5 +1,6 @@
 import numberTypes, constraints, gridtypes
 import basiclayout
+import basiccalcs
 import prettyprints
 
 
@@ -128,48 +129,6 @@ proc computeBox*(
   calcBoxFor(x, w, dcol, justify)
   calcBoxFor(y, h, drow, align)
 
-proc isIndefiniteGridDimension*(grid: GridTemplate, node: GridNode, dir: GridDir): bool =
-  ## Determines if a grid dimension is "indefinite" according to the CSS Grid spec.
-  ## An indefinite dimension means the sizing algorithm should handle fractional units
-  ## differently - they don't expand to fill available space, but rather are sized
-  ## based on their content.
-  ##
-  ## A dimension is indefinite when:
-  ## - The grid container has 'auto' size in that dimension
-  ## - The grid container has content-based sizing (min-content, max-content)
-  ## - The grid container uses fr units for its own sizing and isn't sized by its parent
-  
-  # Check node's constraint size in this direction
-  let constraint = node.cxSize[dir]
-  
-  # Auto, content-based sizing, or fr units make a dimension indefinite
-  match constraint:
-    UiValue(value):
-      if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac}:
-        return true
-    _: discard
-
-  # If parent container doesn't provide a definite constraint, the dimension is indefinite
-  # Root node without explicit size is indefinite
-  if dir == drow and node.cxSize[drow].kind == UiNone:
-      # Most UIs have indefinite height by default - this is represented by UiNone in this library
-      return true
-
-  # If parent has indefinite size in this direction, this direction is also indefinite
-  # if not node.parent.isNil:
-  #   let parentConstraint = node.getParent().cxSize[dir]
-  #   match parentConstraint:
-  #     UiValue(value):
-  #       if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit}:
-  #         return true
-  #     _: discard
-
-  # Check if the grid's auto template is using fr units in this direction
-  # This indicates a content-sized track which should be treated as indefinite
-  if grid.autos[dir].kind == UiValue and grid.autos[dir].value.kind == UiFrac:
-    return true
-    
-  return false
 
 proc distributeSpaceToSpannedTracks(
     grid: GridTemplate, 
@@ -699,18 +658,22 @@ proc expandFlexibleTracks*(
         if value.kind == UiFrac:
           isFrTrack = true
           flexFactor = value.frac
+          largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
+        else:
+          nonFlexSpace += gridLine.baseSize
       UiMin(lmin, rmin):
         if rmin.kind == UiFrac:
           isFrTrack = true
           flexFactor = rmin.frac
-      _: discard
+          largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
+        else:
+          nonFlexSpace += gridLine.baseSize
+      _: 
+        nonFlexSpace += gridLine.baseSize
     
     if isFrTrack:
       flexTracks.add((index: i, factor: flexFactor))
       totalFlex += flexFactor
-      largestMinTrackSize = max(largestMinTrackSize, gridLine.baseSize)
-    else:
-      nonFlexSpace += gridLine.baseSize
   
   # If no flexible tracks, nothing to do
   if flexTracks.len() == 0:
@@ -732,11 +695,10 @@ proc expandFlexibleTracks*(
   let isIndefiniteContainer = isIndefiniteGridDimension(grid, node, dir)
   
   debugPrint "expandFlexibleTracks", "dir=", dir, "availableSpace=", availableSpace, 
-           "nonFlexSpace=", nonFlexSpace, "totalFlex=", totalFlex,
+           "nonFlexSpace=", nonFlexSpace, "freeSpace=", freeSpace, "totalFlex=", totalFlex,
            "largestMinTrackSize=", largestMinTrackSize, 
-           "isIndefiniteContainer=", isIndefiniteContainer
-  
-  var frUnitValue: UiScalar
+           "isIndefiniteContainer=", isIndefiniteContainer,
+           "nodeBox=", if node != nil: $node.box else: "nil"
   
   # Handle according to whether free space is definite or indefinite
   # (This implements the two main cases in 12.7)
@@ -786,7 +748,7 @@ proc expandFlexibleTracks*(
       
       for trackIdx in tracks:
         grid.lines[dir][trackIdx].baseSize = sizePerTrack
-        grid.lines[dir][trackIdx].width = sizePerTrack
+        grid.lines[dir][trackIdx].width = sizePerTrack  # Ensure width is updated too
         
       debugPrint "expandFlexibleTracks:equalDistribution", "dir=", dir, 
                 "factor=", factor, "minSize=", minSizeForFactor, 
@@ -796,7 +758,7 @@ proc expandFlexibleTracks*(
     # (This implements the "definite length" case in 12.7 and 12.7.1)
     
     # Calculate hypothetical fr size (12.7.1 step 3)
-    frUnitValue = freeSpace / totalFlex
+    let frUnitValue = freeSpace / totalFlex
     
     # Apply calculated sizes to all flexible tracks (12.7 final paragraph)
     for (trackIdx, factor) in flexTracks:
@@ -804,12 +766,13 @@ proc expandFlexibleTracks*(
       let flexProduct = frUnitValue * factor
       let flexSize = max(grid.lines[dir][trackIdx].baseSize, flexProduct)
       
-      # Update base size and width (12.7 final paragraph)
+      # Update both base size and width (12.7 final paragraph)
       grid.lines[dir][trackIdx].baseSize = flexSize
-      grid.lines[dir][trackIdx].width = flexSize
+      grid.lines[dir][trackIdx].width = flexSize  # Ensure width is updated
       
     debugPrint "expandFlexibleTracks:definite", "dir=", dir, 
-              "freeSpace=", freeSpace, "frUnitValue=", frUnitValue
+              "freeSpace=", freeSpace, "frUnitValue=", frUnitValue,
+              "availableSpace=", availableSpace
 
 proc expandStretchedAutoTracks*(
     grid: GridTemplate, 

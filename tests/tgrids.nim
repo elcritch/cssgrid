@@ -764,9 +764,6 @@ suite "grids":
     check nodes[7].box == uiBox(0, 450, 50, 50)
 
   test "compute layout manual overflow rows fracs":
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
-
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -800,7 +797,7 @@ suite "grids":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check parent.box.w == 50
     check parent.box.h == 1200

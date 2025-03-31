@@ -57,3 +57,46 @@ proc propogateCalcs*(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScal
             f = coord
           _: discard
       _: discard
+
+proc isIndefiniteGridDimension*(grid: GridTemplate, node: GridNode, dir: GridDir): bool =
+  ## Determines if a grid dimension is "indefinite" according to the CSS Grid spec.
+  ## An indefinite dimension means the sizing algorithm should handle fractional units
+  ## differently - they don't expand to fill available space, but rather are sized
+  ## based on their content.
+  ##
+  ## A dimension is indefinite when:
+  ## - The grid container has 'auto' size in that dimension
+  ## - The grid container has content-based sizing (min-content, max-content)
+  ## - The grid container uses fr units for its own sizing and isn't sized by its parent
+  
+  # Check node's constraint size in this direction
+  let constraint = node.cxSize[dir]
+  
+  # Auto, content-based sizing, or fr units make a dimension indefinite
+  match constraint:
+    UiValue(value):
+      if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac}:
+        return true
+    _: discard
+
+  # If parent container doesn't provide a definite constraint, the dimension is indefinite
+  # Root node without explicit size is indefinite
+  if dir == drow and node.cxSize[drow].kind == UiNone:
+      # Most UIs have indefinite height by default - this is represented by UiNone in this library
+      return true
+
+  # If parent has indefinite size in this direction, this direction is also indefinite
+  # if not node.parent.isNil:
+  #   let parentConstraint = node.getParent().cxSize[dir]
+  #   match parentConstraint:
+  #     UiValue(value):
+  #       if value.kind in {UiAuto, UiContentMin, UiContentMax, UiContentFit}:
+  #         return true
+  #     _: discard
+
+  # Check if the grid's auto template is using fr units in this direction
+  # This indicates a content-sized track which should be treated as indefinite
+  if grid.autos[dir].kind == UiValue and grid.autos[dir].value.kind == UiFrac:
+    return true
+    
+  return false

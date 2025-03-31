@@ -726,6 +726,7 @@ proc expandFlexibleTracks*(
   
   # Step 3: Determine the used flex fraction (size of 1fr)
   let usedFlexFraction = calculateFractionSize(grid, dir, flexibleTracks, availableSpace, nonFlexibleSpace)
+  debugPrint "expandFlexibleTracks:", "dir=", dir, "usedFlexFraction=", usedFlexFraction, "availableSpace=", availableSpace, "nonFlexibleSpace=", nonFlexibleSpace
   
   # Step 4: Check if using this flex fraction would violate container constraints
   var containerMinSize = 0.0.UiScalar

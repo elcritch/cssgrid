@@ -493,7 +493,7 @@ suite "grids":
 
     var parent = TestNode()
     parent.cxOffset = [0'ux, 0'ux]
-    parent.cxSize = [50'ux, 50'ux]
+    parent.cxSize = [400'ux, 50'ux]
     parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
     parent.gridTemplate = gridTemplate
 

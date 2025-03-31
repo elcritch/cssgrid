@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Auto Flow Overflow Columns Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .grid-container {
+            display: grid;
+            /* 1fr column template */
+            grid-template-columns: 1fr;
+            /* 1fr row template */
+            grid-template-rows: 1fr;
+            /* Auto flow in column direction */
+            grid-auto-flow: column;
+            /* Fixed size for auto-created columns */
+            grid-auto-columns: 100px;
+            /* Align items to start */
+            justify-items: start;
+            align-items: start;
+            
+            /* For visualization */
+            border: 2px solid #333;
+            height: 50px;
+            width: 50px;
+            margin-bottom: 20px;
+            background-color: #eee;
+        }
+
+        .grid-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #6495ED;
+            color: white;
+            border: 1px solid #333;
+            width: 50px;
+            height: 50px;
+            box-sizing: border-box;
+        }
+
+        #item0 {
+            /* First item has specific size */
+            width: 40px;
+            height: 40px;
+            background-color: #FF7F50;
+        }
+
+        /* Expected positions based on test verification */
+        .expected-box {
+            position: absolute;
+            border: 2px dashed red;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .description {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grid Auto Flow Overflow Columns Example</h1>
+    
+    <div class="description">
+        <p>This example demonstrates a CSS Grid layout with auto flow in the column direction, 
+        where items overflow into new columns when needed. The grid has the following properties:</p>
+        <ul>
+            <li>Grid template: 1fr for both rows and columns</li>
+            <li>Auto flow direction: column</li>
+            <li>Auto columns width: 100px</li>
+            <li>Items aligned to start position (not stretched)</li>
+            <li>Container size: 400px × 50px</li>
+            <li>First item (b0) has custom size: 40px × 40px</li>
+        </ul>
+    </div>
+
+    <div class="grid-container">
+        <div class="grid-item" id="item0">b0</div>
+        <div class="grid-item" id="item1">b1</div>
+        <div class="grid-item" id="item2">b2</div>
+        <div class="grid-item" id="item3">b3</div>
+    </div>
+
+    <h2>Original Test Code</h2>
+    <div class="code-block">
+var gridTemplate: GridTemplate
+parseGridTemplateColumns gridTemplate, 1'fr
+parseGridTemplateRows gridTemplate, 1'fr
+gridTemplate.autos[dcol] = csFixed 100.0
+gridTemplate.justifyItems = CxStart
+gridTemplate.alignItems = CxStart
+gridTemplate.autoFlow = grColumn
+
+var parent = TestNode()
+parent.cxOffset = [0'ux, 0'ux]
+parent.cxSize = [50'ux, 50'ux]
+parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
+parent.gridTemplate = gridTemplate
+
+var nodes = newSeq[TestNode](4)
+
+# ==== item a's ====
+for i in 0 ..< nodes.len():
+  nodes[i] = TestNode(name: "b" & $(i), box: uiBox(0,0,50,50), parent: parent)
+
+nodes[0].cxSize = [40'ux, 40'ux]
+# ==== process grid ====
+parent.children = nodes
+computeLayout(parent)
+
+# Test verifications
+check parent.box.h == 50
+check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+check nodes[0].box == uiBox(0, 0, 40, 40)
+    </div>
+
+    <h2>Explanation</h2>
+    <div class="description">
+        <p>In this example:</p>
+        <ul>
+            <li>Each item is placed automatically in columns, filling the first column before moving to the next</li>
+            <li>The first item (b0) is 40×40px, while the others are 50×50px</li>
+            <li>Items are placed at their start positions rather than being stretched</li>
+            <li>Since the container is only 50px tall, only one item fits in each column, causing items to flow to the right</li>
+        </ul>
+        <p>This demonstrates how CSS Grid handles overflow in auto-flow column layouts, similar to what's tested
+        in the "compute layout auto flow overflow (columns)" test from tgrids.nim.</p>
+    </div>
+
+    <script>
+        // Add visual markers for expected item positions if needed
+        // This could help demonstrate expected vs actual positions
+    </script>
+</body>
+</html> 

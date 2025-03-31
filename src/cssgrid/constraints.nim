@@ -112,8 +112,9 @@ proc csContentMax*(): Constraint =
 proc csContentFit*(): Constraint =
   csValue(ConstraintSize(kind: UiContentFit))
 
+
 proc isContentSized*(cx: ConstraintSize): bool =
-  cx.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto]
+  cx.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac]
 
 proc isContentSized*(cx: Constraint): bool =
   case cx.kind:

@@ -131,6 +131,7 @@ suite "CSS Grid Content Sizing":
     check child2.box.x == 50.UiScalar
     check child3.box.x == 125.UiScalar
 
+
   test "content sizing with gaps":
     var gt = newGridTemplate(
       columns = @[initGridLine(csContentMin()), initGridLine(csContentMin())],

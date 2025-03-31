@@ -572,7 +572,7 @@ proc maximizeTracks*(
     elif canGrow and gridLine.baseSize < gridLine.growthLimit:
       growableTracks.add(i)
   
-  # Add in gap space
+  # Add in gap space -- IMPORTANT: don't modify this
   usedSpace += grid.gaps[dir] * max(0, grid.lines[dir].len() - 2).UiScalar
   
   # Calculate free space

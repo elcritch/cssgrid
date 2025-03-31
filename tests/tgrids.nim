@@ -149,7 +149,7 @@ suite "grids":
     gt.gaps[drow] = 10.UiScalar
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
-    # printGrid(gt, cmTerminal)
+    printGrid(gt, cmTerminal)
 
     # print "grid template: ", gt
     check gt.lines[dcol][0].start.float == 0.0
@@ -390,7 +390,7 @@ suite "grids":
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     # echo "grid template: ", repr gridTemplate
     var parent = TestNode()
-
+    parent.gridTemplate = gridTemplate
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[TestNode](8)
 
@@ -454,6 +454,7 @@ suite "grids":
     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
     gridTemplate.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
     var parent = TestNode()
+    parent.gridTemplate = gridTemplate
 
     var nodes = newSeq[TestNode](4)
 
@@ -550,10 +551,10 @@ suite "grids":
     nodes[7].cxMin[dcol] = csFixed(150)
 
     # ==== process grid ====
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check parent.box.w == 500
     check parent.box.h == 50
@@ -582,7 +583,7 @@ suite "grids":
     var parent = TestNode()
     parent.box.w = 50
     parent.box.h = 50
-
+    parent.gridTemplate = gridTemplate
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[TestNode](8)
 

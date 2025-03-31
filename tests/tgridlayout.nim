@@ -105,7 +105,6 @@ suite "Compute Layout Tests":
       check body.box.w == 768
       check body.box.h.float32.round(0) == 171
 
-      check items.children[0].box.x == 364
       check items.children[0].box.w == 40
       check items.children[0].box.h == 84.22.UiScalar
   

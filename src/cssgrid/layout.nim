@@ -840,53 +840,57 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
   # Start with initial container size
   var containerSize: UiScalar
   
-  # Handle fixed size constraints first
-  if sizeConstraint.kind == UiValue and sizeConstraint.value.kind == UiFixed:
-    containerSize = sizeConstraint.value.coord
-  elif dir == dcol and node.box.w > 0:
+  # Handle existing box size if available
+  if dir == dcol and node.box.w > 0:
     containerSize = node.box.w # Use existing box width if available
   elif dir == drow and node.box.h > 0:
     containerSize = node.box.h # Use existing box height if available
+  # Handle fixed size constraints or percentages with definite parent
+  elif sizeConstraint.isFixed():
+    # For fixed sizes and percentages with definite parent
+    if sizeConstraint.kind == UiValue and sizeConstraint.value.kind == UiPerc:
+      # Special case for percentages - need parent size
+      if not node.parent.isNil:
+        let parentSize = node.parent.box.wh[dir]
+        containerSize = sizeConstraint.getFixedSize(parentSize)
+      else:
+        containerSize = 0.UiScalar
+    else:
+      # All other fixed sizes
+      containerSize = sizeConstraint.getFixedSize()
   else:
     # Handle auto or fractional sizing
-    if sizeConstraint.isAuto() or sizeConstraint.isFrac():
-      # For auto/fractional in the main direction, use the content-based size
-      if dir == dcol:
-        containerSize = node.gridTemplate.overflowSizes[dcol]
-      else:
-        containerSize = node.gridTemplate.overflowSizes[drow]
+    if sizeConstraint.isFrac():
+      # For fractional units, use content-based size initially
+      containerSize = node.gridTemplate.overflowSizes[dir]
+    elif sizeConstraint.isAuto():
+      # For auto, use content-based size
+      containerSize = node.gridTemplate.overflowSizes[dir]
     elif sizeConstraint.kind == UiValue:
-      # Handle other constraint types
+      # Handle content-based sizing
       case sizeConstraint.value.kind:
       of UiContentMin:
         # For min-content, use the minimum contributions
         containerSize = node.bmin[dir]
       of UiContentMax, UiContentFit:
         # For max-content/fit-content, use content-based sizing
-        if dir == dcol:
-          containerSize = node.gridTemplate.overflowSizes[dcol]
-        else:
-          containerSize = node.gridTemplate.overflowSizes[drow]
-      of UiPerc:
-        # Percentage of parent (would need parent size information)
-        if not node.parent.isNil:
-          containerSize = (sizeConstraint.value.perc / 100.0.UiScalar) * node.getParent().box.wh[dir]
-        else:
-          containerSize = 0.UiScalar
+        containerSize = node.gridTemplate.overflowSizes[dir]
       else:
-        # Default for compound constraints or other cases
+        # Any other unhandled value types
         containerSize = node.gridTemplate.overflowSizes[dir]
     else:
-      # Default for indefinite sizing
+      # Default for compound constraints or other cases
       containerSize = 0.UiScalar
   
-  # Apply min constraint if applicable
-  if node.cxMin[dir].kind == UiValue and node.cxMin[dir].value.kind == UiFixed:
-    containerSize = max(containerSize, node.cxMin[dir].value.coord)
+  # Apply min constraint if applicable (using getFixedSize)
+  let minSize = node.cxMin[dir].getFixedSize()
+  if minSize > 0:
+    containerSize = max(containerSize, minSize)
   
-  # Apply max constraint if applicable
-  if node.cxMax[dir].getFixedSize() > 0:  # Only apply non-zero max constraints
-    containerSize = min(containerSize, node.cxMax[dir].getFixedSize())
+  # Apply max constraint if applicable (using getFixedSize)
+  let maxSize = node.cxMax[dir].getFixedSize()
+  if maxSize > 0:  # Only apply non-zero max constraints
+    containerSize = min(containerSize, maxSize)
   
   # For fractional tracks, if we have a definite container size and
   # all tracks are fractional, handle according to spec section 12.3

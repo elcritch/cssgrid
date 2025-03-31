@@ -108,6 +108,32 @@ proc isFixed*(cx: Constraint): bool =
     of UiNone, UiEnd:
       return true
 
+proc getFixedSize*(cs: ConstraintSize, containerSize: UiScalar): UiScalar =
+  case cs.kind:
+    of UiFixed:
+      return cs.coord
+    of UiPerc:
+      if containerSize > 0:
+        return cs.perc / 100.0.UiScalar * containerSize
+      return 0.UiScalar
+    of UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac:
+      return 0.UiScalar
+
+proc getFixedSize*(cx: Constraint, containerSize: UiScalar): UiScalar =
+  case cx.kind:
+    of UiValue:
+      return getFixedSize(cx.value, containerSize)
+    of UiMin:
+      let lsize = getFixedSize(cx.lmin, containerSize)
+      let rsize = getFixedSize(cx.rmin, containerSize)
+      return min(lsize, rsize)
+    of UiMax:
+      let lsize = getFixedSize(cx.lmax, containerSize)
+      let rsize = getFixedSize(cx.rmax, containerSize)
+      return max(lsize, rsize)
+    of UiNone, UiEnd:
+      return 0.UiScalar
+
 proc isCssFunc*(cx: Constraint): bool =
   cx.kind in [UiAdd, UiSub, UiMin, UiMax, UiMinMax]
 

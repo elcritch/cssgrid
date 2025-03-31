@@ -11,29 +11,47 @@ import cssgrid/layout
 import pretty
 import macros
 
-
+import commontestutils
 template checkUiFloats(af, bf, ln, ls) =
   if abs(af.float-bf.float) >= 1.0e-3:
     checkpoint(`ln` & ":\n\tCheck failed: " & `ls` & "\n\tfield: " & astToStr(af) & " " & " value was: " & $af & " expected: " & $bf)
     fail()
 
-# suite "CSS Grid Content Sizing":
-#   test "content min sizing":
-#     var gt = newGridTemplate(
-#       columns = @[initGridLine(csContentMin())],
-#       rows = @[initGridLine(csContentMin())]
-#     )
+suite "CSS Grid Content Sizing":
+  test "content min sizing":
+    # Create a parent node with a grid template using content-min sizing
+    var parent = newTestNode("parent", 0, 0, 50, 50)
+    parent.gridTemplate = newGridTemplate(
+        columns = @[initGridLine(csContentMin())],
+        rows = @[initGridLine(csContentMin())]
+      )
     
-#     # Create computed sizes
-#     var computedSizes: array[GridDir, Table[int, ComputedTrackSize]] = [
-#       {0: ComputedTrackSize(content: 100.UiScalar)}.toTable,
-#       {0: ComputedTrackSize(content: 150.UiScalar)}.toTable
-#     ]
-
-#     gt.computeTracks(uiBox(0, 0, 200, 200), computedSizes)
-
-#     check gt.lines[dcol][0].width == 100.UiScalar
-#     check gt.lines[drow][0].width == 150.UiScalar
+    # Create a child node with fixed size that will determine content size
+    var child = newTestNode("child", 0, 0, 100, 150)
+    child.gridItem = GridItem()
+    child.gridItem.column = 1 // 2
+    child.gridItem.row = 1 // 2
+    child.cxMin = [100'ux, 150'ux]
+    
+    # Add child to parent
+    parent.children.add(child)
+    
+    # Set up debug output if needed
+    setPrettyPrintMode(cmTerminal)
+    defer: setPrettyPrintMode(cmNone)
+    
+    # Compute the layout
+    computeLayout(parent)
+    
+    # Verify the grid lines have the expected sizes
+    check parent.gridTemplate.lines[dcol][0].width == 100.UiScalar
+    check parent.gridTemplate.lines[drow][0].width == 150.UiScalar
+    
+    # Verify child box was positioned correctly
+    check child.box.x == 0.UiScalar
+    check child.box.y == 0.UiScalar
+    check child.box.w == 100.UiScalar
+    check child.box.h == 150.UiScalar
 
 #   test "auto sizing with content":
 #     var gt = newGridTemplate(

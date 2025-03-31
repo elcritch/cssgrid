@@ -573,8 +573,7 @@ proc maximizeTracks*(
       growableTracks.add(i)
   
   # Add in gap space
-  if grid.lines[dir].len() > 1:
-    usedSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
+  usedSpace += grid.gaps[dir] * max(0, grid.lines[dir].len() - 2).UiScalar
   
   # Calculate free space
   let freeSpace = max(0.UiScalar, availableSpace - usedSpace)

@@ -871,8 +871,8 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
           containerSize = node.gridTemplate.overflowSizes[drow]
       of UiPerc:
         # Percentage of parent (would need parent size information)
-        if node.parent != nil:
-          containerSize = (sizeConstraint.value.perc / 100.0.UiScalar) * node.parent.box.wh[dir]
+        if not node.parent.isNil:
+          containerSize = (sizeConstraint.value.perc / 100.0.UiScalar) * node.getParent().box.wh[dir]
         else:
           containerSize = 0.UiScalar
       else:

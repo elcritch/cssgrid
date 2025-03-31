@@ -678,8 +678,7 @@ proc expandFlexibleTracks*(
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
   # 3. Handle indefinite container sizing (auto height) specially
-  let isIndefiniteContainer = availableSpace >= 10000.UiScalar or 
-                             (dir == drow and grid.autos[dir].kind == UiValue and 
+  let isIndefiniteContainer = (dir == drow and grid.autos[dir].kind == UiValue and 
                               grid.autos[dir].value.kind == UiFrac)
   
   var frUnitValue: UiScalar

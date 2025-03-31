@@ -1955,6 +1955,7 @@ The grid sizing algorithm defines how to resolve these sizing constraints into u
    Items which are subgridded only in the block axis, and whose grid container size in the inline axis depends on the size of its contents are also introspected: since the size of the item in this dimension can be dependent on the sizing of its subgridded tracks in the other, the size contribution of any such item to this grid’s column sizing (see Resolve Intrinsic Track Sizes) is taken under the provision of having determined its track sizing only up to the same point in the Grid Sizing Algorithm as this itself. E.g. for the first pass through this step, the item will have its tracks sized only through this first step; if a second pass of this step is triggered then the item will have completed a first pass through steps 1-3 as well as the second pass of this step prior to returning its size for consideration in this grid’s column sizing. Again, this introspection is recursive.
    
    If calculating the layout of a grid item in this step depends on the available space in the block axis, assume the available space that it would have if any row with a definite max track sizing function had that size and all other rows were infinite. If both the grid container and all tracks have definite sizes, also apply align-content to find the final effective size of any gaps spanned by such items; otherwise ignore the effects of track alignment in this estimation.
+
 2. Next, the track sizing algorithm resolves the sizes of the grid rows.
    
    In this process, any grid item which is subgridded in the grid container’s block axis is treated as empty and its grid items (the grandchildren) are treated as direct children of the grid container (their grandparent). This introspection is recursive.
@@ -1962,14 +1963,17 @@ The grid sizing algorithm defines how to resolve these sizing constraints into u
    As with sizing columns, items which are subgridded only in the inline axis, and whose grid container size in the block axis depends on the size of its contents are also introspected. (As with sizing columns, the size contribution to this grid’s row sizing is taken under the provision of having determined its track sizing only up to this corresponding point in the algorithm; and again, this introspection is recursive.)
    
    To find the inline-axis available space for any items whose block-axis size contributions require it, use the grid column sizes calculated in the previous step. If the grid container’s inline size is definite, also apply justify-content to account for the effective column gap sizes.
+
 3. Then, if the min-content contribution of any grid item has changed based on the row sizes and alignment calculated in step 2, re-resolve the sizes of the grid columns with the new min-content and max-content contributions (once only).
    
    To find the block-axis available space for any items whose inline-axis size contributions require it, use the grid row sizes calculated in the previous step. If the grid container’s block size is definite, also apply align-content to account for the effective row gap sizes.
    
    This repetition is necessary for cases where the inline size of a grid item depends on the block size of its grid area. Examples include wrapped column flex containers (flex-flow: column wrap), orthogonal flows (writing-mode), multi-column containers, and items with an aspect-ratio (or with a child with an aspect ratio) whose size depends on the size of the row.
+
 4. Next, if the min-content contribution of any grid item has changed based on the column sizes and alignment calculated in step 3, re-resolve the sizes of the grid rows with the new min-content and max-content contributions (once only).
    
    To find the inline-axis available space for any items whose block-axis size contributions require it, use the grid column sizes calculated in the previous step. If the grid container’s inline size is definite, also apply justify-content to account for the effective column gap sizes.
+
 5. Finally, align the tracks within the grid container according to the align-content and justify-content properties.
    
    Note: This can introduce extra space between tracks, potentially enlarging the grid area of any grid items spanning the gaps beyond the space allotted to during track sizing.

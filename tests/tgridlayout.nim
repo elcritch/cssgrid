@@ -75,7 +75,6 @@ suite "Compute Layout Tests":
       parseGridTemplateColumns items.gridTemplate, 1'fr
       parent.cxSize = [768'ux, 540'ux]
       body.cxSize = [cx"auto", cx"max-content"]
-      body.cxOffset = [cx"auto", cx"auto"]
 
       items.cxSize = [cx"auto", cx"auto"]
       items.gridTemplate.autoFlow = grRow
@@ -100,9 +99,12 @@ suite "Compute Layout Tests":
       # prettyPrintWriteMode = cmTerminal
       # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
 
       # since it's cxStretch with auto it'll goto min content size
+      check body.box.w == 768
+      check body.box.h.float32.round(0) == 171
+
       check items.children[0].box.x == 364
       check items.children[0].box.w == 40
       check items.children[0].box.h == 84.22.UiScalar
@@ -774,9 +776,9 @@ suite "Grid alignment and justification tests":
 
         `blk`
 
-  test "Complex grid layout with nested nodes":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+  test "Complex grid layout with nested nodes and large child":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     when true:
       testLayout(194.55'ux): # larger than 1'fr
         # printLayout(root, cmTerminal)
@@ -794,7 +796,7 @@ suite "Grid alignment and justification tests":
         check upvotes.box.w.float32.round(2) == 46
         check upvotes.box.h.float32.round(2) == 20.5
 
-  test "Complex grid layout with nested nodes":
+  test "Complex grid layout with nested nodes and small child":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
@@ -813,7 +815,7 @@ suite "Grid alignment and justification tests":
       check upvotes.box.w.float32.round(2) == 46
       check upvotes.box.h.float32.round(2) == 20.5
 
-  test "Complex grid layout with nested nodes and large child":
+  test "Complex grid layout with nested nodes and small child":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     # addPrettyPrintFilter("name", "panel")

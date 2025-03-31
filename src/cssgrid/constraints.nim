@@ -108,7 +108,7 @@ proc isFixed*(cx: Constraint): bool =
     of UiNone, UiEnd:
       return true
 
-proc getFixedSize*(cs: ConstraintSize, containerSize: UiScalar): UiScalar =
+proc getFixedSize*(cs: ConstraintSize, containerSize: UiScalar = 0.UiScalar): UiScalar =
   case cs.kind:
     of UiFixed:
       return cs.coord
@@ -119,7 +119,7 @@ proc getFixedSize*(cs: ConstraintSize, containerSize: UiScalar): UiScalar =
     of UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac:
       return 0.UiScalar
 
-proc getFixedSize*(cx: Constraint, containerSize: UiScalar): UiScalar =
+proc getFixedSize*(cx: Constraint, containerSize: UiScalar = 0.UiScalar): UiScalar =
   case cx.kind:
     of UiValue:
       return getFixedSize(cx.value, containerSize)
@@ -131,6 +131,16 @@ proc getFixedSize*(cx: Constraint, containerSize: UiScalar): UiScalar =
       let lsize = getFixedSize(cx.lmax, containerSize)
       let rsize = getFixedSize(cx.rmax, containerSize)
       return max(lsize, rsize)
+    of UiAdd:
+      let lsize = getFixedSize(cx.ladd, containerSize)
+      let rsize = getFixedSize(cx.radd, containerSize)
+      return lsize + rsize
+    of UiSub:
+      let lsize = getFixedSize(cx.lsub, containerSize)
+      let rsize = getFixedSize(cx.rsub, containerSize)
+      return max(0.UiScalar, lsize - rsize)
+    of UiMinMax:
+      return getFixedSize(cx.lmm, containerSize)
     of UiNone, UiEnd:
       return 0.UiScalar
 

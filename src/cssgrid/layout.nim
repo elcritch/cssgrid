@@ -836,8 +836,6 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
   ## constraints (cxSize, cxMin, cxMax) according to CSS Grid spec
   
   let sizeConstraint = node.cxSize[dir]
-  let minConstraint = node.cxMin[dir]
-  let maxConstraint = node.cxMax[dir]
   
   # Start with initial container size
   var containerSize: UiScalar
@@ -883,13 +881,13 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
       containerSize = node.gridTemplate.overflowSizes[dir]
   
   # Apply min constraint if applicable
-  if minConstraint.kind == UiValue and minConstraint.value.kind == UiFixed:
-    containerSize = max(containerSize, minConstraint.value.coord)
+  if node.cxMin[dir].kind == UiValue and node.cxMin[dir].value.kind == UiFixed:
+    containerSize = max(containerSize, node.cxMin[dir].value.coord)
   
   # Apply max constraint if applicable
-  if maxConstraint.kind == UiValue and maxConstraint.value.kind == UiFixed and 
-     maxConstraint.value.coord > 0:  # Only apply non-zero max constraints
-    containerSize = min(containerSize, maxConstraint.value.coord)
+  if node.cxMax[dir].kind == UiValue and node.cxMax[dir].value.kind == UiFixed and 
+     node.cxMax[dir].value.coord > 0:  # Only apply non-zero max constraints
+    containerSize = min(containerSize, node.cxMax[dir].value.coord)
   
   # For fractional tracks, if we have a definite container size and
   # all tracks are fractional, handle according to spec section 12.3
@@ -900,6 +898,7 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
       if line.track.kind != UiEnd:  # Skip the end track
         totalFlex += line.track.getFrac()
   
+  debugPrint "calculateContainerSize:done", "dir=", dir, "containerSize=", containerSize
   return containerSize
 
 proc trackSizingAlgorithm*(

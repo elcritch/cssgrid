@@ -59,6 +59,23 @@ type
       lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
 
+proc csValue*(size: ConstraintSize): Constraint =
+  Constraint(kind: UiValue, value: size)
+proc csAuto*(): Constraint =
+  csValue(ConstraintSize(kind: UiAuto))
+proc csFrac*[T](size: T): Constraint =
+  csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
+proc csFixed*[T](coord: T): Constraint =
+  csValue(ConstraintSize(kind: UiFixed, coord: UiScalar(coord)))
+proc csPerc*[T](perc: T): Constraint =
+  csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
+proc csContentMin*(): Constraint =
+  csValue(ConstraintSize(kind: UiContentMin))
+proc csContentMax*(): Constraint =
+  csValue(ConstraintSize(kind: UiContentMax))
+proc csContentFit*(): Constraint =
+  csValue(ConstraintSize(kind: UiContentFit))
+
 proc cssFuncArgs*(cx: Constraint): tuple[l, r: ConstraintSize] =
   match cx:
     UiMin(lmin, rmin):
@@ -93,25 +110,6 @@ proc isFixed*(cx: Constraint): bool =
 
 proc isCssFunc*(cx: Constraint): bool =
   cx.kind in [UiAdd, UiSub, UiMin, UiMax, UiMinMax]
-
-proc csValue*(size: ConstraintSize): Constraint =
-  Constraint(kind: UiValue, value: size)
-proc csAuto*(): Constraint =
-  csValue(ConstraintSize(kind: UiAuto))
-
-proc csFrac*[T](size: T): Constraint =
-  csValue(ConstraintSize(kind: UiFrac, frac: size.UiScalar))
-proc csFixed*[T](coord: T): Constraint =
-  csValue(ConstraintSize(kind: UiFixed, coord: UiScalar(coord)))
-proc csPerc*[T](perc: T): Constraint =
-  csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
-proc csContentMin*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMin))
-proc csContentMax*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentMax))
-proc csContentFit*(): Constraint =
-  csValue(ConstraintSize(kind: UiContentFit))
-
 
 proc isContentSized*(cx: ConstraintSize): bool =
   cx.kind in [UiContentMin, UiContentMax, UiContentFit, UiAuto, UiFrac]

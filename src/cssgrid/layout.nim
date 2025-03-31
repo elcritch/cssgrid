@@ -632,6 +632,61 @@ proc maximizeTracks*(
       debugPrint "maximizeTracks:distributed", "spaceDistributed=", spaceDistributed,
                 "remainingSpace=", remainingSpace, "stillGrowable=", stillGrowable
 
+proc calculateFractionSize*(
+    grid: GridTemplate,
+    dir: GridDir,
+    tracks: seq[tuple[index: int, factor: UiScalar]],
+    spaceToFill: UiScalar,
+    nonFlexSpace: UiScalar
+): UiScalar =
+  ## Find the size of an fr unit (implements step 12.7.1 in the CSS Grid spec)
+  
+  # Step 1: Calculate leftover space after non-flexible tracks
+  let leftoverSpace = max(0.UiScalar, spaceToFill - nonFlexSpace)
+  
+  # Step 2: Calculate sum of flex factors
+  var flexFactorSum = 0.0.UiScalar
+  for (_, factor) in tracks:
+    flexFactorSum += factor
+  
+  # Ensure flex factor sum is at least 1
+  flexFactorSum = max(1.0.UiScalar, flexFactorSum)
+  
+  # Step 3: Calculate hypothetical fr size
+  let hypotheticalFrSize = leftoverSpace / flexFactorSum
+  
+  # Step 4: Check if any track would get less than its base size
+  var inflexibleTracks: seq[int] = @[]
+  
+  for (trackIdx, factor) in tracks:
+    if hypotheticalFrSize * factor < grid.lines[dir][trackIdx].baseSize:
+      # Track would get less than its base size
+      inflexibleTracks.add(trackIdx)
+  
+  # If any tracks would get less than base size, restart algorithm treating them as inflexible
+  if inflexibleTracks.len > 0:
+    debugPrint "calculateFractionSize:restart", "dir=", dir, 
+              "inflexibleTracks=", inflexibleTracks.len
+    
+    # Create new set of flexible tracks excluding the inflexible ones
+    var 
+      newTracks: seq[tuple[index: int, factor: UiScalar]] = @[]
+      newNonFlexSpace = nonFlexSpace
+    
+    for (trackIdx, factor) in tracks:
+      if trackIdx in inflexibleTracks:
+        # Add this track's base size to non-flexible space
+        newNonFlexSpace += grid.lines[dir][trackIdx].baseSize
+      else:
+        # Keep this track as flexible
+        newTracks.add((index: trackIdx, factor: factor))
+    
+    # Restart with new tracks
+    return calculateFractionSize(grid, dir, newTracks, spaceToFill, newNonFlexSpace)
+  
+  # Step 5: Return final fr size
+  return hypotheticalFrSize
+
 proc expandFlexibleTracks*(
     grid: GridTemplate, 
     dir: GridDir,
@@ -642,7 +697,7 @@ proc expandFlexibleTracks*(
   
   # Calculate free space and find flexible tracks
   var 
-    flexTracks: seq[tuple[index: int, factor: UiScalar]]
+    flexTracks: seq[tuple[index: int, factor: UiScalar]] = @[]
     totalFlex = 0.0.UiScalar
     nonFlexSpace = 0.0.UiScalar
     largestMinTrackSize = 0.0.UiScalar
@@ -687,16 +742,13 @@ proc expandFlexibleTracks*(
   if grid.lines[dir].len() > 1:
     nonFlexSpace += grid.gaps[dir] * (grid.lines[dir].len() - 1).UiScalar
   
-  # Calculate leftover space (This implements 12.7.1 step 1)
-  let freeSpace = max(0.UiScalar, availableSpace - nonFlexSpace)
-  
   # Determine if this is an indefinite container dimension
   # (This implements the container sizing condition in 12.7)
   let isIndefiniteContainer = isIndefiniteGridDimension(grid, node, dir)
   
   debugPrint "expandFlexibleTracks", "dir=", dir, "availableSpace=", availableSpace, 
-           "nonFlexSpace=", nonFlexSpace, "freeSpace=", freeSpace, "totalFlex=", totalFlex,
-           "isIndefiniteContainer=", isIndefiniteContainer,
+           "nonFlexSpace=", nonFlexSpace, "freeSpace=", max(0.UiScalar, availableSpace - nonFlexSpace), 
+           "totalFlex=", totalFlex, "isIndefiniteContainer=", isIndefiniteContainer,
            "nodeBox=", if node != nil: $node.box else: "nil"
   
   # Handle according to whether free space is definite or indefinite
@@ -760,12 +812,18 @@ proc expandFlexibleTracks*(
     # For definite container sizes, distribute space proportionally
     # (This implements the "definite length" case in 12.7 and 12.7.1)
     
-    # Calculate hypothetical fr size (12.7.1 step 3)
-    let frUnitValue = freeSpace / totalFlex
+    # Use the calculateFractionSize function to determine fr unit value
+    let frUnitValue = calculateFractionSize(
+      grid, 
+      dir, 
+      flexTracks, 
+      availableSpace, 
+      nonFlexSpace
+    )
     
     # Apply calculated sizes to all flexible tracks (12.7 final paragraph)
     for (trackIdx, factor) in flexTracks:
-      # Compare product with base size (12.7.1 step 4)
+      # Calculate size with the fr unit value
       let flexProduct = frUnitValue * factor
       let flexSize = max(grid.lines[dir][trackIdx].baseSize, flexProduct)
       
@@ -774,7 +832,8 @@ proc expandFlexibleTracks*(
       grid.lines[dir][trackIdx].width = flexSize  # Ensure width is updated
       
     debugPrint "expandFlexibleTracks:definite", "dir=", dir, 
-              "freeSpace=", freeSpace, "frUnitValue=", frUnitValue,
+              "freeSpace=", max(0.UiScalar, availableSpace - nonFlexSpace), 
+              "frUnitValue=", frUnitValue,
               "availableSpace=", availableSpace
 
 proc expandStretchedAutoTracks*(

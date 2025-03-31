@@ -9,8 +9,7 @@ import cssgrid/basiclayout
 import cssgrid/parser
 import cssgrid/prettyprints
 
-# import cssgrid/layout
-import cssgrid/computelayout
+import cssgrid/layout
 import pretty
 
 type

@@ -49,7 +49,10 @@ suite "Compute Layout Tests":
     child2.cxSize[dcol] = 70'pp  # 70% of parent
     child2.cxSize[drow] = 40'pp  # 40% of parent
     
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
+    printLayout(parent, cmTerminal)
     
     check child1.box.w == 200  # 50% of 400
     check child1.box.h == 0   # 30% of 300
@@ -198,6 +201,8 @@ suite "Compute Layout Tests":
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
+    addPrettyPrintFilter("name", "scrollpane")
+    addPrettyPrintFilter("name", "scrollbody")
 
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
     let scrollpane = newTestNode("scrollpane", parent)
@@ -222,10 +227,10 @@ suite "Compute Layout Tests":
       if i in [3, 7]:
         child.cxSize = [0.9'fr, 120'ux]
 
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
     check scrollpane.box.h == 270
@@ -233,7 +238,7 @@ suite "Compute Layout Tests":
     check scrollbody.box.w == 384
     check scrollbody.box.h == 950
 
-    check vertical.box.w == 374
+    check vertical.box.w == 384
     check vertical.box.h == UiScalar(50*14 + 120*2)
 
   test "Simple grid layout":

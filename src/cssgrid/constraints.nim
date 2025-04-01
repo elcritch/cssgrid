@@ -106,7 +106,7 @@ proc isFixed*(cx: Constraint): bool =
       let args = cssFuncArgs(cx)
       return isFixed(args.l) or isFixed(args.r)
     of UiNone, UiEnd:
-      return true
+      return false
 
 proc getFixedSize*(cs: ConstraintSize, containerSize, containerMin: UiScalar): UiScalar =
   case cs.kind:

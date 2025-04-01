@@ -250,8 +250,8 @@ proc collectTrackSizeContributions*(
         if maxContribution == UiScalar.high: maxContribution = 0.UiScalar
         if maxContribution == UiScalar.low: maxContribution = 0.UiScalar
         
-        debugPrint "collectTrackSizeContributions:item", "child=", child.name, "dir=", dir, 
-                  "minContribution=", minContribution, "maxContribution=", maxContribution
+        # debugPrint "collectTrackSizeContributions:item", "child=", child.name, "dir=", dir, 
+        #           "minContribution=", minContribution, "maxContribution=", maxContribution
         
         # Update track's computed size based on its type
         var computed = result[dir].getOrDefault(trackIndex)
@@ -484,9 +484,9 @@ proc resolveIntrinsicTrackSizes*(
             gridLine.width = contentSize  # This is critical - set width directly
             gridLine.growthLimit = max(gridLine.growthLimit, contentSize)
             
-            debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
-                      "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
-                      "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
+            # debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
+            #           "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
+            #           "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
         
         # Handle other intrinsic sizing functions as before
         elif isIntrinsicSizing(value) and value.kind != UiFrac:
@@ -821,16 +821,16 @@ proc computeTrackPositions*(grid: GridTemplate, dir: GridDir) =
     if i < trackCount - 1:
       cursor += grid.gaps[dir]
     
-    debugPrint "computeTrackPositions:track", "dir=", dir, "i=", i, 
-               "start=", gridLine.start, "width=", gridLine.width, 
-               "cursor=", cursor
-  
-  
+    # debugPrint "computeTrackPositions:track", "dir=", dir, "i=", i, 
+    #            "start=", gridLine.start, "width=", gridLine.width, 
+    #            "cursor=", cursor
+
+
   # Update the end track position if it exists
   if grid.lines[dir].len() > 0 and grid.lines[dir][^1].track.kind == UiEnd:
     grid.lines[dir][^1].start = cursor
     grid.lines[dir][^1].width = 0.0.UiScalar
-  
+
   debugPrint "computeTrackPositions:done", "dir=", dir, "cursor=", cursor
 
 proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =

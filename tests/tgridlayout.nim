@@ -196,8 +196,8 @@ suite "Compute Layout Tests":
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
-    addPrettyPrintFilter("name", "scrollpane")
-    addPrettyPrintFilter("name", "scrollbody")
+    # addPrettyPrintFilter("name", "scrollpane")
+    # addPrettyPrintFilter("name", "scrollbody")
 
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
     let scrollpane = newTestNode("scrollpane", parent)
@@ -225,7 +225,7 @@ suite "Compute Layout Tests":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
     check scrollpane.box.h == 270

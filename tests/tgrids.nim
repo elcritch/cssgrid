@@ -38,7 +38,7 @@ suite "grids":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
     
     # Check grid line positions
     check parent.gridTemplate.lines[dcol][0].start == 0.UiScalar

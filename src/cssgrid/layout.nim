@@ -338,7 +338,8 @@ proc initializeTrackSizes*(
     grid: GridTemplate, 
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
-    availableSpace: UiScalar
+    availableSpace: UiScalar,
+    containerSize: UiScalar
 ) =
   ## Initialize each track's base size and growth limit (Step 12.4 in spec)
   ## This sets initial values before the rest of the algorithm runs
@@ -358,7 +359,8 @@ proc initializeTrackSizes*(
           baseSize = value.coord
         of UiPerc:
           # Percentage tracks are based on container size
-          baseSize = value.perc / 100.0.UiScalar * availableSpace
+          baseSize = value.perc * containerSize / 100.0.UiScalar
+          debugPrint "initializeTrackSizes:baseSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.perc=", value.perc
         of UiContentMin, UiAuto:
           # For intrinsic min sizing, use min-content contribution if available
           if i in trackSizes:
@@ -584,7 +586,7 @@ proc maximizeTracks*(
       growableTracks.add(i)
   
   # Add in gap space -- IMPORTANT: don't modify this
-  usedSpace += grid.gaps[dir] * max(0, grid.lines[dir].len() - 2).UiScalar
+  # usedSpace += grid.gaps[dir] * max(0, grid.lines[dir].len() - 2).UiScalar
   
   # Calculate free space
   let freeSpace = max(0.UiScalar, availableSpace - usedSpace)
@@ -953,15 +955,17 @@ proc trackSizingAlgorithm*(
   
   availableSpace -= gapSpace
   
+  debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace, "gapSpace=", gapSpace
+
   # If we have fractional tracks, adjust available space
   # Keep here?
-  # if hasFractionalTracks:
+  # if hasFractionalTracks:w
   #   # For fractional tracks, subtract space taken by non-fractional tracks
   #   availableSpace = max(0.UiScalar, availableSpace - fixedTrackSum)
   #   debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
 
   # Step 1: Initialize track sizes with base size and growth limit
-  initializeTrackSizes(grid, dir, trackSizes, availableSpace)
+  initializeTrackSizes(grid, dir, trackSizes, availableSpace, containerSize)
 
   # Step 2: Resolve sizes of intrinsic tracks (min-content/max-content)
   resolveIntrinsicTrackSizes(grid, dir, trackSizes, availableSpace)

@@ -113,9 +113,8 @@ proc getFixedSize*(cs: ConstraintSize, containerSize, containerMin: UiScalar): U
     of UiFixed:
       return cs.coord
     of UiPerc:
-      if containerSize > 0:
-        return cs.perc * containerSize / 100.0.UiScalar
-      return 0.UiScalar
+      debugEcho "getFixedSize:perc", "cs=", cs.perc, "perc=", cs.perc * containerSize / 100.0.UiScalar
+      return cs.perc * containerSize / 100.0.UiScalar
     of UiContentMin:
       return containerMin  # Use the container's min-content size
     of UiContentMax, UiContentFit:

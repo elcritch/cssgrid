@@ -1164,11 +1164,14 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
     child.box = typeof(child.box)(gridBox)
     debugPrint "runGridLayoutAlgorithm:layout_item", "child=", child.name, "box=", child.box
 
-proc computeNodeLayout*(
-    gridTemplate: GridTemplate,
-    node: GridNode,
-): auto =
-  let box = node.box
+proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode): auto =
+
+  for gridLine in gridTemplate.lines[dcol].mitems():
+    gridLine.start = 0.UiScalar
+    gridLine.width = 0.UiScalar
+  for gridLine in gridTemplate.lines[drow].mitems():
+    gridLine.start = 0.UiScalar
+    gridLine.width = 0.UiScalar
 
   gridTemplate.createEndTracks()
   
@@ -1180,34 +1183,37 @@ proc computeNodeLayout*(
   var finalHeight = 0.UiScalar
   
   # Handle empty grid case
-  if gridTemplate.lines[dcol].len() > 0:
-    let lastColIndex = gridTemplate.lines[dcol].len() - 1
-    finalWidth = gridTemplate.lines[dcol][lastColIndex].start + gridTemplate.lines[dcol][lastColIndex].width
+  # if gridTemplate.lines[dcol].len() > 0:
+  #   let lastColIndex = gridTemplate.lines[dcol].len() - 1
+  #   finalWidth = gridTemplate.lines[dcol][lastColIndex].start + gridTemplate.lines[dcol][lastColIndex].width
   
-  if gridTemplate.lines[drow].len() > 0:
-    let lastRowIndex = gridTemplate.lines[drow].len() - 1
-    finalHeight = gridTemplate.lines[drow][lastRowIndex].start + gridTemplate.lines[drow][lastRowIndex].width
+  # if gridTemplate.lines[drow].len() > 0:
+  #   let lastRowIndex = gridTemplate.lines[drow].len() - 1
+  #   finalHeight = gridTemplate.lines[drow][lastRowIndex].start + gridTemplate.lines[drow][lastRowIndex].width
   
   # If we have explicit overflow sizes, use those
-  if gridTemplate.overflowSizes[dcol] > 0:
-    finalWidth = max(finalWidth, gridTemplate.overflowSizes[dcol])
+  debugEcho "computeNodeLayout:finalSize:before", " finalWidth=", finalWidth, " box=", node.box.wh, " overflowSizes=", gridTemplate.overflowSizes
+  # if gridTemplate.overflowSizes[dcol] > 0:
+  #   finalWidth = max(finalWidth, gridTemplate.overflowSizes[dcol])
   
-  if gridTemplate.overflowSizes[drow] > 0:
-    finalHeight = max(finalHeight, gridTemplate.overflowSizes[drow])
+  # if gridTemplate.overflowSizes[drow] > 0:
+  #   finalHeight = max(finalHeight, gridTemplate.overflowSizes[drow])
   
   # Make sure we're at least the requested box size
-  finalWidth = max(finalWidth, box.w)
-  finalHeight = max(finalHeight, box.h)
+  debugEcho "computeNodeLayout:finalSize:after", " finalWidth=", finalWidth, " box=", node.box.wh, " overflowSizes=", gridTemplate.overflowSizes
+
+  # finalWidth = max(finalWidth, node.box.w)
+  # finalHeight = max(finalHeight, node.box.h)
   
-  debugPrint "computeNodeLayout:finalSize", "finalWidth=", finalWidth, "finalHeight=", finalHeight, 
-             "originalBox=", box, "lastColStart=", 
+  debugPrint "computeNodeLayout:finalSize", "finalWidth=", finalWidth, "finalHeight=", finalHeight,
+             "originalBox=", node.box, "lastColStart=",
              if gridTemplate.lines[dcol].len() > 0: gridTemplate.lines[dcol][^1].start else: 0.UiScalar,
-             "lastColWidth=", 
+             "lastColWidth=",
              if gridTemplate.lines[dcol].len() > 0: gridTemplate.lines[dcol][^1].width else: 0.UiScalar
   
-  return typeof(box)(uiBox(
-                box.x.float,
-                box.y.float,
+  return typeof(node.box)(uiBox(
+                node.box.x.float,
+                node.box.y.float,
                 finalWidth.float,
                 finalHeight.float,
               ))
@@ -1230,9 +1236,7 @@ proc computeLayout*(node: GridNode, depth: int, full = true) =
       computeLayout(n, depth + 1)
 
     printLayout(node)
-    var box = node.box
-    let res = node.gridTemplate.computeNodeLayout(node).UiBox
-    node.box = res
+    node.box = node.gridTemplate.computeNodeLayout(node).UiBox
 
     for n in node.children:
       for c in n.children:

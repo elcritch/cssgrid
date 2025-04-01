@@ -560,10 +560,11 @@ suite "grids":
     
     # Compute the layout
     computeLayout(parent)
+    # printLayout(parent, cmTerminal)
     
     # Check the parent box dimensions (height expanded to fit all auto rows)
     check parent.box.w == 100
-    check parent.box.h == 400
+    check parent.box.h == 100
     
     # Check that grid items were placed correctly
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
@@ -809,7 +810,7 @@ suite "grids":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    # printLayout(parent, cmTerminal)
+    printLayout(parent, cmTerminal)
 
     check parent.box.w == 50
     check parent.box.h == 1200
@@ -886,28 +887,41 @@ suite "grids":
   test "compute layout auto only":
     var gridTemplate: GridTemplate
 
-    parseGridTemplateColumns gridTemplate, 1'fr
-    # parseGridTemplateRows gridTemplate, 1'fr
+    parseGridTemplateColumns gridTemplate, 40'ux 1'fr 40'ux
+    parseGridTemplateRows gridTemplate, 1'fr
     gridTemplate.autos[drow] = 90'ux
     gridTemplate.justifyItems = CxStart
     gridTemplate.autoFlow = grRow
     let frame = Frame(windowSize: uiBox(0, 0, 500, 400))
-    var parent = TestNode(frame: frame)
+    var parent = TestNode(name: "parent", frame: frame)
 
     parent.gridTemplate = gridTemplate
 
     # ==== item a's ====
     let child1 = TestNode(name: "b1", gridItem: GridItem(), frame: frame)
     child1.cxSize = [cx"auto", cx"auto"]
-    let child2 = TestNode(name: "b2", gridItem: GridItem(), frame: frame)
-    child2.cxSize = [cx"auto", cx"auto"]
+    child1.gridItem.column = 2 // 3
 
     parent.children.add(child1)
-    parent.children.add(child2)
+    # printLayout(parent, cmTerminal)
 
     # ==== process grid ====
-    discard gridTemplate.computeNodeLayout(parent)
-    printLayout(parent, cmTerminal)
+    parent.cxSize = [400'ux, 100'ux]
+    computeLayout(parent)
+    # printLayout(parent, cmTerminal)
 
-    discard gridTemplate.computeNodeLayout(parent)
-    printLayout(parent, cmTerminal)
+    parent.cxSize = [470'ux, 100'ux]
+    computeLayout(parent)
+    # printLayout(parent, cmTerminal)
+
+    parent.cxSize = [480'ux, 100'ux]
+    computeLayout(parent)
+    # printLayout(parent, cmTerminal)
+
+    parent.cxSize = [500'ux, 100'ux]
+    computeLayout(parent)
+    # printLayout(parent, cmTerminal)
+
+    parent.cxSize = [400'ux, 100'ux]
+    computeLayout(parent)
+    # printLayout(parent, cmTerminal)

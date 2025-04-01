@@ -841,33 +841,36 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
   # Start with initial container size
   var containerSize: UiScalar
   
-  # Handle existing box size if available
-  if sizeConstraint.isFixed():
-    debugPrint "calculateContainerSize:fixed", "dir=", dir, "sizeConstraint=", sizeConstraint, "parentSize=", parentSize, "node.bmin[dir]=", node.bmin[dir]
+  # NEW CODE: Auto-sized grid containers should fill parent width
+  # This happens at the CSS box model level, before grid sizing
+  if sizeConstraint.isAuto() and parentSize > 0 and dir == dcol:
+    # Auto-width block containers fill their parent width
+    containerSize = parentSize
+    debugPrint "calculateContainerSize:auto_fills_parent", "dir=", dir, "parentSize=", parentSize
+  # Then continue with existing logic...
+  elif sizeConstraint.isFixed():
     containerSize = sizeConstraint.getFixedSize(parentSize, node.bmin[dir])
-  else:
-    # Handle auto or fractional sizing
-    if sizeConstraint.isFrac():
-      # For fractional units, use content-based size initially
+  elif sizeConstraint.isFrac():
+    # For fractional units, use content-based size initially
+    containerSize = node.gridTemplate.overflowSizes[dir]
+  elif sizeConstraint.isAuto():
+    # For auto, use content-based size
+    containerSize = node.gridTemplate.overflowSizes[dir]
+  elif sizeConstraint.kind == UiValue:
+    # Handle content-based sizing
+    case sizeConstraint.value.kind:
+    of UiContentMin:
+      # For min-content, use the minimum contributions
+      containerSize = node.bmin[dir]
+    of UiContentMax, UiContentFit:
+      # For max-content/fit-content, use content-based sizing
       containerSize = node.gridTemplate.overflowSizes[dir]
-    elif sizeConstraint.isAuto():
-      # For auto, use content-based size
-      containerSize = node.gridTemplate.overflowSizes[dir]
-    elif sizeConstraint.kind == UiValue:
-      # Handle content-based sizing
-      case sizeConstraint.value.kind:
-      of UiContentMin:
-        # For min-content, use the minimum contributions
-        containerSize = node.bmin[dir]
-      of UiContentMax, UiContentFit:
-        # For max-content/fit-content, use content-based sizing
-        containerSize = node.gridTemplate.overflowSizes[dir]
-      else:
-        # Any other unhandled value types
-        containerSize = node.gridTemplate.overflowSizes[dir]
     else:
-      # Default for compound constraints or other cases
-      containerSize = 0.UiScalar
+      # Any other unhandled value types
+      containerSize = node.gridTemplate.overflowSizes[dir]
+  else:
+    # Default for compound constraints or other cases
+    containerSize = 0.UiScalar
   debugPrint "calculateContainerSize:initial", "dir=", dir, "containerSize=", containerSize
   
   # Apply min constraint if applicable (using getFixedSize)

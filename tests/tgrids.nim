@@ -800,8 +800,8 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # printLayout(parent, cmTerminal)
 

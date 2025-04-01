@@ -1193,11 +1193,12 @@ proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode): auto =
   
   # If we have explicit overflow sizes, use those
   debugEcho "computeNodeLayout:finalSize:before", " finalWidth=", finalWidth, " box=", node.box.wh, " overflowSizes=", gridTemplate.overflowSizes
-  # if gridTemplate.overflowSizes[dcol] > 0:
-  #   finalWidth = max(finalWidth, gridTemplate.overflowSizes[dcol])
+
+  if not node.cxSize[dcol].isFixed() and gridTemplate.overflowSizes[dcol] > 0:
+    finalWidth = max(finalWidth, gridTemplate.overflowSizes[dcol])
   
-  # if gridTemplate.overflowSizes[drow] > 0:
-  #   finalHeight = max(finalHeight, gridTemplate.overflowSizes[drow])
+  if not node.cxSize[drow].isFixed() and gridTemplate.overflowSizes[drow] > 0:
+    finalHeight = max(finalHeight, gridTemplate.overflowSizes[drow])
   
   # Make sure we're at least the requested box size
   debugEcho "computeNodeLayout:finalSize:after", " finalWidth=", finalWidth, " box=", node.box.wh, " overflowSizes=", gridTemplate.overflowSizes

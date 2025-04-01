@@ -809,6 +809,8 @@ suite "grids":
     # ==== process grid ====
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
+    # addPrettyPrintFilter("name", "parent")
+    
     computeLayout(parent)
     printLayout(parent, cmTerminal)
 

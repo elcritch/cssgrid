@@ -225,7 +225,7 @@ suite "Compute Layout Tests":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    # printLayout(parent, cmTerminal)
+    printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
     check scrollpane.box.h == 270

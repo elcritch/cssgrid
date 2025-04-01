@@ -660,8 +660,8 @@ suite "grids":
     nodes[7].cxMin[dcol] = csFixed(150)
 
     # ==== process grid ====
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # printLayout(parent, cmTerminal)
 
@@ -882,3 +882,32 @@ suite "grids":
     #     checks nodes[i].box.wh == uiSize(50, 50)
 
     # checks nodes[7].box == uiBox(0, 350, 50, 50)
+
+  test "compute layout auto only":
+    var gridTemplate: GridTemplate
+
+    parseGridTemplateColumns gridTemplate, 1'fr
+    # parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[drow] = 90'ux
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.autoFlow = grRow
+    let frame = Frame(windowSize: uiBox(0, 0, 500, 400))
+    var parent = TestNode(frame: frame)
+
+    parent.gridTemplate = gridTemplate
+
+    # ==== item a's ====
+    let child1 = TestNode(name: "b1", gridItem: GridItem(), frame: frame)
+    child1.cxSize = [cx"auto", cx"auto"]
+    let child2 = TestNode(name: "b2", gridItem: GridItem(), frame: frame)
+    child2.cxSize = [cx"auto", cx"auto"]
+
+    parent.children.add(child1)
+    parent.children.add(child2)
+
+    # ==== process grid ====
+    discard gridTemplate.computeNodeLayout(parent)
+    printLayout(parent, cmTerminal)
+
+    discard gridTemplate.computeNodeLayout(parent)
+    printLayout(parent, cmTerminal)

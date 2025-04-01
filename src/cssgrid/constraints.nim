@@ -108,13 +108,13 @@ proc isFixed*(cx: Constraint): bool =
     of UiNone, UiEnd:
       return true
 
-proc getFixedSize*(cs: ConstraintSize, containerSize: UiScalar = 0.UiScalar): UiScalar =
+proc getFixedSize*(cs: ConstraintSize, containerSize: UiScalar): UiScalar =
   case cs.kind:
     of UiFixed:
       return cs.coord
     of UiPerc:
       if containerSize > 0:
-        return cs.perc / 100.0.UiScalar * containerSize
+        return cs.perc * containerSize / 100.0.UiScalar
       return 0.UiScalar
     of UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac:
       return 0.UiScalar

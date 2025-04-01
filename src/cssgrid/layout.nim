@@ -835,6 +835,7 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
   ## Calculate the effective container size taking into account
   ## constraints (cxSize, cxMin, cxMax) according to CSS Grid spec
   
+  let parentSize = node.getParentBoxOrWindows().box.wh[dir]
   let sizeConstraint = node.cxSize[dir]
   
   # Start with initial container size
@@ -850,11 +851,7 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     # For fixed sizes and percentages with definite parent
     if sizeConstraint.kind == UiValue and sizeConstraint.value.kind == UiPerc:
       # Special case for percentages - need parent size
-      if not node.parent.isNil:
-        let parentSize = node.parent.box.wh[dir]
-        containerSize = sizeConstraint.getFixedSize(parentSize)
-      else:
-        containerSize = 0.UiScalar
+      containerSize = sizeConstraint.getFixedSize(parentSize)
     else:
       # All other fixed sizes
       containerSize = sizeConstraint.getFixedSize()

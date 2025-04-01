@@ -96,8 +96,8 @@ suite "Compute Layout Tests":
         text.cxMin = [40'ux, 20.00'ux]
         text.cxMax = [200'ux, 300.00'ux]
       
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
 
@@ -222,13 +222,17 @@ suite "Compute Layout Tests":
       if i in [3, 7]:
         child.cxSize = [0.9'fr, 120'ux]
 
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    # printLayout(parent, cmTerminal)
+    printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
-    check scrollpane.box.h == 950
+    check scrollpane.box.h == 270
+
     check scrollbody.box.w == 384
     check scrollbody.box.h == 950
+
     check vertical.box.w == 374
     check vertical.box.h == UiScalar(50*14 + 120*2)
 

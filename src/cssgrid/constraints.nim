@@ -117,9 +117,11 @@ proc getFixedSize*(cs: ConstraintSize, containerSize, containerMin: UiScalar): U
         return cs.perc * containerSize / 100.0.UiScalar
       return 0.UiScalar
     of UiContentMin:
-      return containerMin
-    of UiAuto, UiContentMin, UiContentMax, UiContentFit, UiFrac:
-      return containerSize
+      return containerMin  # Use the container's min-content size
+    of UiContentMax, UiContentFit:
+      return containerSize  # For initial sizing, treat as content-based
+    of UiAuto, UiFrac:
+      return 0.UiScalar  # Treat as indefinite for fixed sizing
 
 proc getFixedSize*(cx: Constraint, containerSize, containerMin: UiScalar): UiScalar =
   case cx.kind:

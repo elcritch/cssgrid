@@ -96,10 +96,10 @@ suite "Compute Layout Tests":
         text.cxMin = [40'ux, 20.00'ux]
         text.cxMax = [200'ux, 300.00'ux]
       
-      prettyPrintWriteMode = cmTerminal
-      defer: prettyPrintWriteMode = cmNone
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       check items.gridTemplate.lines[dcol][0].width.float32.round(0) == 768
 

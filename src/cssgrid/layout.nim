@@ -848,7 +848,7 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     containerSize = node.box.h # Use existing box height if available
   # Handle fixed size constraints or percentages with definite parent
   elif sizeConstraint.isFixed():
-    containerSize = sizeConstraint.getFixedSize(parentSize)
+    containerSize = sizeConstraint.getFixedSize(parentSize, node.bmin[dir])
   else:
     # Handle auto or fractional sizing
     if sizeConstraint.isFrac():
@@ -874,12 +874,12 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
       containerSize = 0.UiScalar
   
   # Apply min constraint if applicable (using getFixedSize)
-  let minSize = node.cxMin[dir].getFixedSize()
+  let minSize = node.cxMin[dir].getFixedSize(parentSize, node.bmin[dir])
   if minSize > 0:
     containerSize = max(containerSize, minSize)
   
   # Apply max constraint if applicable (using getFixedSize)
-  let maxSize = node.cxMax[dir].getFixedSize()
+  let maxSize = node.cxMax[dir].getFixedSize(parentSize, node.bmax[dir])
   if maxSize > 0:  # Only apply non-zero max constraints
     containerSize = min(containerSize, maxSize)
   

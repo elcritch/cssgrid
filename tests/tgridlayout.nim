@@ -145,7 +145,7 @@ suite "Compute Layout Tests":
       # prettyPrintWriteMode = cmTerminal
       # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       check items.children[0].box.x == 0
       check items.children[0].box.w == 768

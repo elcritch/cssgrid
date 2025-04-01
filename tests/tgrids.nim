@@ -660,8 +660,8 @@ suite "grids":
     nodes[7].cxMin[dcol] = csFixed(150)
 
     # ==== process grid ====
-    # prettyPrintWriteMode = cmTerminal
-    # defer: prettyPrintWriteMode = cmNone
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # printLayout(parent, cmTerminal)
 

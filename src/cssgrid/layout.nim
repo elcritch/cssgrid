@@ -954,29 +954,30 @@ proc trackSizingAlgorithm*(
   availableSpace -= gapSpace
   
   # If we have fractional tracks, adjust available space
-  if hasFractionalTracks:
-    # For fractional tracks, subtract space taken by non-fractional tracks
-    availableSpace = max(0.UiScalar, availableSpace - fixedTrackSum)
-    debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
-  
+  # Keep here?
+  # if hasFractionalTracks:
+  #   # For fractional tracks, subtract space taken by non-fractional tracks
+  #   availableSpace = max(0.UiScalar, availableSpace - fixedTrackSum)
+  #   debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
+
   # Step 1: Initialize track sizes with base size and growth limit
   initializeTrackSizes(grid, dir, trackSizes, availableSpace)
-  
+
   # Step 2: Resolve sizes of intrinsic tracks (min-content/max-content)
   resolveIntrinsicTrackSizes(grid, dir, trackSizes, availableSpace)
-  
+
   # Step 3: Maximize tracks by distributing free space to growable tracks
   maximizeTracks(grid, dir, availableSpace)
-  
+
   # Step 4: Expand flexible tracks (with fr units)
   expandFlexibleTracks(grid, dir, availableSpace, node)
-  
+
   # Step 5: Expand auto tracks if necessary when content alignment is stretch
   expandStretchedAutoTracks(grid, dir, availableSpace)
-  
+
   # Step 6: Calculate final positions of tracks
   computeTrackPositions(grid, dir)
-  
+
   # Debug output to show final track sizes
   debugPrint "trackSizingAlgorithm:final", "dir=", dir, "availableSpace=", availableSpace, "tracks=", grid.lines[dir].len
 

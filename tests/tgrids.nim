@@ -683,8 +683,11 @@ suite "grids":
     gridTemplate.autos[drow] = 50'ux
     gridTemplate.justifyItems = CxStretch
     gridTemplate.autoFlow = grRow
-    var parent = TestNode()
+
+    let frame = Frame(windowSize: uiBox(0, 0, 50, 50))
+    var parent = TestNode(frame: frame)
     parent.gridTemplate = gridTemplate
+
     let contentSize = uiSize(30, 30)
     var nodes = newSeq[TestNode](8)
 
@@ -692,7 +695,7 @@ suite "grids":
     for i in 0 ..< nodes.len():
       nodes[i] = TestNode(name: "b" & $(i),
                           box: uiBox(0,0,0,0),
-                          gridItem: nil, parent: parent)
+                          gridItem: nil, parent: parent, frame: frame)
       nodes[i].cxSize = [50'ux, 50'ux]
       parent.children.add(nodes[i])
     check gridTemplate.lines[dcol][0].track == 1'fr
@@ -829,7 +832,8 @@ suite "grids":
     gridTemplate.autos[drow] = 90'ux
     gridTemplate.justifyItems = CxStart
     gridTemplate.autoFlow = grRow
-    var parent = TestNode()
+    let frame = Frame(windowSize: uiBox(0, 0, 50, 400))
+    var parent = TestNode(frame: frame)
     parent.box.w = 50
     parent.box.h = 400
     parent.gridTemplate = gridTemplate
@@ -839,7 +843,8 @@ suite "grids":
     for i in 0 ..< nodes.len():
       nodes[i] = TestNode(name: "b" & $(i),
                           box: uiBox(0,0,200,200),
-                          gridItem: GridItem())
+                          gridItem: GridItem(),
+                          frame: frame)
       # nodes[i].gridItem.index[dcol] = mkIndex(1) .. mkIndex(2)
       # nodes[i].gridItem.index[drow] = mkIndex(i+1) .. mkIndex(i+2)
     nodes[2].box.h = 150

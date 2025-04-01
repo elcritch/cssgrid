@@ -848,13 +848,7 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     containerSize = node.box.h # Use existing box height if available
   # Handle fixed size constraints or percentages with definite parent
   elif sizeConstraint.isFixed():
-    # For fixed sizes and percentages with definite parent
-    if sizeConstraint.kind == UiValue and sizeConstraint.value.kind == UiPerc:
-      # Special case for percentages - need parent size
-      containerSize = sizeConstraint.getFixedSize(parentSize)
-    else:
-      # All other fixed sizes
-      containerSize = sizeConstraint.getFixedSize()
+    containerSize = sizeConstraint.getFixedSize(parentSize)
   else:
     # Handle auto or fractional sizing
     if sizeConstraint.isFrac():

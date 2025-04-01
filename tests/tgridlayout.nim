@@ -90,8 +90,6 @@ suite "Compute Layout Tests":
         let child = newTestNode("story-" & $i, items)
         let text = newTestNode("text-" & $i, child)
 
-        # child.cxSize = [1'fr, csAuto()]
-        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
         child.cxPadOffset[drow] = 21.01'ux
         child.cxPadSize[drow] = 22.20'ux
 
@@ -124,8 +122,7 @@ suite "Compute Layout Tests":
 
       parseGridTemplateColumns items.gridTemplate, 1'fr
       parent.cxSize = [768'ux, 540'ux]
-      body.cxSize = [cx"auto", cx"max-content"]
-      body.cxOffset = [cx"auto", cx"auto"]
+      body.cxSize = [cx"auto", cx"none"]
 
       items.cxSize = [cx"auto", cx"auto"]
       items.gridTemplate.autoFlow = grRow
@@ -138,8 +135,6 @@ suite "Compute Layout Tests":
         let child = newTestNode("story-" & $i, items)
         let text = newTestNode("text-" & $i, child)
 
-        # child.cxSize = [1'fr, csAuto()]
-        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
         child.cxPadOffset[drow] = 21.01'ux
         child.cxPadSize[drow] = 22.20'ux
 
@@ -150,7 +145,7 @@ suite "Compute Layout Tests":
       # prettyPrintWriteMode = cmTerminal
       # defer: prettyPrintWriteMode = cmNone
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
 
       check items.children[0].box.x == 0
       check items.children[0].box.w == 768
@@ -230,7 +225,7 @@ suite "Compute Layout Tests":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    # printLayout(parent, cmTerminal)
+    printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
     check scrollpane.box.h == 270

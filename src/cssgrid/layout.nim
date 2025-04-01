@@ -360,7 +360,7 @@ proc initializeTrackSizes*(
         of UiPerc:
           # Percentage tracks are based on container size
           baseSize = value.perc * containerSize / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:baseSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.perc=", value.perc
+          debugPrint "initializeTrackSizes:baseSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.perc=", value.perc, "containerSize=", containerSize
         of UiContentMin, UiAuto:
           # For intrinsic min sizing, use min-content contribution if available
           if i in trackSizes:

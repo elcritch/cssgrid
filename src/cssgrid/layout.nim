@@ -842,12 +842,8 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
   var containerSize: UiScalar
   
   # Handle existing box size if available
-  if dir == dcol and node.box.w > 0:
-    containerSize = node.box.w # Use existing box width if available
-  elif dir == drow and node.box.h > 0:
-    containerSize = node.box.h # Use existing box height if available
-  # Handle fixed size constraints or percentages with definite parent
-  elif sizeConstraint.isFixed():
+  if sizeConstraint.isFixed():
+    debugPrint "calculateContainerSize:fixed", "dir=", dir, "sizeConstraint=", sizeConstraint, "parentSize=", parentSize, "node.bmin[dir]=", node.bmin[dir]
     containerSize = sizeConstraint.getFixedSize(parentSize, node.bmin[dir])
   else:
     # Handle auto or fractional sizing
@@ -872,25 +868,50 @@ proc calculateContainerSize*(node: GridNode, dir: GridDir): UiScalar =
     else:
       # Default for compound constraints or other cases
       containerSize = 0.UiScalar
+  debugPrint "calculateContainerSize:initial", "dir=", dir, "containerSize=", containerSize
   
   # Apply min constraint if applicable (using getFixedSize)
   let minSize = node.cxMin[dir].getFixedSize(parentSize, node.bmin[dir])
   if minSize > 0:
     containerSize = max(containerSize, minSize)
+  debugPrint "calculateContainerSize:before", "dir=", dir, "containerSize=", containerSize, "minSize=", minSize
   
   # Apply max constraint if applicable (using getFixedSize)
   let maxSize = node.cxMax[dir].getFixedSize(parentSize, node.bmax[dir])
   if maxSize > 0:  # Only apply non-zero max constraints
     containerSize = min(containerSize, maxSize)
-  
-  # For fractional tracks, if we have a definite container size and
-  # all tracks are fractional, handle according to spec section 12.3
-  if node.gridTemplate.isAllFractionalTracks(dir) and containerSize > 0:
-    # Calculate the total flex factor
-    var totalFlex = 0.UiScalar
-    for i, line in node.gridTemplate.lines[dir]:
-      if line.track.kind != UiEnd:  # Skip the end track
-        totalFlex += line.track.getFrac()
+  debugPrint "calculateContainerSize:before", "dir=", dir, "containerSize=", containerSize, "maxSize=", maxSize
+
+  # Check for any fractional tracks + indefinite container size
+  var hasAnyFractionalTrack = false
+  for i, line in node.gridTemplate.lines[dir]:
+    if line.track.kind != UiEnd and line.track.isFrac():
+      hasAnyFractionalTrack = true
+      break
+
+  debugPrint "calculateContainerSize:hasAnyFractionalTrack", "dir=", dir, "hasAnyFractionalTrack=", hasAnyFractionalTrack, "containerSize=", containerSize
+
+  if hasAnyFractionalTrack and containerSize == 0.UiScalar:
+    # Find maximum content requirement across all items in fr tracks
+    var maxContentRequirement = 0.UiScalar
+    
+    for child in node.children:
+      if child.gridItem != nil:
+        # Check if this child is in any fr track
+        var childInFrTrack = false
+        for i, line in node.gridTemplate.lines[dir]:
+          if line.track.kind != UiEnd and line.track.isFrac() and
+             child.gridItem.span[dir].a <= i+1 and child.gridItem.span[dir].b > i+1:
+            childInFrTrack = true
+            break
+        
+        if childInFrTrack:
+          maxContentRequirement = max(maxContentRequirement, child.bmin[dir])
+    
+    # If any item in a fr track needs more space, use that as container size
+    if maxContentRequirement > 0.UiScalar:
+      containerSize = maxContentRequirement * UiScalar(node.gridTemplate.lines[dir].len - 1)
+    debugPrint "calculateContainerSize:maxContentRequirement", "dir=", dir, "maxContentRequirement=", maxContentRequirement, "containerSize=", containerSize
   
   debugPrint "calculateContainerSize:done", "dir=", dir, "containerSize=", containerSize
   return containerSize

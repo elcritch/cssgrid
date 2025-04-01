@@ -195,7 +195,6 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 
   if calc == MINSZ and f == UiScalar.high: 
     let fprev = f
-    prettyPrintWriteMode = cmTerminal
     if node.cxSize[dir].isFixed():
       let parentSize = max(node.getParentBoxOrWindows().box.wh[dir], 0.0.UiScalar)
       f = node.cxSize[dir].getFixedSize(parentSize, 0.0.UiScalar)
@@ -204,7 +203,6 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
       let v = node.childBMinsPost(dir).clamp(0.UiScalar, UiScalar.high)
       f = clamp(v + node.bpad.xy[dir] + node.bpad.wh[dir], 0.UiScalar, UiScalar.high)
       debugPrint "calcBasicConstraintPostImpl:adjust:minsz: ", "name=", node.name, "dir=", dir, "val=", f, "fprev=", fprev, "csValue=", csValue, "v=", v, "bpad:xy:", node.bpad.xy[dir], "bpad:wh:", node.bpad.wh[dir]
-    prettyPrintWriteMode = cmNone
 
   debugPrint "calcBasicConstraintPostImpl:done: ", "name=", node.name, " box= ", f
 

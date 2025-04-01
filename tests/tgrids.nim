@@ -574,7 +574,7 @@ suite "grids":
     check nodes[1].box == uiBox(0, 100, 100, 100)
     check nodes[3].box == uiBox(0, 300, 100, 100)
 
-  test "compute layout auto flow overflow (colums)":
+  test "compute layout auto flow overflow colums":
 
     var gridTemplate: GridTemplate
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -629,7 +629,7 @@ suite "grids":
     check nodes[2].box == uiBox(200, 0, 50, 50)
     check nodes[3].box == uiBox(300, 0, 50, 50)
 
-  test "compute layout overflow (columns)":
+  test "compute layout overflow columns":
 
     var gridTemplate: GridTemplate
 
@@ -679,7 +679,7 @@ suite "grids":
 
     check nodes[7].box == uiBox(350, 0, 150, 50)
 
-  test "compute layout overflow (rows)":
+  test "compute layout overflow rows":
     var gridTemplate: GridTemplate
 
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -721,7 +721,7 @@ suite "grids":
 
     check nodes[7].box == uiBox(0, 350, 50, 50)
 
-  test "compute layout manual overflow (rows)":
+  test "compute layout manual overflow rows":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     var gridTemplate: GridTemplate

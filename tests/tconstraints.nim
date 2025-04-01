@@ -84,7 +84,7 @@ suite "constraints":
 
   test "auto sizing checks":
     check isAuto(csAuto())
-    check isAuto(csFrac(1))
+    check not isAuto(csFrac(1)) # in the css grid spec frac is handled on it's own
     check not isAuto(csFixed(100))
     check not isAuto(csPerc(50))
 

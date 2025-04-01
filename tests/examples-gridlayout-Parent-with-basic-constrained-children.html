@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid Layout Test - Parent with basic constrained children</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    
+    .container {
+      margin-bottom: 30px;
+    }
+    
+    h2 {
+      margin-top: 40px;
+    }
+    
+    .parent {
+      position: relative;
+      width: 400px;
+      border: 2px solid #333;
+      background-color: #f5f5f5;
+      margin-bottom: 20px;
+    }
+    
+    .parent-auto-none {
+      /* Auto width, undefined height */
+      height: auto;
+      min-height: 10px; /* Just to visualize when empty */
+    }
+    
+    .parent-auto-auto {
+      /* Auto width, auto height */
+      height: 300px;
+    }
+    
+    .child {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid black;
+      box-sizing: border-box;
+      font-weight: bold;
+    }
+    
+    .child1 {
+      left: 10px;
+      top: 10px;
+      width: 50%;  /* 50% of parent's width */
+      height: 30%; /* 30% of parent's height */
+      background-color: #3498db;
+    }
+    
+    .child2 {
+      left: 10px;
+      top: 120px;
+      width: 70%;  /* 70% of parent's width */
+      height: 40%; /* 40% of parent's height */
+      background-color: #e74c3c;
+    }
+    
+    .measurements {
+      margin-top: 10px;
+      margin-bottom: 30px;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    .explanation {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSS Layout Test: Parent with basic constrained children</h1>
+  
+  <div class="container">
+    <h2>Test Case 1: Parent with width:auto, height:none</h2>
+    <p>In this case, children with percentage heights should have 0 height because parent has no definite height.</p>
+    
+    <div id="parent1" class="parent parent-auto-none">
+      <div id="child1-1" class="child child1">child1</div>
+      <div id="child1-2" class="child child2">child2</div>
+    </div>
+    
+    <div class="measurements">
+      <strong>Measurements:</strong>
+      <table id="measurements1"></table>
+    </div>
+  </div>
+  
+  <div class="container">
+    <h2>Test Case 2: Parent with width:auto, height:auto (300px)</h2>
+    <p>With a definite parent height, children's percentage heights are calculated based on parent height.</p>
+    
+    <div id="parent2" class="parent parent-auto-auto">
+      <div id="child2-1" class="child child1">child1</div>
+      <div id="child2-2" class="child child2">child2</div>
+    </div>
+    
+    <div class="measurements">
+      <strong>Measurements:</strong>
+      <table id="measurements2"></table>
+    </div>
+  </div>
+  
+  <div class="explanation">
+    <h3>What This Test Demonstrates:</h3>
+    <p>This test shows how percentage-based child dimensions are calculated based on parent's size constraints:</p>
+    <ol>
+      <li><strong>Test Case 1:</strong> Parent with width:auto (400px) and height:none
+        <ul>
+          <li>Child1 (50% width, 30% height): Calculated as 200px width, 0px height</li>
+          <li>Child2 (70% width, 40% height): Calculated as 280px width, 0px height</li>
+        </ul>
+      </li>
+      <li><strong>Test Case 2:</strong> Parent with width:auto (400px) and height:auto (300px)
+        <ul>
+          <li>Child1 (50% width, 30% height): Calculated as 200px width, 90px height</li>
+          <li>Child2 (70% width, 40% height): Calculated as 280px width, 120px height</li>
+        </ul>
+      </li>
+    </ol>
+    <p>This matches the CSS specification where percentage heights require a definite parent height to be resolved.</p>
+  </div>
+
+  <script>
+    // Function to create measurement table
+    function createMeasurementTable(parentId, tableId) {
+      const parent = document.getElementById(parentId);
+      const child1 = document.getElementById(parentId + "-1");
+      const child2 = document.getElementById(parentId + "-2");
+      const table = document.getElementById(tableId);
+      
+      // Create header row
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = `
+        <th>Element</th>
+        <th>Width (Actual)</th>
+        <th>Width (Expected)</th>
+        <th>Height (Actual)</th>
+        <th>Height (Expected)</th>
+      `;
+      table.appendChild(headerRow);
+      
+      // Create data rows
+      const parentRow = document.createElement('tr');
+      parentRow.innerHTML = `
+        <td>parent</td>
+        <td>${parent.offsetWidth}px</td>
+        <td>400px</td>
+        <td>${parent.offsetHeight}px</td>
+        <td>${parentId === 'parent1' ? '≈0px (or min-height)' : '300px'}</td>
+      `;
+      table.appendChild(parentRow);
+      
+      const child1Row = document.createElement('tr');
+      child1Row.innerHTML = `
+        <td>child1 (50%, 30%)</td>
+        <td>${child1.offsetWidth}px</td>
+        <td>200px (50% of 400px)</td>
+        <td>${child1.offsetHeight}px</td>
+        <td>${parentId === 'parent1' ? '0px' : '90px (30% of 300px)'}</td>
+      `;
+      table.appendChild(child1Row);
+      
+      const child2Row = document.createElement('tr');
+      child2Row.innerHTML = `
+        <td>child2 (70%, 40%)</td>
+        <td>${child2.offsetWidth}px</td>
+        <td>280px (70% of 400px)</td>
+        <td>${child2.offsetHeight}px</td>
+        <td>${parentId === 'parent1' ? '0px' : '120px (40% of 300px)'}</td>
+      `;
+      table.appendChild(child2Row);
+      
+      // Log measurements to console for verification
+      console.log(`${parentId} measurements:`);
+      console.log(`Parent: ${parent.offsetWidth}x${parent.offsetHeight}`);
+      console.log(`Child1: ${child1.offsetWidth}x${child1.offsetHeight}`);
+      console.log(`Child2: ${child2.offsetWidth}x${child2.offsetHeight}`);
+    }
+    
+    // Run when the page loads
+    window.onload = function() {
+      createMeasurementTable('parent1', 'measurements1');
+      createMeasurementTable('parent2', 'measurements2');
+    };
+  </script>
+</body>
+</html> 

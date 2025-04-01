@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Test Visualization</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            width: 1000px;
+            height: 1000px;
+            position: relative;
+            margin: 40px auto;
+            border: 2px solid #333;
+        }
+        
+        .grid {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 
+                [first] 40px 
+                [second line2] 50px 
+                [line3] auto 
+                [col4-start] 50px 
+                [five] 40px 
+                [end];
+            grid-template-rows: 
+                [row1-start] 25% 
+                [row1-end] 100px 
+                [third-line] auto 
+                [last-line];
+            column-gap: 10px;
+            row-gap: 10px;
+            background-color: #f0f0f0;
+        }
+        
+        .grid-item {
+            background-color: #3498db;
+            opacity: 0.7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .grid-line {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.5);
+            z-index: 10;
+        }
+        
+        .grid-line-label {
+            position: absolute;
+            font-size: 12px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            z-index: 20;
+        }
+        
+        .vertical {
+            width: 2px;
+            height: 100%;
+            top: 0;
+        }
+        
+        .horizontal {
+            height: 2px;
+            width: 100%;
+            left: 0;
+        }
+        
+        .controls {
+            margin: 20px auto;
+            max-width: 1000px;
+        }
+        
+        .checkbox-group {
+            margin-bottom: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .code {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 20px auto;
+            max-width: 1000px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grid Test Visualization</h1>
+    
+    <p>This is a visualization of the "compute others" test from the Nim CSS Grid implementation. It demonstrates a grid with specific column and row templates, and 10px gaps.</p>
+    
+    <div class="code">
+var gt: GridTemplate
+
+parseGridTemplateColumns gt, ["first"] 40'ux \
+  ["second", "line2"] 50'ux \
+  ["line3"] auto \
+  ["col4-start"] 50'ux \
+  ["five"] 40'ux ["end"]
+parseGridTemplateRows gt, ["row1-start"] 25'pp \
+  ["row1-end"] 100'ux \
+  ["third-line"] auto ["last-line"]
+
+gt.gaps[dcol] = 10.UiScalar
+gt.gaps[drow] = 10.UiScalar
+    </div>
+    
+    <div class="controls">
+        <div class="checkbox-group">
+            <label>
+                <input type="checkbox" id="toggle-lines" checked> Show grid lines
+            </label>
+            <label>
+                <input type="checkbox" id="toggle-labels" checked> Show line positions
+            </label>
+            <label>
+                <input type="checkbox" id="toggle-items"> Show grid items
+            </label>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid" id="grid">
+            <!-- Grid items will be added via JavaScript -->
+        </div>
+        
+        <!-- Grid lines will be added via JavaScript -->
+    </div>
+    
+    <h2>Grid Line Positions</h2>
+    <table>
+        <tr>
+            <th>Direction</th>
+            <th>Line Index</th>
+            <th>Name</th>
+            <th>Position</th>
+        </tr>
+        <tr>
+            <td>Column</td>
+            <td>0</td>
+            <td>first</td>
+            <td>0.0</td>
+        </tr>
+        <tr>
+            <td>Column</td>
+            <td>1</td>
+            <td>second, line2</td>
+            <td>50.0</td>
+        </tr>
+        <tr>
+            <td>Column</td>
+            <td>2</td>
+            <td>line3</td>
+            <td>110.0</td>
+        </tr>
+        <tr>
+            <td>Column</td>
+            <td>3</td>
+            <td>col4-start</td>
+            <td>900.0</td>
+        </tr>
+        <tr>
+            <td>Column</td>
+            <td>4</td>
+            <td>five</td>
+            <td>960.0</td>
+        </tr>
+        <tr>
+            <td>Column</td>
+            <td>5</td>
+            <td>end</td>
+            <td>1000.0</td>
+        </tr>
+        <tr>
+            <td>Row</td>
+            <td>0</td>
+            <td>row1-start</td>
+            <td>0.0</td>
+        </tr>
+        <tr>
+            <td>Row</td>
+            <td>1</td>
+            <td>row1-end</td>
+            <td>260.0</td>
+        </tr>
+        <tr>
+            <td>Row</td>
+            <td>2</td>
+            <td>third-line</td>
+            <td>370.0</td>
+        </tr>
+        <tr>
+            <td>Row</td>
+            <td>3</td>
+            <td>last-line</td>
+            <td>1000.0</td>
+        </tr>
+    </table>
+
+    <script>
+        // Column line positions from the test
+        const columnLines = [
+            { index: 0, name: "first", position: 0 },
+            { index: 1, name: "second, line2", position: 50 },
+            { index: 2, name: "line3", position: 110 },
+            { index: 3, name: "col4-start", position: 900 },
+            { index: 4, name: "five", position: 960 },
+            { index: 5, name: "end", position: 1000 }
+        ];
+        
+        // Row line positions from the test
+        const rowLines = [
+            { index: 0, name: "row1-start", position: 0 },
+            { index: 1, name: "row1-end", position: 260 },
+            { index: 2, name: "third-line", position: 370 },
+            { index: 3, name: "last-line", position: 1000 }
+        ];
+        
+        const container = document.querySelector('.container');
+        const grid = document.getElementById('grid');
+        
+        // Add grid items (4x3 grid)
+        function addGridItems() {
+            grid.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.textContent = i + 1;
+                grid.appendChild(item);
+            }
+        }
+        
+        // Add grid lines
+        function addGridLines() {
+            // Remove existing lines
+            document.querySelectorAll('.grid-line, .grid-line-label').forEach(el => el.remove());
+            
+            // Add column lines
+            columnLines.forEach(line => {
+                const gridLine = document.createElement('div');
+                gridLine.className = 'grid-line vertical';
+                gridLine.style.left = line.position + 'px';
+                container.appendChild(gridLine);
+                
+                const label = document.createElement('div');
+                label.className = 'grid-line-label';
+                label.textContent = `Col ${line.index}: ${line.position}px`;
+                label.style.left = (line.position + 5) + 'px';
+                label.style.top = '5px';
+                container.appendChild(label);
+            });
+            
+            // Add row lines
+            rowLines.forEach(line => {
+                const gridLine = document.createElement('div');
+                gridLine.className = 'grid-line horizontal';
+                gridLine.style.top = line.position + 'px';
+                container.appendChild(gridLine);
+                
+                const label = document.createElement('div');
+                label.className = 'grid-line-label';
+                label.textContent = `Row ${line.index}: ${line.position}px`;
+                label.style.top = (line.position + 5) + 'px';
+                label.style.left = '5px';
+                container.appendChild(label);
+            });
+        }
+        
+        // Initialize
+        addGridLines();
+        
+        // Toggle controls
+        document.getElementById('toggle-lines').addEventListener('change', function() {
+            const lines = document.querySelectorAll('.grid-line');
+            lines.forEach(line => {
+                line.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+        
+        document.getElementById('toggle-labels').addEventListener('change', function() {
+            const labels = document.querySelectorAll('.grid-line-label');
+            labels.forEach(label => {
+                label.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+        
+        document.getElementById('toggle-items').addEventListener('change', function() {
+            if (this.checked) {
+                addGridItems();
+            } else {
+                grid.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -5,24 +5,37 @@ import unittest
 import cssgrid/numberTypes
 import cssgrid/constraints
 import cssgrid/gridtypes
+import cssgrid/basiccalcs
 import cssgrid/layout
 import cssgrid/parser
 
 import pretty
 import macros
 
+import commontestutils
+
 suite "syntaxes":
 
   setup:
     echo "setup"
 
-    var gt: GridTemplate
-
-    # grid-template-columns: [first] 40px [line2] 50px [line3] auto [col4-start] 50px [five] 40px [end];
-    parseGridTemplateColumns gt, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
-    parseGridTemplateRows gt, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
-    var computedSizes: array[GridDir, Table[int, ComputedTrackSize]]
-    gt.computeTracks(uiBox(0, 0, 1000, 1000), computedSizes)
+    # Create a parent node with the grid template
+    var parent = TestNode(name: "grid-parent")
+    parent.gridTemplate = GridTemplate()
+    
+    # Set up the grid template columns and rows (same as before)
+    parseGridTemplateColumns parent.gridTemplate, ["first"] 40'ux ["second", "line2"] 50'ux ["line3"] auto ["col4-start"] 50'ux ["five"] 40'ux ["end"]
+    parseGridTemplateRows parent.gridTemplate, ["row1-start"] 25'pp ["row1-end"] 100'ux ["third-line"] auto ["last-line"]
+    
+    # Set parent container size to match the original test dimensions
+    parent.cxSize = [1000'ux, 1000'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 1000, 1000))
+    
+    # Compute the layout using the standard layout function
+    computeLayout(parent)
+    
+    # Store reference to the grid template for assertions
+    var gt = parent.gridTemplate
     # echo "grid template: ", repr gridTemplate
 
   template checkSpans(gridTemplate: GridTemplate, gridItem: GridItem) =

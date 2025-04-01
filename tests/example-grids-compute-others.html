@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Grid - compute others example</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    
+    .grid-container {
+      display: grid;
+      width: 1000px;
+      height: 1000px;
+      grid-template-columns: 
+        [first] 40px 
+        [second line2] 50px 
+        [line3] auto 
+        [col4-start] 50px 
+        [five] 40px 
+        [end];
+      grid-template-rows: 
+        [row1-start] 25% 
+        [row1-end] 100px 
+        [third-line] auto 
+        [last-line];
+      gap: 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+    }
+    
+    .grid-item {
+      background-color: #3498db;
+      padding: 20px;
+      color: white;
+      text-align: center;
+      border: 1px solid #2980b9;
+    }
+    
+    /* Position indicators */
+    .position-indicator {
+      position: absolute;
+      font-size: 12px;
+      color: #333;
+    }
+    
+    .wrapper {
+      position: relative;
+    }
+    
+    /* Column indicators */
+    .col-indicator-0 { left: 20px; top: 5px; }
+    .col-indicator-1 { left: 70px; top: 5px; }
+    .col-indicator-2 { left: 130px; top: 5px; }
+    .col-indicator-3 { left: 920px; top: 5px; }
+    .col-indicator-4 { left: 980px; top: 5px; }
+    .col-indicator-5 { left: 1020px; top: 5px; }
+    
+    /* Row indicators */
+    .row-indicator-0 { left: 5px; top: 20px; }
+    .row-indicator-1 { left: 5px; top: 280px; }
+    .row-indicator-2 { left: 5px; top: 390px; }
+    .row-indicator-3 { left: 5px; top: 1020px; }
+    
+    /* Items to demonstrate grid placement */
+    .item1 {
+      grid-column: first / second;
+      grid-row: row1-start / row1-end;
+    }
+    
+    .item2 {
+      grid-column: line2 / line3;
+      grid-row: row1-end / third-line;
+    }
+    
+    .item3 {
+      grid-column: line3 / col4-start;
+      grid-row: row1-start / third-line;
+    }
+    
+    .item4 {
+      grid-column: col4-start / end;
+      grid-row: third-line / last-line;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSS Grid - compute others example</h1>
+  
+  <div class="wrapper">
+    <div class="grid-container">
+      <div class="grid-item item1">Item 1</div>
+      <div class="grid-item item2">Item 2</div>
+      <div class="grid-item item3">Item 3</div>
+      <div class="grid-item item4">Item 4</div>
+    </div>
+    
+    <!-- Column position indicators -->
+    <div class="position-indicator col-indicator-0">0px</div>
+    <div class="position-indicator col-indicator-1">50px</div>
+    <div class="position-indicator col-indicator-2">110px</div>
+    <div class="position-indicator col-indicator-3">900px</div>
+    <div class="position-indicator col-indicator-4">960px</div>
+    <div class="position-indicator col-indicator-5">1000px</div>
+    
+    <!-- Row position indicators -->
+    <div class="position-indicator row-indicator-0">0px</div>
+    <div class="position-indicator row-indicator-1">260px</div>
+    <div class="position-indicator row-indicator-2">370px</div>
+    <div class="position-indicator row-indicator-3">1000px</div>
+  </div>
+  
+  <h3>Grid Template Structure:</h3>
+  <pre>
+Grid Template Columns:
+[first] 40px [second line2] 50px [line3] auto [col4-start] 50px [five] 40px [end]
+
+Grid Template Rows:
+[row1-start] 25% [row1-end] 100px [third-line] auto [last-line]
+
+Gap: 10px
+  </pre>
+  
+  <h3>Expected Track Start Positions:</h3>
+  <pre>
+Columns: 0px, 50px, 110px, 900px, 960px, 1000px
+Rows: 0px, 260px, 370px, 1000px
+  </pre>
+
+  <h3>Notes on Position Calculation:</h3>
+  <p>
+    The CSS Grid calculates track positions as follows:
+    <ul>
+      <li>Column 1: Starts at 0px, width 40px</li>
+      <li>Column 2: Starts at 50px (40px + 10px gap), width 50px</li>
+      <li>Column 3: Starts at 110px (50px + 50px + 10px gap), width auto (takes remaining space)</li>
+      <li>Column 4: Starts at 900px, width 50px</li>
+      <li>Column 5: Starts at 960px (900px + 50px + 10px gap), width 40px</li>
+      <li>End: Starts at 1000px (960px + 40px + 0px gap, no gap after final track)</li>
+    </ul>
+  </p>
+</body>
+</html> 

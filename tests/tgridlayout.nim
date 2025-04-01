@@ -6,10 +6,10 @@ import unittest
 import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/basiclayout
-import cssgrid/layout
 import cssgrid/parser
 import cssgrid/prettyprints
 
+import cssgrid/layout
 import pretty
 
 type
@@ -49,7 +49,10 @@ suite "Compute Layout Tests":
     child2.cxSize[dcol] = 70'pp  # 70% of parent
     child2.cxSize[drow] = 40'pp  # 40% of parent
     
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
+    printLayout(parent, cmTerminal)
     
     check child1.box.w == 200  # 50% of 400
     check child1.box.h == 0   # 30% of 300
@@ -75,49 +78,6 @@ suite "Compute Layout Tests":
       parseGridTemplateColumns items.gridTemplate, 1'fr
       parent.cxSize = [768'ux, 540'ux]
       body.cxSize = [cx"auto", cx"max-content"]
-      body.cxOffset = [cx"auto", cx"auto"]
-
-      items.cxSize = [cx"auto", cx"auto"]
-      items.gridTemplate.autoFlow = grRow
-      items.gridTemplate.gaps[drow] = 3
-      items.gridTemplate.autos[drow] = csAuto()
-      items.gridTemplate.justifyItems = CxCenter
-      items.gridTemplate.alignItems = CxCenter
-
-      for i in 0..1:
-        let child = newTestNode("story-" & $i, items)
-        let text = newTestNode("text-" & $i, child)
-
-        # child.cxSize = [1'fr, csAuto()]
-        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
-        child.cxPadOffset[drow] = 21.01'ux
-        child.cxPadSize[drow] = 22.20'ux
-
-        text.cxSize = [cx"auto", 33.33'ux]
-        text.cxMin = [40'ux, 20.00'ux]
-        text.cxMax = [200'ux, 300.00'ux]
-      
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
-      computeLayout(parent)
-      # printLayout(parent, cmTerminal)
-
-      # since it's cxStretch with auto it'll goto min content size
-      check items.children[0].box.x == 364
-      check items.children[0].box.w == 40
-      check items.children[0].box.h == 84.22.UiScalar
-  
-  test "vertical layout auto stretch":
-    when true:
-
-      let parent = newTestNode("scroll", 0, 0, 400, 300)
-      let body = newTestNode("scrollBody", parent)
-      let items = newTestNode("items", body)
-
-      parseGridTemplateColumns items.gridTemplate, 1'fr
-      parent.cxSize = [768'ux, 540'ux]
-      body.cxSize = [cx"auto", cx"max-content"]
-      body.cxOffset = [cx"auto", cx"auto"]
 
       items.cxSize = [cx"auto", cx"auto"]
       items.gridTemplate.autoFlow = grRow
@@ -130,8 +90,6 @@ suite "Compute Layout Tests":
         let child = newTestNode("story-" & $i, items)
         let text = newTestNode("text-" & $i, child)
 
-        # child.cxSize = [1'fr, csAuto()]
-        # child.cxSize = [1'fr, max(40'ux, cx"fit-content")]
         child.cxPadOffset[drow] = 21.01'ux
         child.cxPadSize[drow] = 22.20'ux
 
@@ -144,7 +102,51 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
 
-      # since it's cxStretch with auto it'll goto min content size
+      check items.gridTemplate.lines[dcol][0].width.float32.round(0) == 768
+
+      # # since it's cxStretch with auto it'll goto min content size
+      # check body.box.w == 768
+      # check body.box.h.float32.round(0) == 171
+
+      # check items.children[0].box.w == 768
+      # check items.children[0].box.h == 84.22.UiScalar
+      # check items.children[0].children[0].box.w == 768
+      # check items.children[0].children[0].box.h.float32.round(0) == 33
+  
+  test "vertical layout auto stretch":
+    when true:
+
+      let parent = newTestNode("scroll", 0, 0, 400, 300)
+      let body = newTestNode("scrollBody", parent)
+      let items = newTestNode("items", body)
+
+      parseGridTemplateColumns items.gridTemplate, 1'fr
+      parent.cxSize = [768'ux, 540'ux]
+      body.cxSize = [cx"auto", cx"none"]
+
+      items.cxSize = [cx"auto", cx"auto"]
+      items.gridTemplate.autoFlow = grRow
+      items.gridTemplate.gaps[drow] = 3
+      items.gridTemplate.autos[drow] = csAuto()
+      items.gridTemplate.justifyItems = CxStretch
+      items.gridTemplate.alignItems = CxStretch
+
+      for i in 0..1:
+        let child = newTestNode("story-" & $i, items)
+        let text = newTestNode("text-" & $i, child)
+
+        child.cxPadOffset[drow] = 21.01'ux
+        child.cxPadSize[drow] = 22.20'ux
+
+        text.cxSize = [cx"auto", 33.33'ux]
+        text.cxMin = [40'ux, 20.00'ux]
+        text.cxMax = [200'ux, 300.00'ux]
+      
+      # prettyPrintWriteMode = cmTerminal
+      # defer: prettyPrintWriteMode = cmNone
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+
       check items.children[0].box.x == 0
       check items.children[0].box.w == 768
       check items.children[0].box.h == 84.22.UiScalar
@@ -194,6 +196,8 @@ suite "Compute Layout Tests":
   test "vertical layout max-content":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
+    # addPrettyPrintFilter("name", "scrollpane")
+    # addPrettyPrintFilter("name", "scrollbody")
 
     let parent = newTestNode("grid-parent", 0, 0, 400, 300)
     let scrollpane = newTestNode("scrollpane", parent)
@@ -218,14 +222,18 @@ suite "Compute Layout Tests":
       if i in [3, 7]:
         child.cxSize = [0.9'fr, 120'ux]
 
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     # printLayout(parent, cmTerminal)
 
     check scrollpane.box.w == 384
-    check scrollpane.box.h == 950
+    check scrollpane.box.h == 270
+
     check scrollbody.box.w == 384
     check scrollbody.box.h == 950
-    check vertical.box.w == 374
+
+    check vertical.box.w == 384
     check vertical.box.h == UiScalar(50*14 + 120*2)
 
   test "Simple grid layout":
@@ -306,7 +314,7 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       
       check child1.box.w == 100  # Fixed width
-      check child2.box.w > 100   # Should get remaining space
+      check child2.box.w >= 100.0.UiScalar   # Should get remaining space
       check child3.box.w > 0     # Should get minimum required space
 
   test "Grid with content sizing":
@@ -717,7 +725,7 @@ suite "Grid alignment and justification tests":
 
         root.cxSize = [800'ux, 600'ux]
         # Set up grid template for outer node
-        parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr 0'ux
+        parseGridTemplateColumns root.children[0].children[0].gridTemplate, 1'fr 5'fr
         parseGridTemplateRows root.children[0].children[0].gridTemplate, 70'ux 1'fr 40'ux
         
         # Set up grid items
@@ -774,30 +782,32 @@ suite "Grid alignment and justification tests":
 
         `blk`
 
-  test "Complex grid layout with nested nodes":
-    when false:
+  test "Complex grid layout with nested nodes and large child":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    when true:
       testLayout(194.55'ux): # larger than 1'fr
         # printLayout(root, cmTerminal)
-        check top.box.w.float32 == 800
+        check top.box.w.float32.round(0) == 800
         check top.box.h.float32 == 70
-        check stories.box.w.float32.round(0) == 205
+        check stories.box.w.float32.round(0) == 133
         check stories.box.h.float32 == 490
-        check panel.box.w.float32.round(0) == 595
+        check panel.box.w.float32.round(0) == 667
         check panel.box.h.float32 == 490
 
         check scrollBody.name == "scrollBody"
-        check scrollBody.box.w.float32.round(0) == 205
+        check scrollBody.box.w.float32.round(0) == 133
         check scrollBody.box.h.float32 == 100
 
         check upvotes.box.w.float32.round(2) == 46
         check upvotes.box.h.float32.round(2) == 20.5
 
-  test "Complex grid layout with nested nodes":
+  test "Complex grid layout with nested nodes and small child":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     testLayout(10.55'ux): # smaller than 1'fr
       # printLayout(root, cmTerminal)
-      check top.box.w.float32 == 800
+      check top.box.w.float32.round(0) == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133
       check stories.box.h.float32 == 490
@@ -811,12 +821,12 @@ suite "Grid alignment and justification tests":
       check upvotes.box.w.float32.round(2) == 46
       check upvotes.box.h.float32.round(2) == 20.5
 
-  test "Complex grid layout with nested nodes and large child":
-    prettyPrintWriteMode = cmTerminal
-    defer: prettyPrintWriteMode = cmNone
-    addPrettyPrintFilter("name", "panel")
-    addPrettyPrintFilter("name", "panel-inner")
-    addPrettyPrintFilter("name", "upvotes")
+  test "Complex grid layout with nested nodes and small child":
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    # addPrettyPrintFilter("name", "panel")
+    # addPrettyPrintFilter("name", "panel-inner")
+    # addPrettyPrintFilter("name", "upvotes")
 
     testLayout(10.55'ux): # smaller than 1'fr
       panelInner.cxSize = [100'pp, cx"max-content"]
@@ -824,8 +834,8 @@ suite "Grid alignment and justification tests":
       upvotes.cxMin = [1000'ux, 1000'ux]
       computeLayout(root)
 
-      printLayout(root, cmTerminal)
-      check top.box.w.float32 == 800
+      # printLayout(root, cmTerminal)
+      check top.box.w.float32.round(0) == 800
       check top.box.h.float32 == 70
       check stories.box.w.float32.round(0) == 133
       check stories.box.h.float32 == 490

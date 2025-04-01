@@ -17,11 +17,6 @@ type
 
   ComputedSize* = object of RootObj
     content*: UiScalar
-    # minContent*: UiScalar
-    # maxContent*: UiScalar
-    # autoSize*: UiScalar
-    # fracMinSize*: UiScalar
-    # contentFit*: UiScalar
 
   GridNode* = concept node
     typeof(node.box) is UiBox
@@ -68,6 +63,8 @@ type
     start*: UiScalar
     width*: UiScalar
     isAuto*: bool
+    baseSize*: UiScalar  # For Grid Layout Algorithm
+    growthLimit*: UiScalar  # For Grid Layout Algorithm
 
   GridIndex* = object
     line*: Atom
@@ -247,3 +244,11 @@ proc newGridTemplate*(
 
 proc newGridItem*(): GridItem =
   new(result)
+
+proc isAllFractionalTracks*(grid: GridTemplate, dir: GridDir): bool =
+  # Helper function to check if all tracks are fractional
+  result = true
+  for i, line in grid.lines[dir]:
+    if i < grid.lines[dir].high:  # Skip the end track
+      if not line.track.isFrac():
+        return false

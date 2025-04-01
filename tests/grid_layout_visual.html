@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Layout Visualization</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+            z-index: 10;
+        }
+
+        .size-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+            z-index: 10;
+        }
+
+        #root {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #eee;
+            border: 1px solid #ccc;
+        }
+
+        #main {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #ddd;
+        }
+
+        #outer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 5fr;
+            grid-template-rows: 70px 1fr 40px;
+            gap: 0px;
+            background-color: #ccc;
+        }
+
+        #top {
+            position: relative;
+            grid-column: 1 / span 2;
+            grid-row: 1;
+            background-color: #b0c4de;
+        }
+
+        #load {
+            position: absolute;
+            width: 50%;
+            height: 50px;
+            left: 25%;
+            top: 10px;
+            background-color: #4682b4;
+        }
+
+        #text {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-width: 39px;
+            min-height: 21.15px;
+            max-width: 39px;
+            max-height: 42.30px;
+            background-color: #6495ed;
+        }
+
+        #stories {
+            position: relative;
+            grid-column: 1;
+            grid-row: 2;
+            background-color: #f0e68c;
+        }
+
+        #scroll {
+            position: relative;
+            width: auto;
+            height: auto;
+            background-color: #eee8aa;
+        }
+
+        #scrollBody {
+            position: relative;
+            width: 100%;
+            height: max-content;
+            background-color: #daa520;
+        }
+
+        #item {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            background-color: #b8860b;
+        }
+
+        #scrollbar-vertical {
+            position: absolute;
+            width: 194.55px; /* Large scrollbar width test case */
+            height: 100%;
+            right: 0;
+            top: 0;
+            background-color: #d3d3d3;
+        }
+
+        #panel {
+            position: relative;
+            grid-column: 2;
+            grid-row: 2;
+            background-color: #e6e6fa;
+        }
+
+        #panel-inner {
+            position: relative;
+            background-color: #d8bfd8;
+        }
+
+        #upvotes {
+            position: relative;
+            min-width: 46px;
+            min-height: 20.50px;
+            max-width: 90px;
+            max-height: 63.45px;
+            background-color: #9370db;
+        }
+
+        /* Small scrollbar width version can be toggled */
+        .small-scrollbar #scrollbar-vertical {
+            width: 10.55px; /* Small scrollbar width test case */
+        }
+
+        /* Add buttons to switch between test cases */
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .description {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grid Layout Visualization</h1>
+    
+    <div class="description">
+        <p>This is a visual representation of the grid layout test from <code>tests/tgridlayout.nim</code>.</p>
+        <p>The example shows a complex nested grid layout with constraints similar to those in the test.</p>
+        <p>You can toggle between the large scrollbar width (194.55px) and small scrollbar width (10.55px) test cases.</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="document.getElementById('container').classList.remove('small-scrollbar')">Large Scrollbar (194.55px)</button>
+        <button onclick="document.getElementById('container').classList.add('small-scrollbar')">Small Scrollbar (10.55px)</button>
+    </div>
+
+    <div id="container">
+        <div id="root">
+            <div class="label">root</div>
+            <div class="size-indicator">800×600</div>
+            
+            <div id="main">
+                <div class="label">main</div>
+                
+                <div id="outer">
+                    <div class="label">outer</div>
+                    
+                    <div id="top">
+                        <div class="label">top</div>
+                        <div class="size-indicator">w=800 h=70</div>
+                        
+                        <div id="load">
+                            <div class="label">Load</div>
+                        </div>
+                        
+                        <div id="text">
+                            <div class="label">text</div>
+                        </div>
+                    </div>
+                    
+                    <div id="stories">
+                        <div class="label">stories</div>
+                        <div class="size-indicator">w=205 h=490</div>
+                        
+                        <div id="scroll">
+                            <div class="label">scroll</div>
+                            
+                            <div id="scrollBody">
+                                <div class="label">scrollBody</div>
+                                <div class="size-indicator">w=205 h=100</div>
+                                
+                                <div id="item">
+                                    <div class="label">item</div>
+                                </div>
+                            </div>
+                            
+                            <div id="scrollbar-vertical">
+                                <div class="label">scrollbar-vertical</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="panel">
+                        <div class="label">panel</div>
+                        <div class="size-indicator">w=595 h=490</div>
+                        
+                        <div id="panel-inner">
+                            <div class="label">panel-inner</div>
+                            
+                            <div id="upvotes">
+                                <div class="label">upvotes</div>
+                                <div class="size-indicator">w=46 h=20.5</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to update size indicators based on actual element sizes
+        function updateSizeIndicators() {
+            const elements = document.querySelectorAll('.size-indicator');
+            elements.forEach(el => {
+                const parent = el.parentElement;
+                const width = Math.round(parent.getBoundingClientRect().width);
+                const height = Math.round(parent.getBoundingClientRect().height);
+                el.textContent = `w=${width} h=${height}`;
+            });
+        }
+
+        // Update sizes on load and when toggling scrollbar width
+        window.onload = updateSizeIndicators;
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimeout(updateSizeIndicators, 100); // Update after layout changes
+            });
+        });
+    </script>
+</body>
+</html> 

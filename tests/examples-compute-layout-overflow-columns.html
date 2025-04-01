@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Grid - Compute Layout Overflow Columns Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    
+    #parent {
+      display: grid;
+      grid-template-columns: auto;
+      grid-template-rows: auto;
+      grid-auto-flow: column;
+      justify-items: stretch;
+      width: min-content;
+      height: 50px;
+      border: 2px solid #333;
+      margin-bottom: 20px;
+    }
+    
+    .grid-item {
+      min-width: 50px;
+      min-height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #3498db;
+      color: white;
+      border: 1px solid #2980b9;
+      box-sizing: border-box;
+    }
+    
+    /* Special style for the last item with larger min-width */
+    #b7 {
+      min-width: 150px;
+      background-color: #e74c3c;
+    }
+    
+    /* Explicit grid placements */
+    #b0 { grid-column: 1 / 2; grid-row: 1 / 2; }
+    #b1 { grid-column: 2 / 3; grid-row: 1 / 2; }
+    #b2 { grid-column: 3 / 4; grid-row: 1 / 2; }
+    #b3 { grid-column: 4 / 5; grid-row: 1 / 2; }
+    #b4 { grid-column: 5 / 6; grid-row: 1 / 2; }
+    #b5 { grid-column: 6 / 7; grid-row: 1 / 2; }
+    #b6 { grid-column: 7 / 8; grid-row: 1 / 2; }
+    #b7 { grid-column: 8 / 9; grid-row: 1 / 2; }
+    
+    /* Verification styles */
+    .explanation {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSS Grid Layout: "compute layout overflow columns" Test</h1>
+  
+  <p>This example demonstrates a grid with 8 items where each has a minimum width of 50px, except the last which has 150px:</p>
+  
+  <div id="parent">
+    <div id="b0" class="grid-item">b0</div>
+    <div id="b1" class="grid-item">b1</div>
+    <div id="b2" class="grid-item">b2</div>
+    <div id="b3" class="grid-item">b3</div>
+    <div id="b4" class="grid-item">b4</div>
+    <div id="b5" class="grid-item">b5</div>
+    <div id="b6" class="grid-item">b6</div>
+    <div id="b7" class="grid-item">b7</div>
+  </div>
+  
+  <div class="explanation">
+    <h2>Expected Results:</h2>
+    <ul>
+      <li>Grid container width should be 500px (7 items at 50px + 1 item at 150px)</li>
+      <li>Grid container height should be 50px</li>
+      <li>Items b0-b6 should each be 50x50 pixels</li>
+      <li>Item b7 (in red) should be 150x50 pixels</li>
+    </ul>
+    
+    <h2>Grid Item Positions:</h2>
+    <table>
+      <tr>
+        <th>Item</th>
+        <th>Expected Position (x, y)</th>
+        <th>Expected Size (w × h)</th>
+      </tr>
+      <tr><td>b0</td><td>(0, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b1</td><td>(50, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b2</td><td>(100, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b3</td><td>(150, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b4</td><td>(200, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b5</td><td>(250, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b6</td><td>(300, 0)</td><td>50 × 50</td></tr>
+      <tr><td>b7</td><td>(350, 0)</td><td>150 × 50</td></tr>
+    </table>
+    
+    <h3>Key Test Points:</h3>
+    <p>This test verifies:</p>
+    <ol>
+      <li>Grid overflow with explicit column placement</li>
+      <li>Auto column sizing with varying min-width constraints</li>
+      <li>Grid auto-flow in column direction</li>
+      <li>min-content width calculation for the container</li>
+    </ol>
+  </div>
+
+  <script>
+    // Simple verification script to check if the layout matches expectations
+    window.onload = function() {
+      const parent = document.getElementById('parent');
+      console.log('Parent width:', parent.offsetWidth);
+      console.log('Expected width:', 500);
+      
+      for (let i = 0; i < 7; i++) {
+        const item = document.getElementById(`b${i}`);
+        console.log(`Item b${i} width:`, item.offsetWidth);
+      }
+      
+      const lastItem = document.getElementById('b7');
+      console.log('Item b7 width:', lastItem.offsetWidth);
+    };
+  </script>
+</body>
+</html> 

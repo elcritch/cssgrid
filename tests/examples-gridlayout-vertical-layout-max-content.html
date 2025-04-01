@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Grid - Vertical Layout Max-Content Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    
+    #grid-parent {
+      width: 400px;
+      height: 300px;
+      position: relative;
+      /* border: 2px solid #333; */
+      overflow: hidden;
+    }
+    
+    #scrollpane {
+      position: absolute;
+      left: 2%;
+      top: 2%;
+      width: 96%;
+      height: 90%;
+      /* border: 1px solid #777; */
+      overflow: auto;
+    }
+    
+    #scrollbody {
+      width: auto;
+      height: max-content;
+      background-color: #f5f5f5;
+    }
+    
+    #vertical {
+      width: auto;
+      height: max-content;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-auto-flow: row;
+      gap: 10px;
+    }
+    
+    .grid-child {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #3498db;
+      color: white;
+      height: 50px;
+      /* border-radius: 5px; */
+      font-weight: bold;
+    }
+    
+    #grid-child-3, #grid-child-7 {
+      height: 120px;
+      background-color: #e74c3c;
+    }
+    
+    /* Verification styles */
+    .explanation {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      /* border-radius: 5px; */
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSS Grid: "vertical layout max-content" Test</h1>
+  
+  <p>This example demonstrates a vertical grid layout with max-content height:</p>
+  
+  <div id="grid-parent">
+    <div id="scrollpane">
+      <div id="scrollbody">
+        <div id="vertical">
+          <!-- Generate 16 grid children with JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="explanation">
+    <h2>Expected Results:</h2>
+    <ul>
+      <li>Parent container: 400×300px</li>
+      <li>Scrollpane: 384×270px (96% × 90% of parent)</li>
+      <li>Scrollbody: Full width of scrollpane, height determined by content</li>
+      <li>Vertical container: Full width minus 10px margins, height based on content</li>
+      <li>16 grid children, each taking full width:</li>
+      <ul>
+        <li>Regular items: 50px height (blue)</li>
+        <li>Items #3 and #7: 120px height (red)</li>
+      </ul>
+      <li>Total vertical height: 14×50px + 2×120px + gaps = 940px</li>
+    </ul>
+    
+    <h3>Key Test Points:</h3>
+    <p>This test verifies:</p>
+    <ol>
+      <li>Proper nesting of grid containers</li>
+      <li>max-content height calculation</li>
+      <li>Grid with single track (1fr) handling</li>
+      <li>Grid auto-flow in row direction</li>
+      <li>Proper scroll container behavior</li>
+    </ol>
+    
+    <h3>Layout Measurements:</h3>
+    <div id="measurements"></div>
+  </div>
+
+  <script>
+    // Generate the grid children
+    const verticalContainer = document.getElementById('vertical');
+    for (let i = 0; i <= 15; i++) {
+      const child = document.createElement('div');
+      child.id = `grid-child-${i}`;
+      child.className = 'grid-child';
+      child.textContent = `Grid Child ${i}`;
+      verticalContainer.appendChild(child);
+    }
+    
+    // Simple verification script to check if the layout matches expectations
+    window.onload = function() {
+      const parent = document.getElementById('grid-parent');
+      const scrollpane = document.getElementById('scrollpane');
+      const scrollbody = document.getElementById('scrollbody');
+      const vertical = document.getElementById('vertical');
+      
+      // Calculate expected heights
+      const regularItemHeight = 50;
+      const specialItemHeight = 120;
+      const totalHeight = (14 * regularItemHeight) + (2 * specialItemHeight) + (15 * 10); // 15 gaps
+      
+      const measurementsDiv = document.getElementById('measurements');
+      
+      // Create a table to display measurements
+      const table = document.createElement('table');
+      
+      // Add header row
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th>Element</th>
+          <th>Expected Width</th>
+          <th>Actual Width</th>
+          <th>Expected Height</th>
+          <th>Actual Height</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+      
+      // Add data rows
+      const tbody = document.createElement('tbody');
+      
+      // Add measurements for main containers
+      tbody.innerHTML += `
+        <tr>
+          <td>grid-parent</td>
+          <td>400px</td>
+          <td>${parent.offsetWidth}px</td>
+          <td>300px</td>
+          <td>${parent.offsetHeight}px</td>
+        </tr>
+        <tr>
+          <td>scrollpane</td>
+          <td>384px (96% of 400)</td>
+          <td>${scrollpane.offsetWidth}px</td>
+          <td>270px (90% of 300)</td>
+          <td>${scrollpane.offsetHeight}px</td>
+        </tr>
+        <tr>
+          <td>scrollbody</td>
+          <td>384px</td>
+          <td>${scrollbody.offsetWidth}px</td>
+          <td>≈940px (content height)</td>
+          <td>${scrollbody.scrollHeight}px</td>
+        </tr>
+        <tr>
+          <td>vertical</td>
+          <td>≈374px (scrollbody - margins)</td>
+          <td>${vertical.offsetWidth}px</td>
+          <td>≈940px (total items height)</td>
+          <td>${vertical.offsetHeight}px</td>
+        </tr>
+      `;
+      
+      // Add measurements for a regular and special item
+      const regularItem = document.getElementById('grid-child-0');
+      const specialItem = document.getElementById('grid-child-3');
+      
+      tbody.innerHTML += `
+        <tr>
+          <td>Regular item (grid-child-0)</td>
+          <td>≈374px (full width)</td>
+          <td>${regularItem.offsetWidth}px</td>
+          <td>50px</td>
+          <td>${regularItem.offsetHeight}px</td>
+        </tr>
+        <tr>
+          <td>Special item (grid-child-3)</td>
+          <td>≈374px (full width)</td>
+          <td>${specialItem.offsetWidth}px</td>
+          <td>120px</td>
+          <td>${specialItem.offsetHeight}px</td>
+        </tr>
+      `;
+      
+      table.appendChild(tbody);
+      measurementsDiv.appendChild(table);
+      
+      // Log values to console as well
+      console.log('Grid Parent Size:', parent.offsetWidth, 'x', parent.offsetHeight);
+      console.log('Scrollpane Size:', scrollpane.offsetWidth, 'x', scrollpane.offsetHeight);
+      console.log('Scrollbody Size:', scrollbody.offsetWidth, 'x', scrollbody.scrollHeight);
+      console.log('Vertical Size:', vertical.offsetWidth, 'x', vertical.offsetHeight);
+      console.log('Total expected content height:', totalHeight);
+    };
+  </script>
+</body>
+</html> 

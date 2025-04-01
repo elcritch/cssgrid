@@ -78,6 +78,8 @@ suite "grids":
     parent.frame = Frame(windowSize: uiBox(0, 0, 100, 100))
     
     # Compute the layout
+    prettyPrintWriteMode = cmTerminal
+    defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
     
     # Check grid line positions

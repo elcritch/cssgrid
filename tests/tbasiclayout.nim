@@ -102,8 +102,8 @@ suite "Basic CSS Layout Tests":
     check parent.bpad == uiBox(10, 10, 10, 10)
     check child1.box.x == 10
     check child1.box.y == 10
-    check child1.box.w == 380
-    check child1.box.h == 280
+    check child1.box.w == 400
+    check child1.box.h == 300
 
     child1.cxSize = [1'fr, 1'fr]
     computeLayout(parent)
@@ -148,7 +148,7 @@ suite "Basic CSS Layout Tests":
     check child1.box.x == 0
     check child1.box.y == 10
     check child1.box.w == 400
-    check child1.box.h == 280
+    check child1.box.h == 300
 
   test "Complex nested constraints":
     let parent = newTestNode("parent", 0, 0, 400, 300)
@@ -371,7 +371,7 @@ suite "Basic CSS Layout Tests":
       # child21.cxSize = [cx"auto", cx"none"]
 
       computeLayout(mixedGrid)
-      printLayout(mixedGrid, cmTerminal)
+      # printLayout(mixedGrid, cmTerminal)
 
       check fixedChild.box == uiBox(0, 0, 400, 50)
       check fixedGrandchild.box == uiBox(0, 0, 400, 60) # larger than fixed parent

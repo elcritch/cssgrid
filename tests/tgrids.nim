@@ -812,7 +812,7 @@ suite "grids":
     # addPrettyPrintFilter("name", "parent")
     
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     check parent.box.w == 50
     check parent.box.h == 1200

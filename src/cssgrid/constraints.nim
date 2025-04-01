@@ -165,7 +165,7 @@ proc isBasicContentSized*(cs: ConstraintSize): bool =
   cs.kind in [UiContentMin, UiContentMax, UiContentFit]
 
 proc isAuto*(cs: ConstraintSize): bool =
-  cs.kind in [UiAuto, UiFrac]
+  cs.kind in [UiAuto]
 
 proc isFrac*(cs: ConstraintSize): bool =
   cs.kind in [UiFrac]

@@ -68,6 +68,7 @@ proc calcBasicConstraintImpl(
     calc: CalcKind,
     f: var UiScalar,
     pf: UiScalar,
+    frameSize: UiScalar,
     f0 = 0.UiScalar, # starting point for field, e.g. for WH it'll be node XY's
     ppad = 0.UiScalar, # padding
 ) =
@@ -95,11 +96,10 @@ proc calcBasicConstraintImpl(
             res = frac.UiScalar * pf
         UiPerc(perc):
           if not isGridChild:
-            res = perc.UiScalar / 100.0.UiScalar * pf
+            res = perc.UiScalar * pf / 100.0.UiScalar
         UiViewPort(view):
           if not isGridChild:
-            # Use parentBox size directly, as viewport size
-            res = view.UiScalar * frameBox.wh[dir] / 100.0.UiScalar 
+            res = view.UiScalar * frameSize / 100.0.UiScalar 
         UiContentMin():
           res = node.childBMins(dir)
         UiContentMax():
@@ -236,7 +236,8 @@ proc calcBasicConstraint*(node: GridNode) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   var pboxes = node.getParentBoxOrWindows()
   var parentBox = pboxes.box
-  var parentPad = pboxes.padding
+  let parentPad = pboxes.padding
+  let frameBox = node.getFrameBox()
 
   when distinctBase(UiScalar) is SomeInteger:
     parentBox.wh = parentBox.wh.clamp(0) - parentPad.wh
@@ -249,21 +250,21 @@ proc calcBasicConstraint*(node: GridNode) =
   debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
   # printLayout(node)
 
-  calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, parentPad.x)
-  calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, parentPad.y)
-  calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w, parentPad.w)
-  calcBasicConstraintImpl(node, drow, PADWH, node.bpad.h, parentBox.h, parentPad.h)
+  calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, frameSize=frameBox.x, parentPad.x)
+  calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, frameSize=frameBox.y, parentPad.y)
+  calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w, frameSize=frameBox.w, parentPad.w)
+  calcBasicConstraintImpl(node, drow, PADWH, node.bpad.h, parentBox.h, frameSize=frameBox.h, parentPad.h)
 
-  calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w)
-  calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
-  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
-  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
+  calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w, frameSize=frameBox.w)
+  calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h, frameSize=frameBox.h)
+  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w, frameSize=frameBox.w)
+  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h, frameSize=frameBox.h)
 
-  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
-  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
+  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, frameSize=frameBox.w, parentBox.x, parentPad.x)
+  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, frameSize=frameBox.h, parentBox.y, parentPad.y)
   debugPrint "calcBasicConstraint:start:wh", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
-  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w-parentPad.w, node.box.x-parentPad.x, ppad= -parentPad.w)
-  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h-parentPad.h, node.box.y-parentPad.y, ppad= -parentPad.h)
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w-parentPad.w, frameSize=frameBox.w, parentBox.x, parentPad.x)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h-parentPad.h, frameSize=frameBox.h, parentBox.y, parentPad.y)
 
   # printLayout(node)
 

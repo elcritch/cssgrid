@@ -63,11 +63,7 @@ suite "CSS variables":
     
     # Create CSS variables container with nested references
     let cssVars = newCssVariables()
-    
-    # Register base size variable
     let baseVar = cssVars.registerVariable("base", 50'ux)
-    
-    # Register width variable that references base
     let widthVar = cssVars.registerVariable("width", baseVar)
     
     # Set child's width to use the variable that references another variable

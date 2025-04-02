@@ -67,15 +67,19 @@ proc propogateCalcs*(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScal
 # Helper function to get base size for constraint size
 proc getBaseSizeForConstraintSize*(
     grid: GridTemplate, 
+    cssVars: CssVariables,
     idx: int, 
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
-    cs: ConstraintSize
+    cs: ConstraintSize,
 ): UiScalar =
   # Handle different constraint size types
   case cs.kind
   of UiFixed:
     return cs.coord
+  of UiVariable:
+    # For variable, we'd need to resolve the variable in the cssVars
+    # TODO: implement this
   of UiPerc:
     # For percentage, we'd need container size
     # Just return the percentage as pixels for now

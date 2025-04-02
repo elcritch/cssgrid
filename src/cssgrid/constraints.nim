@@ -8,7 +8,6 @@ type
     CxEnd
     CxCenter
 
-type
   ConstraintSizes* = enum
     UiAuto
     UiFrac
@@ -18,6 +17,7 @@ type
     UiContentMin
     UiContentMax
     UiContentFit
+    UiVariable
 
   ConstraintSize* = object
     case kind*: ConstraintSizes
@@ -33,6 +33,8 @@ type
       discard
     of UiAuto:
       discard
+    of UiVariable:
+      varIdx*: int
 
   Constraints* = enum
     UiNone
@@ -61,6 +63,11 @@ type
     of UiMinMax:
       lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
+
+  
+  CssVariables* = ref object
+    vars*: Table[int, ConstraintSize]
+    names*: Table[string, int]
 
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)

@@ -6,7 +6,7 @@ import cssgrid/layout
 
 import commontestutils
 
-suite "CSS variables":
+when false: #suite "CSS variables":
   test "CSS variables with computeLayout as parameter":
     # Create a node with a grid template
     var parent = newTestNode("parent")

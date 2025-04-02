@@ -6,20 +6,22 @@ import cssgrid/layout
 
 import commontestutils
 
-
-when false: # suite "CSS variables":
+suite "CSS variables":
   test "CSS variables with computeLayout as parameter":
     # Create a node with a grid template
-    var parent = newTestNode("parent", 0, 0, 300, 200)
+    var parent = newTestNode("parent")
     parent.gridTemplate = newGridTemplate()
+    parent.cxSize = [300'ux, 200'ux]
     
     # Create some children nodes
-    var child1 = newTestNode("child1", 0, 0, 100, 100, parent)
+    var child1 = newTestNode("child1", parent)
+    child1.cxSize = [100'ux, 100'ux]
     child1.gridItem = GridItem()
     child1.gridItem.column = 1 // 2
     child1.gridItem.row = 1 // 2
     
-    var child2 = newTestNode("child2", 0, 0, 100, 100, parent)
+    var child2 = newTestNode("child2", parent)
+    child2.cxSize = [100'ux, 100'ux]
     child2.gridItem = GridItem()
     child2.gridItem.column = 2 // 3
     child2.gridItem.row = 1 // 2
@@ -67,11 +69,13 @@ when false: # suite "CSS variables":
 
   test "CSS variables with nested variable references":
     # Create a node with a grid template
-    var parent = newTestNode("parent", 0, 0, 300, 200)
+    var parent = newTestNode("parent")
+    parent.cxSize = [300'ux, 200'ux]
     parent.gridTemplate = newGridTemplate()
     
     # Create some children nodes
-    var child = newTestNode("child", 0, 0, 100, 100, parent)
+    var child = newTestNode("child", parent)
+    child.cxSize = [100'ux, 100'ux]
     child.gridItem = GridItem()
     child.gridItem.column = 1 // 2
     child.gridItem.row = 1 // 2

@@ -115,3 +115,68 @@ suite "constraints":
     check $ConstraintSize(kind: UiContentFit) == "cx'fit-content"
     check $ConstraintSize(kind: UiAuto) == "cx'auto"
 
+  test "css variables":
+    # Create a CSS variables container
+    let vars = newCssVariables()
+    
+    # Register some variables
+    let idx1 = vars.registerVariable("width", ConstraintSize(kind: UiFixed, coord: 100.UiScalar))
+    let idx2 = vars.registerVariable("height", ConstraintSize(kind: UiPerc, perc: 50.UiScalar))
+    let idx3 = vars.registerVariable("gap", ConstraintSize(kind: UiFrac, frac: 1.UiScalar))
+    
+    # Check registration worked
+    check idx1 == 1
+    check idx2 == 2
+    check idx3 == 3
+    
+    # Create constraints using variables
+    let widthVar = csVar(idx1)
+    let heightVar = csVar(idx2)
+    let gapVar = csVar(idx3)
+    
+    # Verify variable constraints
+    check widthVar.kind == UiValue
+    check widthVar.value.kind == UiVariable
+    check widthVar.value.varIdx == idx1
+    
+    # Resolve variables
+    let resolvedWidth = vars.resolveVariable(widthVar)
+    let resolvedHeight = vars.resolveVariable(heightVar)
+    let resolvedGap = vars.resolveVariable(gapVar)
+    
+    # Check resolution
+    check resolvedWidth.kind == UiValue
+    check resolvedWidth.value.kind == UiFixed
+    check resolvedWidth.value.coord == 100.UiScalar
+    
+    check resolvedHeight.kind == UiValue
+    check resolvedHeight.value.kind == UiPerc
+    check resolvedHeight.value.perc == 50.UiScalar
+    
+    check resolvedGap.kind == UiValue
+    check resolvedGap.value.kind == UiFrac
+    check resolvedGap.value.frac == 1.UiScalar
+    
+    # Test variable lookup by name
+    var widthSize: ConstraintSize
+    let widthOpt = vars.lookupVariable("width", widthSize)
+    check widthOpt
+    check widthSize.kind == UiFixed
+    check widthSize.coord == 100.UiScalar
+    
+    # Test variable name lookup
+    let widthVar2 = vars.csVar("width")
+    check widthVar2.kind == UiValue
+    check widthVar2.value.kind == UiVariable
+    check widthVar2.value.varIdx == idx1
+    
+    # Test using variables in complex constraints
+    let minSize = csMin(widthVar, heightVar)
+    let resolvedMinSize = vars.resolveVariable(minSize)
+    
+    # The minimum of 100px and 50% should be equivalent to min(fixed(100), perc(50))
+    check resolvedMinSize.kind == UiMin
+    check resolvedMinSize.lmin.kind == UiFixed
+    check resolvedMinSize.lmin.coord == 100.UiScalar
+    check resolvedMinSize.rmin.kind == UiPerc
+    check resolvedMinSize.rmin.perc == 50.UiScalar

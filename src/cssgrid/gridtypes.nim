@@ -30,6 +30,7 @@ type
     typeof(node.cxPadOffset) is array[GridDir, Constraint]
     typeof(node.cxPadSize) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem
+    typeof(node.gridTemplate) is GridTemplate
     typeof(node.parent)
 
   GridBox* = concept box

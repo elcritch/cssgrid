@@ -272,7 +272,7 @@ proc collectTrackSizeContributions*(
   
   return result
 
-proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate) =
+proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars = node.cssVars) =
   ## Implementation of the Grid Sizing Algorithm as defined in css-grid-level-2.md
   ## 1. Resolve sizes of grid columns
   ## 2. Resolve sizes of grid rows
@@ -1132,7 +1132,7 @@ proc computeOverflowSizes*(grid: GridTemplate) =
     debugPrint "computeOverflowSizes", "dir=", dir, "size=", grid.overflowSizes[dir]
 
 # Grid Layout Algorithm implementation following CSS Grid Level 2 spec
-proc runGridLayoutAlgorithm*(node: GridNode) =
+proc runGridLayoutAlgorithm*(node: GridNode, cssVars = node.cssVars) =
   ## Implementation of the grid layout algorithm as defined in css-grid-level-2.md
   ## 1. Run the Grid Item Placement Algorithm
   ## 2. Find the size of the grid container
@@ -1150,7 +1150,7 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
     if child.gridItem == nil:
       child.gridItem = GridItem()
     child.gridItem.setGridSpans(node.gridTemplate, child.box.wh.UiSize)
-    
+
     # If this item doesn't have all positions set, we need auto flow
     if fixedCount(child.gridItem) != 4:
       hasAutos = true
@@ -1159,7 +1159,7 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
   if hasAutos:
     debugPrint "runGridLayoutAlgorithm:computeAutoFlow"
     computeAutoFlow(node.gridTemplate, node.box, node.children)
-  
+
   # 1b. Now set final spans with the positions
   for child in node.children:
     child.gridItem.setGridSpans(node.gridTemplate, child.box.wh.UiSize)
@@ -1167,7 +1167,7 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
   # 2. Find the size of the grid container (already in node.box)
   
   # 3. Run the Grid Sizing Algorithm
-  runGridSizingAlgorithm(node, node.gridTemplate)
+  runGridSizingAlgorithm(node, node.gridTemplate, cssVars)
   
   # 3a. Compute overflow sizes based on final track positions and sizes
   computeOverflowSizes(node.gridTemplate)
@@ -1182,7 +1182,7 @@ proc runGridLayoutAlgorithm*(node: GridNode) =
     child.box = typeof(child.box)(gridBox)
     debugPrint "runGridLayoutAlgorithm:layout_item", "child=", child.name, "box=", child.box
 
-proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode): auto =
+proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars = node.cssVars): auto =
 
   for gridLine in gridTemplate.lines[dcol].mitems():
     gridLine.start = 0.UiScalar
@@ -1194,7 +1194,7 @@ proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode): auto =
   gridTemplate.createEndTracks()
   
   # Run the full grid layout algorithm
-  runGridLayoutAlgorithm(node)
+  runGridLayoutAlgorithm(node, cssVars)
   
   # Calculate final grid size - need to add the width of the last track
   var finalWidth = 0.UiScalar
@@ -1237,13 +1237,13 @@ proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode): auto =
                 finalHeight.float,
               ))
 
-proc computeLayout*(node: GridNode, depth: int, full = true) =
+proc computeLayout*(node: GridNode, depth: int, cssVars = node.cssVars, full = true) =
   ## Computes constraints and auto-layout.
   debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
 
   # # simple constraints
   let prev = node.box
-  calcBasicConstraint(node)
+  calcBasicConstraint(node, cssVars)
   if not full and prev == node.box:
     return
 
@@ -1252,30 +1252,30 @@ proc computeLayout*(node: GridNode, depth: int, full = true) =
     debugPrint "computeLayout:gridTemplate", "name=", node.name, " box = ", node.box.repr
     # compute children first, then lay them out in grid
     for n in node.children:
-      computeLayout(n, depth + 1)
+      computeLayout(n, depth + 1, cssVars)
 
     printLayout(node)
-    node.box = node.gridTemplate.computeNodeLayout(node).UiBox
+    node.box = node.gridTemplate.computeNodeLayout(node, cssVars).UiBox
 
     for n in node.children:
       for c in n.children:
-        computeLayout(c, depth + 1, full = false)
+        computeLayout(c, depth + 1, cssVars, full = false)
         # calcBasicConstraint(c)
         debugPrint "calcBasicConstraintPost: ", " n = ", c.name, " w = ", c.box.w, " h = ", c.box.h
 
     debugPrint "computeLayout:gridTemplate:post", "name=", node.name, " box = ", node.box.wh.repr
   else:
     for n in node.children:
-      computeLayout(n, depth + 1)
+      computeLayout(n, depth + 1, cssVars)
 
     # update childrens
     # for n in node.children:
     #   calcBasicConstraintPost(n)
     #   debugPrint "calcBasicConstraintPost: ", " n = ", n.name, " w = ", n.box.w, " h = ", n.box.h
 
-  calcBasicConstraintPost(node)
+  calcBasicConstraintPost(node, cssVars)
 
-proc computeLayout*(node: GridNode) =
-  computeLayout(node, 0)
+proc computeLayout*(node: GridNode, cssVars = node.cssVars) =
+  computeLayout(node, 0, cssVars)
   debugPrint "COMPUTELAYOUT:done"
   # printLayout(node)

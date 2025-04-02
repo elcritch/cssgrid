@@ -45,21 +45,10 @@ suite "CSS variables":
     # Create a node with a grid template
     var parent = newTestNode("parent")
     parent.cxSize = [300'ux, 200'ux]
-    parent.gridTemplate = newGridTemplate()
     
     # Create some children nodes
     var child = newTestNode("child", parent)
     child.cxSize = [100'ux, 100'ux]
-    child.gridItem = GridItem()
-    child.gridItem.column = 1 // 2
-    child.gridItem.row = 1 // 2
-    
-    # Set up grid template columns with auto tracks
-    parseGridTemplateColumns parent.gridTemplate:
-      [] auto
-      [] auto
-    
-    # Add child to parent
     
     # Create CSS variables container with nested references
     let cssVars = newCssVariables()

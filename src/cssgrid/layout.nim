@@ -3,7 +3,6 @@ import basiclayout
 import basiccalcs
 import prettyprints
 
-
 proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or
@@ -339,10 +338,13 @@ proc initializeTrackSizes*(
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
     availableSpace: UiScalar,
-    containerSize: UiScalar
+    containerSize: UiScalar,
+    node: GridNode = nil
 ) =
   ## Initialize each track's base size and growth limit (Step 12.4 in spec)
   ## This sets initial values before the rest of the algorithm runs
+  let frameBox = node.getFrameBox()
+
   for i, gridLine in grid.lines[dir].mpairs:
     # Get the track sizing constraint
     let track = gridLine.track
@@ -361,6 +363,10 @@ proc initializeTrackSizes*(
           # Percentage tracks are based on container size
           baseSize = value.perc * containerSize / 100.0.UiScalar
           debugPrint "initializeTrackSizes:baseSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.perc=", value.perc, "containerSize=", containerSize
+        of UiViewPort:
+          # Viewport-relative tracks are based on the viewport size
+          baseSize = value.view * frameBox.wh[dir] / 100.0.UiScalar
+          debugPrint "initializeTrackSizes:viewportSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.view=", value.view, "viewportSize=", frameBox.wh[dir]
         of UiContentMin, UiAuto:
           # For intrinsic min sizing, use min-content contribution if available
           if i in trackSizes:
@@ -383,6 +389,10 @@ proc initializeTrackSizes*(
           baseSize = lmin.coord
         of UiPerc:
           baseSize = lmin.perc / 100.0.UiScalar * availableSpace
+        of UiViewPort:
+          # Viewport-relative tracks are based on viewport size
+          baseSize = lmin.view * frameBox.wh[dir] / 100.0.UiScalar
+          debugPrint "initializeTrackSizes:viewportSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "viewportSize=", frameBox.wh[dir]
         of UiContentMin, UiAuto:
           # Intrinsic min sizing with content
           if i in trackSizes:
@@ -411,6 +421,10 @@ proc initializeTrackSizes*(
         of UiPerc:
           # Percentage tracks limited by container * percentage
           growthLimit = value.perc / 100.0.UiScalar * availableSpace
+        of UiViewPort:
+          # Viewport-relative tracks limited by viewport size
+          growthLimit = value.view * frameBox.wh[dir] / 100.0.UiScalar
+          debugPrint "initializeTrackSizes:viewportGrowthLimit", "dir=", dir, "i=", i, "growthLimit=", growthLimit, "value.view=", value.view, "viewportSize=", frameBox.wh[dir]
         of UiContentMin:
           # min-content has min-content as growth limit
           if i in trackSizes:
@@ -433,7 +447,11 @@ proc initializeTrackSizes*(
           growthLimit = rmin.coord
         of UiPerc:
           growthLimit = rmin.perc / 100.0.UiScalar * availableSpace
+        of UiViewPort:
+          # Viewport-relative tracks are limited by viewport size
+          growthLimit = rmin.view * frameBox.wh[dir] / 100.0.UiScalar
         of UiContentMin:
+          # min-content has min-content as growth limit
           if i in trackSizes:
             growthLimit = trackSizes[i].minContribution
           else:
@@ -972,7 +990,7 @@ proc trackSizingAlgorithm*(
   #   debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
 
   # Step 1: Initialize track sizes with base size and growth limit
-  initializeTrackSizes(grid, dir, trackSizes, availableSpace, containerSize)
+  initializeTrackSizes(grid, dir, trackSizes, availableSpace, containerSize, node)
 
   # Step 2: Resolve sizes of intrinsic tracks (min-content/max-content)
   resolveIntrinsicTrackSizes(grid, dir, trackSizes, availableSpace)

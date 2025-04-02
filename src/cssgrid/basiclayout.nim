@@ -49,6 +49,19 @@ proc getConstraintValue*(node: GridNode, dir: GridDir, calc: CalcKind): Constrai
   of PADWH:
     node.cxPadSize[dir]
 
+proc getPadding*(node: GridNode): UiBox =
+  if node.isNil:
+    uiBox(0,0,0,0)
+  else:
+    node.bpad
+
+proc parentBox*(node: GridNode): UiBox =
+  let parent = node.getParent()
+  if parent.isNil:
+    node.getFrame()
+  else:
+    parent.box
+
 proc calcBasicConstraintImpl(
     node: GridNode,
     dir: GridDir,
@@ -58,13 +71,16 @@ proc calcBasicConstraintImpl(
     f0 = 0.UiScalar, # starting point for field, e.g. for WH it'll be node XY's
     ppad = 0.UiScalar, # padding
 ) =
-  mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
   # debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
-  let parentBox = node.getParentBoxOrWindows()
-  let isGridChild = not node.parent.isNil and not node.parent[].gridTemplate.isNil
+  let parent = node.getParent()
+  let frameBox = node.getFrameBox()
+  let parentBox = if parent.isNil: frameBox else: parent.box
+  let parentPadding = if parent.isNil: uiBox(0,0,0,0) else: parent.bpad
+
+  let isGridChild = not parent.isNil and not parent.gridTemplate.isNil
   proc calcBasic(val: ConstraintSize): UiScalar =
     block:
       var res: UiScalar
@@ -83,9 +99,7 @@ proc calcBasicConstraintImpl(
         UiViewPort(view):
           if not isGridChild:
             # Use parentBox size directly, as viewport size
-            let frame = node.getFrame()
-            if not frame.isNil:
-              res = view.UiScalar * frame.wh[dir] / 100.0.UiScalar 
+            res = view.UiScalar * frameBox.wh[dir] / 100.0.UiScalar 
         UiContentMin():
           res = node.childBMins(dir)
         UiContentMax():

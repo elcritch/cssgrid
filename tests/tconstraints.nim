@@ -120,24 +120,24 @@ suite "constraints":
     let vars = newCssVariables()
     
     # Register some variables
-    let idx1 = vars.registerVariable("width", ConstraintSize(kind: UiFixed, coord: 100.UiScalar))
-    let idx2 = vars.registerVariable("height", ConstraintSize(kind: UiPerc, perc: 50.UiScalar))
-    let idx3 = vars.registerVariable("gap", ConstraintSize(kind: UiFrac, frac: 1.UiScalar))
+    let var1 = vars.registerVariable("width", 100'ux)
+    let var2 = vars.registerVariable("height", 50'pp)
+    let var3 = vars.registerVariable("gap", 1'fr)
     
     # Check registration worked
-    check idx1 == 1
-    check idx2 == 2
-    check idx3 == 3
+    check var1.value.varIdx == 1
+    check var2.value.varIdx == 2
+    check var3.value.varIdx == 3
     
     # Create constraints using variables
-    let widthVar = csVar(idx1)
-    let heightVar = csVar(idx2)
-    let gapVar = csVar(idx3)
+    let widthVar = csVar(var1.value.varIdx)
+    let heightVar = csVar(var2.value.varIdx)
+    let gapVar = csVar(var3.value.varIdx)
     
     # Verify variable constraints
     check widthVar.kind == UiValue
     check widthVar.value.kind == UiVariable
-    check widthVar.value.varIdx == idx1
+    check widthVar.value.varIdx == var1.value.varIdx
     
     # Resolve variables
     let resolvedWidth = vars.resolveVariable(widthVar)
@@ -168,7 +168,7 @@ suite "constraints":
     let widthVar2 = vars.csVar("width")
     check widthVar2.kind == UiValue
     check widthVar2.value.kind == UiVariable
-    check widthVar2.value.varIdx == idx1
+    check widthVar2.value.varIdx == var1.value.varIdx
     
     # Test using variables in complex constraints
     let minSize = csMin(widthVar, heightVar)

@@ -72,7 +72,7 @@ proc calcBasicConstraintImpl(
     frameSize: UiScalar,
     f0 = 0.UiScalar, # starting point for field, e.g. for WH it'll be node XY's
     ppad = 0.UiScalar, # padding
-    cssVars = node.cssVars, # Pass node.cssVars by default
+    cssVars: CssVariables, # Pass node.cssVars by default
 ) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
@@ -112,7 +112,7 @@ proc calcBasicConstraintImpl(
           res = min(res, pf)
         UiVariable(varIdx):
           # For variables, try to resolve them if there's a CSS variables container available
-          if not cssVars.isNil and varIdx in cssVars.vars:
+          if not cssVars.isNil and varIdx in cssVars.variables:
             let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
             res = calcBasic(resolvedSize)
           else:
@@ -150,7 +150,7 @@ proc calcBasicConstraintImpl(
 
   debugPrint "calcBasicCx:done: ", "name=", node.name, "dir=", dir, "calc=", calc, " val= ", f
 
-proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, cssVars = node.cssVars) =
+proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, cssVars: CssVariables) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
@@ -194,7 +194,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               res = 0.0.UiScalar
         UiVariable(varIdx):
           # For variables, try to resolve them if there's a CSS variables container available
-          if not cssVars.isNil and varIdx in cssVars.vars:
+          if not cssVars.isNil and varIdx in cssVars.variables:
             let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
             res = calcBasic(resolvedSize, f)
           else:
@@ -242,7 +242,7 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 
 import std/typetraits
 
-proc calcBasicConstraint*(node: GridNode, cssVars = node.cssVars) =
+proc calcBasicConstraint*(node: GridNode, cssVars: CssVariables) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   var pboxes = node.getParentBoxOrWindows()
   var parentBox = pboxes.box
@@ -278,7 +278,7 @@ proc calcBasicConstraint*(node: GridNode, cssVars = node.cssVars) =
 
   # printLayout(node)
 
-proc calcBasicConstraintPost*(node: GridNode, cssVars = node.cssVars) =
+proc calcBasicConstraintPost*(node: GridNode, cssVars: CssVariables) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   debugPrint "calcBasicConstraintPost:start", "name=", node.name
   calcBasicConstraintPostImpl(node, dcol, XY, node.box.w, cssVars)

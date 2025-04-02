@@ -4,7 +4,7 @@ import cssgrid/parser
 import cssgrid/constraints
 import cssgrid/layout
 
-import common/testutils
+import commontestutils
 
 
 suite "CSS variables":
@@ -16,13 +16,13 @@ suite "CSS variables":
     # Create some children nodes
     var child1 = newTestNode("child1", 0, 0, 100, 100, parent)
     child1.gridItem = GridItem()
-    child1.column = 1 // 2
-    child1.row = 1 // 2
+    child1.gridItem.column = 1 // 2
+    child1.gridItem.row = 1 // 2
     
     var child2 = newTestNode("child2", 0, 0, 100, 100, parent)
     child2.gridItem = GridItem()
-    child2.column = 2 // 3
-    child2.row = 1 // 2
+    child2.gridItem.column = 2 // 3
+    child2.gridItem.row = 1 // 2
     
     # Set up grid template columns with auto tracks
     parseGridTemplateColumns parent.gridTemplate:
@@ -31,8 +31,6 @@ suite "CSS variables":
       [] auto
 
     # Add children to parent
-    parent.addChild(child1)
-    parent.addChild(child2)
     
     # Create CSS variables container
     let cssVars = newCssVariables()
@@ -65,4 +63,49 @@ suite "CSS variables":
     check(child1.box.w == 150.UiScalar)
     
     # Check that child2's width remains the same
-    check(child2.box.w == 50.UiScalar) 
+    check(child2.box.w == 50.UiScalar)
+
+  test "CSS variables with nested variable references":
+    # Create a node with a grid template
+    var parent = newTestNode("parent", 0, 0, 300, 200)
+    parent.gridTemplate = newGridTemplate()
+    
+    # Create some children nodes
+    var child = newTestNode("child", 0, 0, 100, 100, parent)
+    child.gridItem = GridItem()
+    child.gridItem.column = 1 // 2
+    child.gridItem.row = 1 // 2
+    
+    # Set up grid template columns with auto tracks
+    parseGridTemplateColumns parent.gridTemplate:
+      [] auto
+      [] auto
+    
+    # Add child to parent
+    
+    # Create CSS variables container with nested references
+    let cssVars = newCssVariables()
+    
+    # Register base size variable
+    let baseIdx = cssVars.registerVariable("base", ConstraintSize(kind: UiFixed, coord: 50.UiScalar))
+    
+    # Register width variable that references base
+    let widthVarIdx = cssVars.registerVariable("width", ConstraintSize(kind: UiVariable, varIdx: baseIdx))
+    
+    # Set child's width to use the variable that references another variable
+    child.cxSize[dcol] = csVar(widthVarIdx)
+    
+    # Compute layout
+    computeLayout(parent, cssVars)
+    
+    # Check that child's width is correctly resolved through the chain of variables
+    check(child.box.w == 50.UiScalar)
+    
+    # Update the base variable
+    discard cssVars.registerVariable("base", ConstraintSize(kind: UiFixed, coord: 120.UiScalar))
+    
+    # Recompute layout
+    computeLayout(parent, cssVars)
+    
+    # Check that child's width is updated through the chain
+    check(child.box.w == 120.UiScalar) 

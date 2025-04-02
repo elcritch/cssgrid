@@ -272,7 +272,7 @@ proc collectTrackSizeContributions*(
   
   return result
 
-proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars = node.cssVars) =
+proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars: CssVariables) =
   ## Implementation of the Grid Sizing Algorithm as defined in css-grid-level-2.md
   ## 1. Resolve sizes of grid columns
   ## 2. Resolve sizes of grid rows
@@ -291,13 +291,13 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars = node.
   # 1. Resolve sizes of grid columns
   debugPrint "GridSizingAlgorithm:resolveColumns", "container=", node.cxSize[dcol]
   contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
-  grid.trackSizingAlgorithm(dcol, contentSizes[dcol], node)
+  grid.trackSizingAlgorithm(dcol, contentSizes[dcol], cssVars, node)
   
   # 2. Resolve sizes of grid rows
   debugPrint "GridSizingAlgorithm:resolveRows", "container=", node.cxSize[drow]
   # Collect new contributions that might depend on column sizes
   contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
-  grid.trackSizingAlgorithm(drow, contentSizes[drow], node)
+  grid.trackSizingAlgorithm(drow, contentSizes[drow], cssVars, node)
   
   # 3. If min-content of any item changed based on row sizes, re-resolve columns (once)
   debugPrint "GridSizingAlgorithm:reResolveColumnsIfNeeded", "container=", node.cxSize[dcol]
@@ -313,7 +313,7 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars = node.
   
   if columnsNeedResize:
     debugPrint "GridSizingAlgorithm:reResolvingColumns", "reason=contributions_changed"
-    grid.trackSizingAlgorithm(dcol, contentSizes[dcol], node)
+    grid.trackSizingAlgorithm(dcol, contentSizes[dcol], cssVars, node)
   
   # 4. If min-content of any item changed based on column sizes, re-resolve rows (once)
   debugPrint "GridSizingAlgorithm:reResolveRowsIfNeeded", "container=", node.cxSize[drow]
@@ -328,7 +328,7 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars = node.
   
   if rowsNeedResize:
     debugPrint "GridSizingAlgorithm:reResolvingRows", "reason=contributions_changed"
-    grid.trackSizingAlgorithm(drow, contentSizes[drow], node)
+    grid.trackSizingAlgorithm(drow, contentSizes[drow], cssVars, node)
   
   # 5. Align tracks according to align-content and justify-content
   # This functionality would be implemented in the track positioning logic
@@ -382,6 +382,12 @@ proc initializeTrackSizes*(
         of UiFrac:
           # Flexible tracks start at 0
           baseSize = 0.UiScalar
+        of UiVariable:
+          # For variables, use the base size of the variable
+          if i in trackSizes:
+            baseSize = trackSizes[i].minContribution
+          else:
+            baseSize = 0.UiScalar
       UiMin(lmin, rmin):
         # For minmax(), use min value for base size
         case lmin.kind
@@ -408,6 +414,12 @@ proc initializeTrackSizes*(
         of UiFrac:
           # Min with fr is treated as 0
           baseSize = 0.UiScalar
+        of UiVariable:
+          # For variables, use the base size of the variable
+          if i in trackSizes:
+            baseSize = trackSizes[i].minContribution
+          else:
+            baseSize = 0.UiScalar
       _:
         baseSize = 0.UiScalar
     
@@ -440,6 +452,12 @@ proc initializeTrackSizes*(
         of UiAuto, UiFrac:
           # Auto and fr have infinity initially
           growthLimit = UiScalar.high()
+        of UiVariable:
+          # For variables, use the base size of the variable
+          if i in trackSizes:
+            growthLimit = trackSizes[i].minContribution
+          else:
+            growthLimit = UiScalar.high()
       UiMin(lmin, rmin):
         # For minmax(), use max value for growth limit
         case rmin.kind
@@ -464,6 +482,12 @@ proc initializeTrackSizes*(
         of UiAuto, UiFrac:
           # Auto and fr max values are infinity
           growthLimit = UiScalar.high()
+        of UiVariable:
+          # For variables, use the base size of the variable
+          if i in trackSizes:
+            growthLimit = trackSizes[i].minContribution
+          else:
+            growthLimit = UiScalar.high()
       _:
         growthLimit = baseSize
     
@@ -950,6 +974,7 @@ proc trackSizingAlgorithm*(
     grid: GridTemplate,
     dir: GridDir, 
     trackSizes: Table[int, ComputedTrackSize],
+    cssVars: CssVariables,
     node: GridNode 
 ) =
   ## Track sizing algorithm as defined in Section 12.3 of the spec
@@ -969,7 +994,7 @@ proc trackSizingAlgorithm*(
       
       if trackConstraint.isFixed():
         # This is a track with a definite size
-        fixedTrackSum += grid.getBaseSize(i, dir, trackSizes)
+        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes)
         debugPrint "trackSizingAlgorithm:fixedTrackSum", "dir=", dir, "i=", i, "fixedTrackSum=", fixedTrackSum
       elif trackConstraint.isFrac():
         hasFractionalTracks = true
@@ -1132,7 +1157,7 @@ proc computeOverflowSizes*(grid: GridTemplate) =
     debugPrint "computeOverflowSizes", "dir=", dir, "size=", grid.overflowSizes[dir]
 
 # Grid Layout Algorithm implementation following CSS Grid Level 2 spec
-proc runGridLayoutAlgorithm*(node: GridNode, cssVars = node.cssVars) =
+proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   ## Implementation of the grid layout algorithm as defined in css-grid-level-2.md
   ## 1. Run the Grid Item Placement Algorithm
   ## 2. Find the size of the grid container
@@ -1182,7 +1207,7 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars = node.cssVars) =
     child.box = typeof(child.box)(gridBox)
     debugPrint "runGridLayoutAlgorithm:layout_item", "child=", child.name, "box=", child.box
 
-proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars = node.cssVars): auto =
+proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars: CssVariables): auto =
 
   for gridLine in gridTemplate.lines[dcol].mitems():
     gridLine.start = 0.UiScalar
@@ -1237,7 +1262,7 @@ proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars = no
                 finalHeight.float,
               ))
 
-proc computeLayout*(node: GridNode, depth: int, cssVars = node.cssVars, full = true) =
+proc computeLayout*(node: GridNode, depth: int, cssVars: CssVariables, full = true) =
   ## Computes constraints and auto-layout.
   debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
 
@@ -1275,7 +1300,7 @@ proc computeLayout*(node: GridNode, depth: int, cssVars = node.cssVars, full = t
 
   calcBasicConstraintPost(node, cssVars)
 
-proc computeLayout*(node: GridNode, cssVars = node.cssVars) =
+proc computeLayout*(node: GridNode, cssVars: CssVariables) =
   computeLayout(node, 0, cssVars)
   debugPrint "COMPUTELAYOUT:done"
   # printLayout(node)

@@ -126,13 +126,14 @@ suite "grids":
     expandMacros:
       parseGridTemplateColumns gt, ["first"] 40'ux \
         ["second", "line2"] 50'ux \
-        ["line3"] auto \
+        ["line3"] min(auto, 100'ux) \
         ["col4-start"] 50'ux \
         ["five"] 40'ux ["end"]
       parseGridTemplateRows gt, repeat(6, 1'fr) auto ["end"]
 
     check gt.lines[dcol].len() == 6
     check gt.lines[drow].len() == 8
+    check gt.lines[dcol][2].track == csMin(csAuto(), 100'ux)
     for i in 0..5:
       check gt.lines[drow][i].track == csFrac(1.0)
     check gt.lines[drow][6].track == csAuto()

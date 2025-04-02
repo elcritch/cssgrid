@@ -139,3 +139,23 @@ suite "grids":
     check gt.lines[drow][7].track == csEnd()
 
     # check gt.getLine(dcol, ln"first").track
+
+  test "viewport units":
+    # Test viewport-relative units
+    let viewportConstraint = 50'vp
+    check viewportConstraint.kind == UiValue
+    check viewportConstraint.value.kind == UiViewPort
+    check viewportConstraint.value.view == 50.0.UiScalar
+    
+    # Test using viewport units in grid template
+    var gtViewport: GridTemplate
+    parseGridTemplateColumns gtViewport, ["first"] 40'ux ["view-col"] 75'vp ["last"] auto
+    
+    check gtViewport.lines[dcol][0].track.kind == UiValue
+    check gtViewport.lines[dcol][0].track.value.kind == UiFixed
+    check gtViewport.lines[dcol][0].track.value.coord == 40.0.UiScalar
+    
+    check gtViewport.lines[dcol][1].track.kind == UiValue
+    check gtViewport.lines[dcol][1].track.value.kind == UiViewPort
+    check gtViewport.lines[dcol][1].track.value.view == 75.0.UiScalar
+    check gtViewport.lines[dcol][1].aliases == toLineNames("view-col")

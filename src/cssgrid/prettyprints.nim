@@ -1,4 +1,3 @@
-
 import strformat
 import terminal
 
@@ -70,6 +69,8 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
     mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr")
   of UiPerc:
     mode.withStyle(fgYellow, text = &"{cs.perc.float:.2f}'pp")
+  of UiViewPort:
+    mode.withStyle(fgYellow, text = &"{cs.view.float:.2f}'vp")
   of UiFixed:
     mode.withStyle(fgGreen, text = &"{cs.coord.float:.2f}'ui")
   of UiContentMin:

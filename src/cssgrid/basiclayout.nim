@@ -80,6 +80,12 @@ proc calcBasicConstraintImpl(
         UiPerc(perc):
           if not isGridChild:
             res = perc.UiScalar / 100.0.UiScalar * pf
+        UiViewPort(view):
+          if not isGridChild:
+            # Use parentBox size directly, as viewport size
+            let frame = node.getFrame()
+            if not frame.isNil:
+              res = view.UiScalar * frame.wh[dir] / 100.0.UiScalar 
         UiContentMin():
           res = node.childBMins(dir)
         UiContentMax():
@@ -166,6 +172,10 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
             #   res = min(res, pf)
             #   if res == UiScalar.low():
             #     res = 0.0.UiScalar
+        UiViewPort(view):
+          # For viewport units, maintain the specified value
+          # The initial calculation should have already handled it
+          res = f
         _:
           res = f
       res

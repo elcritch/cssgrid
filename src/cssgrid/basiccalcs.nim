@@ -79,7 +79,10 @@ proc getBaseSizeForConstraintSize*(
   of UiPerc:
     # For percentage, we'd need container size
     # Just return the percentage as pixels for now
-    return cs.perc.UiScalar
+    return 0.UiScalar
+  of UiViewPort:
+    # For viewport units, similar to percentage but based on viewport
+    return 0.UiScalar
   of UiFrac:
     # For fractional, use min content if available
     if idx in trackSizes:
@@ -125,6 +128,13 @@ proc getBaseSize*(
       if grid.lines[dir][idx].baseSize > 0:
         return grid.lines[dir][idx].baseSize
       return trackConstraint.value.perc.UiScalar  # Return percentage as pixels for now
+    of UiViewPort:
+      # For viewport-relative tracks, we'd need viewport size
+      # This should be properly handled in a full implementation
+      # For now, return a default size or existing base size
+      if grid.lines[dir][idx].baseSize > 0:
+        return grid.lines[dir][idx].baseSize
+      return trackConstraint.value.view.UiScalar  # Return view percentage as pixels for now
     of UiFrac:
       # For fractional tracks, use content contributions
       # to determine base size before distribution

@@ -13,6 +13,7 @@ type
     UiAuto
     UiFrac
     UiPerc
+    UiViewPort  # Added for view width/height (vw/vh)
     UiFixed
     UiContentMin
     UiContentMax
@@ -24,6 +25,8 @@ type
       frac*: UiScalar ## set `fr` aka CSS Grid fractions
     of UiPerc:
       perc*: UiScalar ## set percentage of parent box or grid
+    of UiViewPort:
+      view*: UiScalar ## set percentage of viewport width/height
     of UiFixed:
       coord*: UiScalar ## set fixed coordinate size
     of UiContentMin, UiContentMax, UiContentFit:
@@ -69,6 +72,8 @@ proc csFixed*[T](coord: T): Constraint =
   csValue(ConstraintSize(kind: UiFixed, coord: UiScalar(coord)))
 proc csPerc*[T](perc: T): Constraint =
   csValue(ConstraintSize(kind: UiPerc, perc: perc.UiScalar))
+proc csViewPort*[T](view: T): Constraint =
+  csValue(ConstraintSize(kind: UiViewPort, view: view.UiScalar))
 proc csContentMin*(): Constraint =
   csValue(ConstraintSize(kind: UiContentMin))
 proc csContentMax*(): Constraint =
@@ -93,7 +98,7 @@ proc cssFuncArgs*(cx: Constraint): tuple[l, r: ConstraintSize] =
 
 proc isFixed*(cs: ConstraintSize): bool =
   case cs.kind:
-    of UiFixed, UiPerc:
+    of UiFixed, UiPerc, UiViewPort:
       return true
     else:
       return false
@@ -114,6 +119,8 @@ proc getFixedSize*(cs: ConstraintSize, containerSize, containerMin: UiScalar): U
       return cs.coord
     of UiPerc:
       return cs.perc * containerSize / 100.0.UiScalar
+    of UiViewPort:
+      return cs.view * containerSize / 100.0.UiScalar  # Similar to percentage but based on viewport size
     of UiContentMin:
       return containerMin  # Use the container's min-content size
     of UiContentMax, UiContentFit:
@@ -287,6 +294,7 @@ proc `==`*(a, b: ConstraintSize): bool =
     match a:
       UiFrac(frac): return frac == b.frac
       UiPerc(perc): return perc == b.perc
+      UiViewPort(view): return view == b.view
       UiFixed(coord): return coord == b.coord
       UiContentMin(): return true
       UiContentMax(): return true
@@ -304,6 +312,7 @@ proc `$`*(a: ConstraintSize): string =
     UiFrac(frac): result = $frac & "'fr"
     UiFixed(coord): result = $coord & "'ux"
     UiPerc(perc): result = $perc & "'perc"
+    UiViewPort(view): result = $view & "'vp"
     UiContentMin(): result = "cx'content-min"
     UiContentMax(): result = "cx'content-max"
     UiContentFit(): result = "cx'fit-content"
@@ -334,6 +343,11 @@ proc `'pp`*(n: string): Constraint =
   ## numeric literal UI Coordinate unit
   let f = parseFloat(n)
   result = csPerc(f)
+
+proc `'vp`*(n: string): Constraint =
+  ## numeric literal for viewport-relative units (vw/vh)
+  let f = parseFloat(n)
+  result = csViewPort(f)
 
 template `cx`*(n: static string): auto =
   when n == "auto":
@@ -374,9 +388,15 @@ proc getMinSize*(cs: ConstraintSize, contentSize: UiScalar = 0.UiScalar): UiScal
   ## Extract the minimum size from a ConstraintSize
   ## For intrinsic sizing, uses contentSize if provided
   case cs.kind
-  of UiFixed, UiPerc:
-    # Fixed sizes and percentages are their own minimum
+  of UiFixed:
+    # Fixed sizes are their own minimum
     result = cs.coord
+  of UiPerc:
+    # Percentages are their own minimum
+    result = cs.perc
+  of UiViewPort:
+    # Viewport sizes are their own minimum
+    result = cs.view
   of UiFrac:
     # Flex units have a default minimum of 0
     result = 0.UiScalar

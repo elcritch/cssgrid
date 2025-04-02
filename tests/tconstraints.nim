@@ -21,6 +21,7 @@ suite "constraints":
     check 0.5'fr == csFrac(0.5)
     check 100'pp == csPerc(100)
     check 50.5'pp == csPerc(50.5)
+    check 50.5'vp == csViewPort(50.5)
 
   test "constraint constants":
     check cx"auto" == csAuto()

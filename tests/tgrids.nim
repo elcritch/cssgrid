@@ -708,7 +708,7 @@ suite "grids":
     check gridTemplate.lines[dcol][0].track == 1'fr
 
     # ==== process grid ====
-    let box = gridTemplate.computeNodeLayout(parent)
+    let box = gridTemplate.computeNodeLayout(parent, nil)
 
     check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
     check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
@@ -861,8 +861,8 @@ suite "grids":
 
     # ==== process grid ====
     parent.children = nodes
-    let box1 = gridTemplate.computeNodeLayout(parent)
-    let box = gridTemplate.computeNodeLayout(parent)
+    let box1 = gridTemplate.computeNodeLayout(parent, nil)
+    let box = gridTemplate.computeNodeLayout(parent, nil)
     # printChildrens()
     # print gridTemplate.overflowSizes
 

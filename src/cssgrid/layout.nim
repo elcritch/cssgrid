@@ -1300,7 +1300,7 @@ proc computeLayout*(node: GridNode, depth: int, cssVars: CssVariables, full = tr
 
   calcBasicConstraintPost(node, cssVars)
 
-proc computeLayout*(node: GridNode, cssVars: CssVariables) =
+proc computeLayout*(node: GridNode, cssVars: CssVariables = nil) =
   computeLayout(node, 0, cssVars)
   debugPrint "COMPUTELAYOUT:done"
   # printLayout(node)

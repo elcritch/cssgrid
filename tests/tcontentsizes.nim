@@ -165,7 +165,8 @@ suite "Nested Content Size Tests":
       
     test "Comparing auto vs fit-content behavior":
       when false: # TODO: fixme!
-        let parent = newTestNode("parent", 0, 0, 300, 300)
+        let parent = newTestNode("parent")
+        parent.cxSize = [300'ux, 300'ux]
         
         # Create auto child
         let autoChild = newTestNode("auto-child", parent)

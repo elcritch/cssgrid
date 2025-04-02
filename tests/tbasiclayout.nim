@@ -226,11 +226,11 @@ suite "Basic CSS Layout Tests":
     child.cxOffset[dcol] = 20'ux
     child.cxOffset[drow] = 10'pp
     
-    calcBasicConstraint(parent)
-    calcBasicConstraintPost(parent)
+    calcBasicConstraint(parent, nil)
+    calcBasicConstraintPost(parent, nil)
 
-    calcBasicConstraint(child)
-    calcBasicConstraintPost(child)
+    calcBasicConstraint(child, nil)
+    calcBasicConstraintPost(child, nil)
     
     # printLayout(parent, cmTerminal)
 

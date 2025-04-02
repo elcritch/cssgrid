@@ -24,7 +24,7 @@ suite "Compute Layout Tests":
     node.cxSize[dcol] = 200'ux
     node.cxSize[drow] = 150'ux
     
-    computeLayout(node, 0)
+    computeLayout(node)
     
     check node.box.w == 200
     check node.box.h == 150

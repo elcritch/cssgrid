@@ -112,7 +112,7 @@ suite "Nested Content Size Tests":
       autoChild.gridItem.column = 1
       autoChild.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       # Auto track should accommodate largest child
       check autoChild.box.w >= 150

@@ -230,10 +230,10 @@ suite "Compute Layout Tests":
     check scrollpane.box.w == 384
     check scrollpane.box.h == 270
 
-    check scrollbody.box.w == 384
+    check scrollbody.box.w == 376
     check scrollbody.box.h == 950
 
-    check vertical.box.w == 384
+    check vertical.box.w == 376
     check vertical.box.h == UiScalar(50*14 + 120*2)
 
   test "Simple grid layout":

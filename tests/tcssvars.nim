@@ -75,7 +75,7 @@ suite "CSS variables":
     
     # Compute layout
     computeLayout(parent, cssVars)
-    printLayout(parent, cmTerminal)
+    printLayout(parent, cmTerminal, cssVars)
     
     # Check that child's width is correctly resolved through the chain of variables
     check(child.box.w == 50.UiScalar)
@@ -87,4 +87,4 @@ suite "CSS variables":
     computeLayout(parent, cssVars)
     
     # Check that child's width is updated through the chain
-    check(child.box.w == 120.UiScalar) 
+    check(child.box.w == 120.UiScalar)

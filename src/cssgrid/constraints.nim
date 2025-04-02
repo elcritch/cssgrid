@@ -503,6 +503,13 @@ proc lookupVariable*(vars: CssVariables, idx: int, size: var ConstraintSize): bo
     return true
   return false
 
+proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
+  ## Returns the name of a CSS variable by index
+  if cs.kind == UiVariable:
+    for name, idx in vars.names:
+      if idx == cs.varIdx:
+        return name
+
 proc resolveVariable*(vars: CssVariables, cs: ConstraintSize): ConstraintSize =
   ## Resolves a constraint size, looking up variables if needed
   ## Returns the resolved constraint size

@@ -287,6 +287,10 @@ proc csMinMax*[U, T](a: U, b: T): Constraint =
           else: csFixed(b).value
   Constraint(kind: UiMinMax, lmm: a, rmm: b)
 
+proc csVar*(idx: int): Constraint =
+  ## Creates a constraint for a CSS variable by index
+  csValue(ConstraintSize(kind: UiVariable, varIdx: idx))
+
 proc `+`*[U: Constraint, T](a: U, b: T): Constraint =
   csAdd(a, b)
 proc `-`*[U: Constraint, T](a: U, b: T): Constraint =
@@ -458,20 +462,20 @@ proc newCssVariables*(): CssVariables =
   result.variables = initTable[int, ConstraintSize]()
   result.names = initTable[string, int]()
 
-proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize): int =
+proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize): Constraint =
   ## Registers a new CSS variable with the given name and value
   ## Returns the variable index
   if name in vars.names:
     let idx = vars.names[name]
     vars.variables[idx] = value
-    return idx
+    return csVar(idx)
   else:
     let idx = vars.variables.len + 1
     vars.variables[idx] = value
     vars.names[name] = idx
-    return idx
+    return csVar(idx)
 
-proc registerVariable*(vars: CssVariables, name: string, value: Constraint): int =
+proc registerVariable*(vars: CssVariables, name: string, value: Constraint): Constraint =
   ## Registers a new CSS variable with the given name and constraint value
   ## Returns the variable index
   if value.kind == UiValue:
@@ -542,15 +546,10 @@ proc resolveVariable*(vars: CssVariables, cx: Constraint): Constraint =
   of UiNone, UiEnd:
     result = cx
 
-proc csVar*(idx: int): Constraint =
-  ## Creates a constraint for a CSS variable by index
-  csValue(ConstraintSize(kind: UiVariable, varIdx: idx))
-
 proc csVar*(vars: CssVariables, name: string): Constraint =
   ## Creates a constraint for a CSS variable by name
   ## If the variable doesn't exist, it will be created with a default value
   if name in vars.names:
     csVar(vars.names[name])
   else:
-    let idx = vars.registerVariable(name, ConstraintSize(kind: UiAuto))
-    csVar(idx)
+    return vars.registerVariable(name, ConstraintSize(kind: UiAuto))

@@ -339,7 +339,7 @@ suite "Compute Layout Tests":
       
       parent.cxSize = [150'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
       check child1.box.w == 50  # Half of parent width
@@ -397,7 +397,7 @@ suite "Compute Layout Tests":
       # defer: prettyPrintWriteMode = cmNone
       # addPrettyPrintFilter("dir", "dcol")
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
 
       # second and third column get min-contents and minmax col the rest
       # check child1.box.w == 270  # Minimum size from minmax

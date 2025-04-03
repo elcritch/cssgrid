@@ -111,22 +111,18 @@ proc getBaseSize*(
     # For fractional, use min content if available
     if idx in trackSizes:
       return trackSizes[idx].minContribution
-    return 0.UiScalar
-  of UiAuto, UiContentMin, UiContentMax, UiContentFit:
-    # For auto and content-sized tracks, use content contributions
+  of UiAuto, UiContentMin:
+    # For auto and min-content tracks, use min-content contribution
     if idx in trackSizes:
-      let baseSize = trackSizes[idx].minContribution
-      
-      if cs.kind == UiContentMax or cs.kind == UiContentFit:
-        return max(baseSize, trackSizes[idx].maxContribution)
-      
-      return baseSize
-    return 0.UiScalar
+      return trackSizes[idx].minContribution
+  of UiContentMax, UiContentFit:
+    # For max-content and fit-content tracks, use max of min and max contributions
+    if idx in trackSizes:
+      return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
   of UiVariable:
     var resolvedSize: ConstraintSize
     if cssVars.lookupVariable(cs.varIdx, resolvedSize):
       return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
-    return 0.UiScalar
 
 proc getTrackBaseSize*(
     grid: GridTemplate, 

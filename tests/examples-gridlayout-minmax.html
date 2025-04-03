@@ -48,10 +48,12 @@
     }
 
     .grid-child2 {
+      min-width: 110px;
       background-color: #d62c7a;
     }
 
     .grid-child3 {
+      min-width: 20px;
       background-color: #7ad62c;
     }
 
@@ -64,7 +66,7 @@
     }
 
     .large-parent {
-      width: 1500px;
+      width: 1800px;
     }
 
     .debug-info {
@@ -134,9 +136,9 @@
     
     <div class="container-wrapper">
       <div class="grid-parent small-parent" id="grid-container">
-        <div class="grid-child grid-child1" id="child1">Column 1</div>
-        <div class="grid-child grid-child2" id="child2">Column 2</div>
-        <div class="grid-child grid-child3" id="child3">Column 3</div>
+        <div class="grid-child grid-child1" id="child1">1</div>
+        <div class="grid-child grid-child2" id="child2">2</div>
+        <div class="grid-child grid-child3" id="child3">3</div>
       </div>
       <div class="debug-info" id="debug-info"></div>
     </div>
@@ -185,9 +187,9 @@
       document.getElementById('explanation-text').innerHTML = `
         <p>In this case, with a container width of 400px, the first column uses its minimum width of 200px from the minmax function. The remaining 200px is split equally between the two 1fr columns:</p>
         <ul>
-          <li>Column 1 gets 200px (minimum from minmax)</li>
-          <li>Column 2 gets 100px (1/2 of remaining space)</li>
-          <li>Column 3 gets 100px (1/2 of remaining space)</li>
+          <li>Column 1 gets 270px (leftover space)</li>
+          <li>Column 2 gets 120px (min-content)</li>
+          <li>Column 3 gets 20px (min-content)</li>
         </ul>
       `;
       updateMeasurements();
@@ -216,8 +218,8 @@
         <p>With a large container (1500px), the first column stays at its maximum width of 500px. The remaining 1000px is split equally between the two 1fr columns:</p>
         <ul>
           <li>Column 1 gets 500px (maximum from minmax)</li>
-          <li>Column 2 gets 500px (1/2 of remaining space)</li>
-          <li>Column 3 gets 500px (1/2 of remaining space)</li>
+          <li>Column 2 gets 650px (1/2 of remaining space)</li>
+          <li>Column 3 gets 650px (1/2 of remaining space)</li>
         </ul>
         <p>Notice how the first column doesn't grow beyond 500px, while the 1fr columns continue to grow equally as more space becomes available.</p>
       `;

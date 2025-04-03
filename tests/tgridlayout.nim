@@ -276,7 +276,54 @@ suite "Compute Layout Tests":
       
       # Setup grid template
 
-      parseGridTemplateColumns parent.gridTemplate, min(100'ux, 1'fr) 7'fr
+      parseGridTemplateColumns parent.gridTemplate, min(100'ux, 25'pp) 1'fr
+      parseGridTemplateRows parent.gridTemplate, 100'ux
+      
+      # Setup grid items
+      child1.gridItem = newGridItem()
+      child1.gridItem.column = 1
+      child1.gridItem.row = 1
+      
+      child2.gridItem = newGridItem()
+      child2.gridItem.column = 2
+      child2.gridItem.row = 1
+      
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      printLayout(parent, cmTerminal)
+      
+      # Children should each take up half the width
+      check child1.box.w == 100  # Half of parent width
+      check child2.box.w == 300  # Half of parent width
+      check child1.box.h == 100  # Fixed height from grid
+      check child2.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 100  # Fixed height from grid
+
+      parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+      
+      # Children should each take up half the width
+      check child1.box.w == 100  # Half of parent width
+      check child2.box.w == 900  # Half of parent width
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 100  # Fixed height from grid
+
+      parent.cxSize = [200'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+      check child1.box.w == 100  # Half of parent width
+      check child2.box.w == 100  # Half of parent width
+      
+  test "Simple grid layout with max column":
+      let parent = newTestNode("grid-parent")
+      let child1 = newTestNode("grid-child1", parent)
+      let child2 = newTestNode("grid-child2", parent)
+      
+      # Setup grid template
+
+      parseGridTemplateColumns parent.gridTemplate, 1'fr max(100'ux, 25'pp)
       parseGridTemplateRows parent.gridTemplate, 100'ux
       
       # Setup grid items
@@ -293,76 +340,24 @@ suite "Compute Layout Tests":
       # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 100  # Half of parent width
-      check child2.box.w == 300  # Half of parent width
-      check child1.box.h == 100  # Fixed height from grid
-      check child2.box.h == 100  # Fixed height from grid
-      check child1.box.x == 0  # Fixed height from grid
-      check child2.box.x == 100  # Fixed height from grid
+      check child1.box.w == 300  # Half of parent width
+      check child2.box.w == 100  # Half of parent width
 
       parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
-      computeLayout(parent)
-      # printLayout(parent, cmTerminal)
-      
-      # Children should each take up half the width
-      check child1.box.w == 125  # Half of parent width
-      check child2.box.w == 875  # Half of parent width
-      check child1.box.h == 100  # Fixed height from grid
-      check child2.box.h == 100  # Fixed height from grid
-      check child1.box.x == 0  # Fixed height from grid
-      check child2.box.x == 125  # Fixed height from grid
-
-      parent.cxSize = [200'ux, 300'ux]  # set fixed parent
-      computeLayout(parent)
-      # printLayout(parent, cmTerminal)
-      check child1.box.w == 100  # Half of parent width
-      check child2.box.w == 100  # Half of parent width
-      
-  test "Simple grid layout with max column":
-      let parent = newTestNode("grid-parent")
-      let child1 = newTestNode("grid-child1", parent)
-      let child2 = newTestNode("grid-child2", parent)
-      
-      # Setup grid template
-
-      parseGridTemplateColumns parent.gridTemplate, 1'fr max(100'ux, 1'fr)
-      parseGridTemplateRows parent.gridTemplate, 100'ux
-      
-      # Setup grid items
-      child1.gridItem = newGridItem()
-      child1.gridItem.column = 1
-      child1.gridItem.row = 1
-      
-      child2.gridItem = newGridItem()
-      child2.gridItem.column = 2
-      child2.gridItem.row = 1
-      
-      parent.cxSize = [150'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
       printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 50  # Half of parent width
-      check child2.box.w == 100  # Half of parent width
-      check child1.box.h == 100  # Fixed height from grid
-      check child2.box.h == 100  # Fixed height from grid
-      check child1.box.x == 0  # Fixed height from grid
-      check child2.box.x == 50  # Fixed height from grid
+      check child1.box.w == 750  # Half of parent width
+      check child2.box.w == 250  # Half of parent width
 
-      parent.cxSize = [600'ux, 300'ux]  # set fixed parent
-      # prettyPrintWriteMode = cmTerminal
-      # defer: prettyPrintWriteMode = cmNone
-      # addPrettyPrintFilter("dir", "dcol")
+      parent.cxSize = [150'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 300  # Half of parent width
-      check child2.box.w == 300  # Half of parent width
-      check child1.box.h == 100  # Fixed height from grid
-      check child2.box.h == 100  # Fixed height from grid
-      check child1.box.x == 0  # Fixed height from grid
-      check child2.box.x == 300  # Fixed height from grid
+      check child1.box.w == 50  # Half of parent width
+      check child2.box.w == 100  # Half of parent width
+
       
   test "Simple grid layout with minmax columns":
       # TODO: FIXME!

@@ -370,6 +370,17 @@ proc initializeTrackSizes*(
         let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.lmax)
         let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.rmax)
         baseSize = max(lhsSize, rhsSize)
+      UiMinMax(lmm, rmm):
+        # For minmax(), special handling according to CSS Grid spec
+        if lmm.kind == UiFrac and not isContentSized(rmm):
+          # If min is fr and max is a fixed value, min is treated as 0
+          baseSize = 0.UiScalar
+        else:
+          baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmm, containerSize, frameBox)
+          let maxSize = getBaseSize(grid, cssVars, i, dir, trackSizes, rmm, containerSize, frameBox)
+          if maxSize < baseSize:
+            # If max < min, max is ignored
+            baseSize = baseSize
       _:
         baseSize = 0.UiScalar
     
@@ -381,6 +392,9 @@ proc initializeTrackSizes*(
           growthLimit = UiScalar.high()
       UiMin(lmin, rmin):
         if rmin.kind in {UiAuto, UiFrac}:
+          growthLimit = UiScalar.high()
+      UiMinMax(lmm, rmm):
+        if rmm.kind in {UiAuto, UiFrac}:
           growthLimit = UiScalar.high()
       _: discard
     

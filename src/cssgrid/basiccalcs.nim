@@ -206,8 +206,26 @@ proc getTrackBaseSize*(
     return max(lhsSize, rhsSize)
   of UiMinMax:
     # For minmax(), use the minimum as a floor and maximum as a ceiling
-    let minSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmm)
-    let maxSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmm)
+    # According to CSS Grid spec:
+    # 1) If min is a fr value and max is a fixed value, treat fr as 0
+    # 2) If max < min, max is ignored (i.e., treat as min only)
+    
+    # Get the min value, treating fr as 0 if max is fixed
+    let minVal = trackConstraint.lmm
+    let maxVal = trackConstraint.rmm
+    
+    var minSize: UiScalar
+    if minVal.kind == UiFrac and not isContentSized(maxVal):
+      # If min is fr and max is not content-sized, min is treated as 0
+      minSize = 0.UiScalar
+    else:
+      minSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, minVal, containerSize, frameSize)
+    
+    let maxSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, maxVal, containerSize, frameSize)
+    
+    # If max < min, max is ignored
+    if maxSize < minSize:
+      return minSize
     
     # Get content contribution if available
     var contentSize = 0.UiScalar

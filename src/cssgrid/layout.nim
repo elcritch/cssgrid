@@ -369,30 +369,15 @@ proc initializeTrackSizes*(
         baseSize = 0.UiScalar
     
     # 2. Set initial growth limit based on track type
+    growthLimit = getTrackBaseSize(grid, cssVars, i, dir, trackSizes, frameBox)
     match track:
       UiValue(value):
-        # Use getBaseSize for growth limit calculation
-        case value.kind
-        of UiFixed, UiPerc, UiViewPort, UiContentMin, UiContentMax, UiContentFit:
-          growthLimit = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
-        of UiAuto, UiFrac:
-          # Auto and fr have infinity initially
+        if value.kind in {UiAuto, UiFrac}:
           growthLimit = UiScalar.high()
-        of UiVariable:
-          # For variables, use the base size of the variable
-          if i in trackSizes:
-            growthLimit = trackSizes[i].minContribution
-          else:
-            growthLimit = UiScalar.high()
       UiMin(lmin, rmin):
-        # For minmax(), use max value for growth limit
-        growthLimit = getBaseSize(grid, cssVars, i, dir, trackSizes, rmin, containerSize, frameBox)
-        
-        # Special handling for fr units in max position - they should be infinity
         if rmin.kind in {UiAuto, UiFrac}:
           growthLimit = UiScalar.high()
-      _:
-        growthLimit = baseSize
+      _: discard
     
     # 3. Ensure growth limit is at least as large as base size
     growthLimit = max(growthLimit, baseSize)

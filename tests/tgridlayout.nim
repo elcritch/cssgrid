@@ -394,7 +394,7 @@ suite "Compute Layout Tests":
       # defer: prettyPrintWriteMode = cmNone
       # addPrettyPrintFilter("dir", "dcol")
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
+      printLayout(parent, cmTerminal)
 
       # First column gets minimum width, remaining space distributed equally
       check child1.box.w == 270  # Minimum size from minmax

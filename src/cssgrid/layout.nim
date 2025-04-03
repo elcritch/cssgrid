@@ -1146,15 +1146,14 @@ proc computeAutoFlow(
     child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
 # Add a function to compute the overflow sizes correctly
-proc computeOverflowSizes*(grid: GridTemplate) =
+proc computeOverflowSizes*(node: GridNode) =
   # Calculate overflow sizes based on the final positions and widths of tracks
+  let grid = node.gridTemplate
   for dir in [dcol, drow]:
     if grid.lines[dir].len() > 0:
       let lastTrackIndex = grid.lines[dir].len() - 1
       let lastTrack = grid.lines[dir][lastTrackIndex]
       grid.overflowSizes[dir] = lastTrack.start + lastTrack.width
-      
-    debugPrint "computeOverflowSizes", "dir=", dir, "size=", grid.overflowSizes[dir]
 
 # Grid Layout Algorithm implementation following CSS Grid Level 2 spec
 proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
@@ -1166,6 +1165,15 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   
   assert not node.gridTemplate.isNil
   
+  let gridTemplate = node.gridTemplate
+  for gridLine in gridTemplate.lines[dcol].mitems():
+    gridLine.start = 0.UiScalar
+    gridLine.width = 0.UiScalar
+  for gridLine in gridTemplate.lines[drow].mitems():
+    gridLine.start = 0.UiScalar
+    gridLine.width = 0.UiScalar
+  gridTemplate.overflowSizes = [0.UiScalar, 0.UiScalar]
+
   # 1. Run the Grid Item Placement Algorithm
   
   # 1a. First, handle auto flow items - this is what was missing
@@ -1174,7 +1182,7 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   for child in node.children:
     if child.gridItem == nil:
       child.gridItem = GridItem()
-    child.gridItem.setGridSpans(node.gridTemplate, child.box.wh.UiSize)
+    child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
 
     # If this item doesn't have all positions set, we need auto flow
     if fixedCount(child.gridItem) != 4:
@@ -1183,11 +1191,11 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   # Run auto flow placement if needed
   if hasAutos:
     debugPrint "runGridLayoutAlgorithm:computeAutoFlow"
-    computeAutoFlow(node.gridTemplate, node.box, node.children)
+    computeAutoFlow(gridTemplate, node.box, node.children)
 
   # 1b. Now set final spans with the positions
   for child in node.children:
-    child.gridItem.setGridSpans(node.gridTemplate, child.box.wh.UiSize)
+    child.gridItem.setGridSpans(gridTemplate, child.box.wh.UiSize)
   
   # 2. Find the size of the grid container (already in node.box)
   
@@ -1195,10 +1203,10 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   runGridSizingAlgorithm(node, node.gridTemplate, cssVars)
   
   # 3a. Compute overflow sizes based on final track positions and sizes
-  computeOverflowSizes(node.gridTemplate)
+  computeOverflowSizes(node)
   
   # Debug output
-  prettyGridTemplate(node.gridTemplate)
+  prettyGridTemplate(gridTemplate)
   printLayout(node)
 
   # 4. Lay out the grid items
@@ -1208,13 +1216,6 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
     debugPrint "runGridLayoutAlgorithm:layout_item", "child=", child.name, "box=", child.box
 
 proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars: CssVariables): auto =
-
-  for gridLine in gridTemplate.lines[dcol].mitems():
-    gridLine.start = 0.UiScalar
-    gridLine.width = 0.UiScalar
-  for gridLine in gridTemplate.lines[drow].mitems():
-    gridLine.start = 0.UiScalar
-    gridLine.width = 0.UiScalar
 
   gridTemplate.createEndTracks()
   

@@ -28,7 +28,7 @@ suite "grids":
     # Create a parent node with 2x2 grid template
     var parent = TestNode(name: "parent")
     parent.gridTemplate = newGridTemplate(
-      columns = @[initGridLine 1'fr, initGridLine 1'fr], 
+      columns = @[initGridLine 1'fr, initGridLine 1'fr],
       rows = @[gl 1'fr, gl 1'fr]
     )
     parent.cxSize = [100'ux, 100'ux]  # Fixed size container

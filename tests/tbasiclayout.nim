@@ -6,6 +6,7 @@ import unittest
 import cssgrid/numberTypes
 import cssgrid/gridtypes
 import cssgrid/basiclayout
+import cssgrid/basiccalcs
 import cssgrid/parser
 import cssgrid/prettyprints
 

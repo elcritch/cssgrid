@@ -13,6 +13,27 @@ type
 
 {.push stackTrace: off.}
 
+proc getPadding*(node: GridNode): UiBox =
+  if node.isNil:
+    uiBox(0,0,0,0)
+  else:
+    node.bpad
+
+proc parentBox*(node: GridNode): UiBox =
+  let parent = node.getParent()
+  if parent.isNil:
+    node.getFrame()
+  else:
+    parent.box
+
+proc getParentBoxOrWindows*(node: GridNode): tuple[box, padding: UiBox] =
+  mixin getFrame, getFrameBox
+  let parent = node.getParent()
+  if parent.isNil:
+    result = (box: node.getFrameBox(), padding: uiBox(0,0,0,0))
+  else:
+    result = (box: parent.box, padding: parent.bpad)
+
 proc childBMins*(node: GridNode, dir: GridDir): UiScalar =
   result = UiScalar.low()
   for child in node.children:

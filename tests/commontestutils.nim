@@ -30,20 +30,14 @@ type
 proc `box=`*[T](v: T, box: UiBox) = 
   v.box = box
 
-template getParent*[N: GridNode](node: N): N =
+proc getParent*(node: TestNode): TestNode =
   node.parent
 
-template getFrameBox*(node: GridNode): UiBox =
+proc getFrameBox*(node: TestNode): UiBox =
   if node.frame.isNil:
     uiBox(0,0,0,0)
   else:
     node.frame.windowSize
-
-template getParentBoxOrWindows*(node: GridNode): tuple[box, padding: UiBox] =
-  if node.parent.isNil:
-    (box: node.frame.windowSize, padding: uiBox(0,0,0,0))
-  else:
-    (box: node.parent.box, padding: node.parent.bpad)
 
 proc newTestNode*(name: string, parent: TestNode = nil): TestNode =
   result = TestNode(

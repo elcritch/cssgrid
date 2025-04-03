@@ -19,6 +19,8 @@ type
     content*: UiScalar
 
   GridNode* = concept node
+    typeof(getParent(node)) is typeof(node)
+    typeof(getFrameBox(node)) is UiBox
     typeof(node.box) is UiBox
     typeof(node.bpad) is UiBox
     typeof(node.bmin) is UiSize
@@ -31,7 +33,6 @@ type
     typeof(node.cxPadSize) is array[GridDir, Constraint]
     typeof(node.gridItem) is GridItem
     typeof(node.gridTemplate) is GridTemplate
-    typeof(node.parent)
 
   GridBox* = concept box
     typeof(box) is UiBox

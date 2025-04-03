@@ -50,19 +50,6 @@ proc getConstraintValue*(node: GridNode, dir: GridDir, calc: CalcKind): Constrai
   of PADWH:
     node.cxPadSize[dir]
 
-proc getPadding*(node: GridNode): UiBox =
-  if node.isNil:
-    uiBox(0,0,0,0)
-  else:
-    node.bpad
-
-proc parentBox*(node: GridNode): UiBox =
-  let parent = node.getParent()
-  if parent.isNil:
-    node.getFrame()
-  else:
-    parent.box
-
 proc calcBasicConstraintImpl(
     node: GridNode,
     dir: GridDir,

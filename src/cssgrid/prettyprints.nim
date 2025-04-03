@@ -62,6 +62,8 @@ else:
     prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
 
 proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  if prettyPrintWriteMode == cmNone:
+    return
   case cs.kind
   of UiAuto:
     mode.withStyle(fgCyan, text = "auto")
@@ -88,6 +90,8 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
       mode.withStyle(fgRed, text = &"var({cs.varIdx})")
 
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  if prettyPrintWriteMode == cmNone:
+    return
   case c.kind
   of UiNone:
     mode.withStyle(fgBlue, text = "none")
@@ -127,6 +131,8 @@ proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone, css
     mode.withStyle(fgRed, text = "end")
 
 proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  if prettyPrintWriteMode == cmNone:
+    return
   if line.track.kind != UiEnd:
     mode.withStyle(fgWhite, {styleBright}, text = indent & "track: ")
     prettyConstraint(line.track, "", mode, cssVars)
@@ -151,6 +157,8 @@ proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmNone, cssV
   mode.withStyle(fgWhite, text = "\n")
 
 proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  if prettyPrintWriteMode == cmNone:
+    return
   if grid.isNil:
     mode.withStyle(fgWhite, {styleBright}, text = indent & "GridTemplate: ")
     mode.withStyle(fgRed, text = "nil\n")
@@ -189,6 +197,8 @@ proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNo
 
 proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   # Node name
+  if prettyPrintWriteMode == cmNone:
+    return
   mode.withStyle(fgWhite, {styleBright}, text = indent & "Node: ")
   mode.withStyle(fgGreen, text = node.name & "\n")
   
@@ -261,9 +271,13 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone, cssVar
     prettyLayout(child, indent & "  ", mode, cssVars)
 
 proc printLayout*(node: GridNode, mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  if prettyPrintWriteMode == cmNone:
+    return
   prettyLayout(node, "", mode, cssVars)
   stdout.flushFile()
 
 proc printGrid*(grid: GridTemplate, mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  if prettyPrintWriteMode == cmNone:
+    return
   prettyGridTemplate(grid, "", mode, cssVars)
   stdout.flushFile()

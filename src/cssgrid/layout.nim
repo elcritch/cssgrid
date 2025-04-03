@@ -1122,8 +1122,8 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   computeOverflowSizes(node)
   
   # Debug output
-  prettyGridTemplate(gridTemplate)
-  printLayout(node)
+  # prettyGridTemplate(gridTemplate)
+  # printLayout(node)
 
   # 4. Lay out the grid items
   for child in node.children:
@@ -1196,7 +1196,7 @@ proc computeLayout*(node: GridNode, depth: int, cssVars: CssVariables, full = tr
     for n in node.children:
       computeLayout(n, depth + 1, cssVars)
 
-    printLayout(node)
+    # printLayout(node)
     node.box = node.gridTemplate.computeNodeLayout(node, cssVars).UiBox
 
     for n in node.children:

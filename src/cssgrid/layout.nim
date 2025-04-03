@@ -360,35 +360,11 @@ proc initializeTrackSizes*(
       UiMin(lmin, rmin):
         # For minmax(), use min value for base size
         case lmin.kind
-        of UiFixed:
-          baseSize = lmin.coord
-        of UiPerc:
-          baseSize = lmin.perc / 100.0.UiScalar * availableSpace
-        of UiViewPort:
-          # Viewport-relative tracks are based on viewport size
-          baseSize = lmin.view * frameBox / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:viewportSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "viewportSize=", frameBox
-        of UiContentMin, UiAuto:
-          # Intrinsic min sizing with content
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
-        of UiContentMax, UiContentFit:
-          # Max content as min value
-          if i in trackSizes:
-            baseSize = trackSizes[i].maxContribution
-          else:
-            baseSize = 0.UiScalar
         of UiFrac:
           # Min with fr is treated as 0
           baseSize = 0.UiScalar
-        of UiVariable:
-          # For variables, use the base size of the variable
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
+        else:
+          baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmin, containerSize, frameBox)
       _:
         baseSize = 0.UiScalar
     

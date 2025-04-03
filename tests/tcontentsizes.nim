@@ -19,9 +19,10 @@ import commontestutils
 
 suite "Nested Content Size Tests":
     test "Auto grid track with nested fixed content":
-      let parent = newTestNode("parent", 0, 0, 400, 300)
-      let autoChild = newTestNode("auto-child", 0, 0, 0, 0, parent)
-      let fixedGrandchild = newTestNode("fixed-grandchild", 0, 0, 0, 0, autoChild)
+      let parent = newTestNode("parent")
+      let autoChild = newTestNode("auto-child", parent)
+      let fixedGrandchild = newTestNode("fixed-grandchild", parent)
+      parent.cxSize = [400'ux, 300'ux]
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -49,9 +50,11 @@ suite "Nested Content Size Tests":
       check autoChild.box.h >= 80
       
     test "Content-fit grid track with nested fixed content":
-      let parent = newTestNode("parent", 0, 0, 400, 300)
-      let fitContentChild = newTestNode("fit-content-child", 0, 0, 0, 0, parent)
-      let fixedGrandchild = newTestNode("fixed-grandchild", 0, 0, 150, 80, fitContentChild)  # Set explicit size
+      let parent = newTestNode("parent")
+      let fitContentChild = newTestNode("fit-content-child", parent)
+      let fixedGrandchild = newTestNode("fixed-grandchild", fitContentChild)  # Set explicit size
+
+      parent.cxSize = [400'ux, 300'ux]
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -88,10 +91,10 @@ suite "Nested Content Size Tests":
       check (fitContentChild.box.h >= 80 or fixedGrandchild.box.h >= 80)
 
     test "Multiple nested children in auto track":
-      let parent = newTestNode("parent", 0, 0, 400, 300)
-      let autoChild = newTestNode("auto-child", 0, 0, 0, 0, parent)
-      let grandchild1 = newTestNode("grandchild1", 0, 0, 0, 0, autoChild)
-      let grandchild2 = newTestNode("grandchild2", 0, 0, 0, 0, autoChild)
+      let parent = newTestNode("parent")
+      let autoChild = newTestNode("auto-child", parent)
+      let grandchild1 = newTestNode("grandchild1", autoChild)
+      let grandchild2 = newTestNode("grandchild2", autoChild)
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -112,17 +115,18 @@ suite "Nested Content Size Tests":
       autoChild.gridItem.column = 1
       autoChild.gridItem.row = 1
       
-      computeLayout(parent, 0)
+      computeLayout(parent)
       
       # Auto track should accommodate largest child
       check autoChild.box.w >= 150
       check autoChild.box.h >= 70
       
     test "Multiple nested children in content-fit track":
-      let parent = newTestNode("parent", 0, 0, 400, 300)
+      let parent = newTestNode("parent")
       let fitContentChild = newTestNode("fit-content-child", parent)
-      let grandchild1 = newTestNode("grandchild1", 0, 0, 100, 50, fitContentChild)  # Set explicit size
-      let grandchild2 = newTestNode("grandchild2", 0, 0, 220, 70, fitContentChild)  # Set explicit size
+      let grandchild1 = newTestNode("grandchild1", fitContentChild)  # Set explicit size
+      let grandchild2 = newTestNode("grandchild2", fitContentChild)  # Set explicit size
+      parent.cxSize = [400'ux, 300'ux]
       
       # Setup grid
       parent.gridTemplate = newGridTemplate()
@@ -161,7 +165,8 @@ suite "Nested Content Size Tests":
       
     test "Comparing auto vs fit-content behavior":
       when false: # TODO: fixme!
-        let parent = newTestNode("parent", 0, 0, 300, 300)
+        let parent = newTestNode("parent")
+        parent.cxSize = [300'ux, 300'ux]
         
         # Create auto child
         let autoChild = newTestNode("auto-child", parent)

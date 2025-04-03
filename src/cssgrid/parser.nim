@@ -1,6 +1,7 @@
 import typetraits
 import macros except `$`
 import numberTypes, gridtypes
+import constraints
 
 export gridtypes
 
@@ -23,6 +24,14 @@ proc flatten(arg: NimNode): NimNode {.compileTime.} =
         result.add node[1]
         node = node[2]
     result.add node
+
+proc processAutoIdent(node: NimNode): NimNode {.compileTime.} =
+  ## Process 'auto' identifier to make it compatible with function calls
+  if node.kind == nnkIdent and node.strVal == "auto":
+    result = quote do:
+      csAuto()
+  else:
+    result = node
 
 proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
   result = (0, newStmtList())
@@ -60,6 +69,15 @@ proc parseTmplCmd*(tgt, arg: NimNode): (int, NimNode) {.compileTime.} =
           result[1].add quote do:
             `tgt`[`idxLit`].track = `subnode`
           incrIdx(result, idxLit)
+      elif node[0].repr == "min" or node[0].repr == "max" or node[0].repr == "minmax":
+        # Process function calls with potential 'auto' arguments
+        var processedNode = node.copyNimTree()
+        for i in 1..<node.len:
+          processedNode[i] = processAutoIdent(node[i])
+        
+        result[1].add quote do:
+          `tgt`[`idxLit`].track = `processedNode`
+        incrIdx(result, idxLit)
       else:
         result[1].add quote do:
           `tgt`[`idxLit`].track = `node`

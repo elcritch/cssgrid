@@ -33,6 +33,12 @@ proc `box=`*[T](v: T, box: UiBox) =
 template getParent*[N: GridNode](node: N): N =
   node.parent
 
+template getFrameBox*(node: GridNode): UiBox =
+  if node.frame.isNil:
+    uiBox(0,0,0,0)
+  else:
+    node.frame.windowSize
+
 template getParentBoxOrWindows*(node: GridNode): tuple[box, padding: UiBox] =
   if node.parent.isNil:
     (box: node.frame.windowSize, padding: uiBox(0,0,0,0))
@@ -50,21 +56,6 @@ proc newTestNode*(name: string, parent: TestNode = nil): TestNode =
   if parent != nil:
     parent.children.add(result)
 
-proc newTestNode*(name: string, x, y, w, h: float32, parent: TestNode = nil): TestNode =
-  result = TestNode(
-    name: name,
-    box: uiBox(0, 0, 0, 0),
-    cxOffset: [csFixed(x), csFixed(y)],
-    cxSize: [csFixed(w), csFixed(h)],
-    children: @[],
-    frame: Frame(windowSize: uiBox(0, 0, 800, 600)),
-    parent: parent
-  )
-  if parent != nil:
-    parent.children.add(result)
-
-# addChild proc removed to enforce the use of parent parameter in constructors
-
 # Convenience function to create a node with children
 proc newTestTree*(name: string, children: varargs[TestNode]): TestNode =
   result = newTestNode(name)
@@ -73,11 +64,6 @@ proc newTestTree*(name: string, children: varargs[TestNode]): TestNode =
     child.parent = result
 
 # Convenience function to create a positioned node with children
-proc newTestTree*(name: string, x, y, w, h: float32, children: varargs[TestNode]): TestNode =
-  result = newTestNode(name, x, y, w, h)
-  for child in children:
-    result.children.add(child)
-    child.parent = result
 
 proc toVal*[T](v: T): float =
   when distinctBase(UiScalar) is SomeFloat:

@@ -1,4 +1,3 @@
-
 import strformat
 import terminal
 
@@ -62,7 +61,7 @@ else:
           prettyPrintWriteMode.withStyle(fgWhite, text = arg & " ")
     prettyPrintWriteMode.withStyle(fgGreen, text = "\n")
 
-proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone) =
+proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   case cs.kind
   of UiAuto:
     mode.withStyle(fgCyan, text = "auto")
@@ -70,6 +69,8 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
     mode.withStyle(fgMagenta, text = &"{cs.frac.float:.2f}'fr")
   of UiPerc:
     mode.withStyle(fgYellow, text = &"{cs.perc.float:.2f}'pp")
+  of UiViewPort:
+    mode.withStyle(fgYellow, text = &"{cs.view.float:.2f}'vp")
   of UiFixed:
     mode.withStyle(fgGreen, text = &"{cs.coord.float:.2f}'ui")
   of UiContentMin:
@@ -78,50 +79,57 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
     mode.withStyle(fgBlue, text = "max-content")
   of UiContentFit:
     mode.withStyle(fgBlue, text = "fit-content")
+  of UiVariable:
+    if cssVars != nil:
+      let name = cssVars.variableName(cs)
+      let value = cssVars.resolveVariable(cs)
+      mode.withStyle(fgRed, text = &"var({name}: {value})")
+    else:
+      mode.withStyle(fgRed, text = &"var({cs.varIdx})")
 
-proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone) =
+proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   case c.kind
   of UiNone:
     mode.withStyle(fgBlue, text = "none")
   of UiValue:
-    prettyConstraintSize(c.value, indent, mode)
+    prettyConstraintSize(c.value, indent, mode, cssVars)
   of UiMin:
     mode.withStyle(fgWhite, text = "min(")
-    prettyConstraintSize(c.lmin, "", mode)
+    prettyConstraintSize(c.lmin, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.rmin, "", mode)
+    prettyConstraintSize(c.rmin, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ")")
   of UiMax:
     mode.withStyle(fgWhite, text = "max(")
-    prettyConstraintSize(c.lmax, "", mode)
+    prettyConstraintSize(c.lmax, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.rmax, "", mode)
+    prettyConstraintSize(c.rmax, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ")")
   of UiAdd:
     mode.withStyle(fgWhite, text = "add(")
-    prettyConstraintSize(c.ladd, "", mode)
+    prettyConstraintSize(c.ladd, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.radd, "", mode)
+    prettyConstraintSize(c.radd, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ")")
   of UiSub:
     mode.withStyle(fgWhite, text = "sub(")
-    prettyConstraintSize(c.lsub, "", mode)
+    prettyConstraintSize(c.lsub, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.rsub, "", mode)
+    prettyConstraintSize(c.rsub, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ")")
   of UiMinMax:
     mode.withStyle(fgWhite, text = "minmax(")
-    prettyConstraintSize(c.lmm, "", mode)
+    prettyConstraintSize(c.lmm, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ", ")
-    prettyConstraintSize(c.rmm, "", mode)
+    prettyConstraintSize(c.rmm, "", mode, cssVars)
     mode.withStyle(fgWhite, text = ")")
   of UiEnd:
     mode.withStyle(fgRed, text = "end")
 
-proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmNone) =
+proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   if line.track.kind != UiEnd:
     mode.withStyle(fgWhite, {styleBright}, text = indent & "track: ")
-    prettyConstraint(line.track, "", mode)
+    prettyConstraint(line.track, "", mode, cssVars)
     # withStyle(fgWhite, text = "\n")
     
     if line.aliases.len > 0:
@@ -142,7 +150,7 @@ proc prettyGridLine*(line: GridLine, indent = "", mode: ColorMode = cmNone) =
     mode.withStyle(fgRed, text = &" [end track]\n")
   mode.withStyle(fgWhite, text = "\n")
 
-proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNone) =
+proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   if grid.isNil:
     mode.withStyle(fgWhite, {styleBright}, text = indent & "GridTemplate: ")
     mode.withStyle(fgRed, text = "nil\n")
@@ -154,13 +162,13 @@ proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNo
   mode.withStyle(fgGreen, {styleBright}, text = indent & "  Columns:\n")
   for i, col in grid.lines[dcol]:
     mode.withStyle(fgYellow, text = indent & &"    [{i+1}]:")
-    prettyGridLine(col, indent & "  ", mode)
+    prettyGridLine(col, indent & "  ", mode, cssVars)
   
   # Add rows
   mode.withStyle(fgGreen, {styleBright}, text = indent & "  Rows:\n")
   for i, row in grid.lines[drow]:
     mode.withStyle(fgYellow, text = indent & &"    [{i+1}]:")
-    prettyGridLine(row, indent & "  ", mode)
+    prettyGridLine(row, indent & "  ", mode, cssVars)
   
   # Add properties
   mode.withStyle(fgMagenta, {styleBright}, text = indent & "  Properties:\n")
@@ -179,7 +187,7 @@ proc prettyGridTemplate*(grid: GridTemplate, indent = "", mode: ColorMode = cmNo
       text = value & "\n"
     )
 
-proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
+proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   # Node name
   mode.withStyle(fgWhite, {styleBright}, text = indent & "Node: ")
   mode.withStyle(fgGreen, text = node.name & "\n")
@@ -188,13 +196,13 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   for i, constraint in node.cxSize:
     let dir = if i == dcol: "W" else: "H"
     mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-    prettyConstraint(constraint, "", mode)
+    prettyConstraint(constraint, "", mode, cssVars)
   mode.withStyle(fgWhite, text = "\n")
   
   for i, constraint in node.cxOffset:
     let dir = if i == dcol: "X" else: "Y"
     mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-    prettyConstraint(constraint, "", mode)
+    prettyConstraint(constraint, "", mode, cssVars)
   mode.withStyle(fgWhite, text = "\n")
   
   var cnt = 0
@@ -204,7 +212,7 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
     if constraint != csNone():
       let dir = if i == dcol: "Xmin" else: "Ymin"
       mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "", mode)
+      prettyConstraint(constraint, "", mode, cssVars)
       cnt.inc()
   if cnt > 0:
     mode.withStyle(fgWhite, text = "\n")
@@ -214,7 +222,7 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
     if constraint != csNone():
       let dir = if i == dcol: "Xmax" else: "Ymax"
       mode.withStyle(fgWhite, {styleBright}, text = indent & &"  {dir}: ")
-      prettyConstraint(constraint, "", mode)
+      prettyConstraint(constraint, "", mode, cssVars)
       cnt.inc()
   if cnt > 0:
     mode.withStyle(fgWhite, text = "\n")
@@ -231,7 +239,7 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   
   # Grid template
   if not node.gridTemplate.isNil:
-    prettyGridTemplate(node.gridTemplate, indent & "  ", mode)
+    prettyGridTemplate(node.gridTemplate, indent & "  ", mode, cssVars)
 
   # Grid item
   if not node.gridItem.isNil:
@@ -250,12 +258,12 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone) =
   
   # Process children
   for child in node.children:
-    prettyLayout(child, indent & "  ", mode)
+    prettyLayout(child, indent & "  ", mode, cssVars)
 
-proc printLayout*(node: GridNode, mode: ColorMode = cmNone) =
-  prettyLayout(node, "", mode)
+proc printLayout*(node: GridNode, mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  prettyLayout(node, "", mode, cssVars)
   stdout.flushFile()
 
-proc printGrid*(grid: GridTemplate, mode: ColorMode = cmNone) =
-  prettyGridTemplate(grid, "", mode)
+proc printGrid*(grid: GridTemplate, mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
+  prettyGridTemplate(grid, "", mode, cssVars)
   stdout.flushFile()

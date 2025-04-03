@@ -65,12 +65,13 @@ proc propogateCalcs*(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScal
 
 
 # Helper function to get base size for constraint size
-proc getBaseSizeForConstraintSize*(
+proc getBaseSize*(
     grid: GridTemplate, 
+    cssVars: CssVariables,
     idx: int, 
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
-    cs: ConstraintSize
+    cs: ConstraintSize,
 ): UiScalar =
   # Handle different constraint size types
   case cs.kind
@@ -79,7 +80,10 @@ proc getBaseSizeForConstraintSize*(
   of UiPerc:
     # For percentage, we'd need container size
     # Just return the percentage as pixels for now
-    return cs.perc.UiScalar
+    return 0.UiScalar
+  of UiViewPort:
+    # For viewport units, similar to percentage but based on viewport
+    return 0.UiScalar
   of UiFrac:
     # For fractional, use min content if available
     if idx in trackSizes:
@@ -95,9 +99,15 @@ proc getBaseSizeForConstraintSize*(
       
       return baseSize
     return 0.UiScalar
+  of UiVariable:
+    var resolvedSize: ConstraintSize
+    if cssVars.lookupVariable(cs.varIdx, resolvedSize):
+      return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
+    return 0.UiScalar
 
-proc getBaseSize*(
+proc getTrackBaseSize*(
     grid: GridTemplate, 
+    cssVars: CssVariables,
     idx: int, 
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize]
@@ -125,6 +135,13 @@ proc getBaseSize*(
       if grid.lines[dir][idx].baseSize > 0:
         return grid.lines[dir][idx].baseSize
       return trackConstraint.value.perc.UiScalar  # Return percentage as pixels for now
+    of UiViewPort:
+      # For viewport-relative tracks, we'd need viewport size
+      # This should be properly handled in a full implementation
+      # For now, return a default size or existing base size
+      if grid.lines[dir][idx].baseSize > 0:
+        return grid.lines[dir][idx].baseSize
+      return trackConstraint.value.view.UiScalar  # Return view percentage as pixels for now
     of UiFrac:
       # For fractional tracks, use content contributions
       # to determine base size before distribution
@@ -152,20 +169,25 @@ proc getBaseSize*(
         
         return baseSize
       return 0.UiScalar
+    of UiVariable:
+      var resolvedSize: ConstraintSize
+      if cssVars.lookupVariable(trackConstraint.value.varIdx, resolvedSize):
+        return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
+      return 0.UiScalar
   of UiMin:
     # For min(), take the minimum of the two sizes
-    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lmin)
-    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rmin)
+    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmin)
+    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmin)
     return min(lhsSize, rhsSize)
   of UiMax:
     # For max(), take the maximum of the two sizes
-    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lmax)
-    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rmax)
+    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmax)
+    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmax)
     return max(lhsSize, rhsSize)
   of UiMinMax:
     # For minmax(), use the minimum as a floor and maximum as a ceiling
-    let minSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lmm)
-    let maxSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rmm)
+    let minSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmm)
+    let maxSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmm)
     
     # Get content contribution if available
     var contentSize = 0.UiScalar
@@ -176,13 +198,13 @@ proc getBaseSize*(
     return min(maxSize, max(minSize, contentSize))
   of UiAdd:
     # For addition, add the two sizes
-    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.ladd)
-    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.radd)
+    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.ladd)
+    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.radd)
     return lhsSize + rhsSize
   of UiSub:
     # For subtraction, subtract but ensure result is not negative
-    let lhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.lsub)
-    let rhsSize = getBaseSizeForConstraintSize(grid, idx, dir, trackSizes, trackConstraint.rsub)
+    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lsub)
+    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rsub)
     return max(0.UiScalar, lhsSize - rhsSize)
   of UiNone, UiEnd:
     # For none or end, return 0

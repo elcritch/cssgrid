@@ -1,6 +1,7 @@
 import numberTypes, constraints, gridtypes
 import basiccalcs
 import prettyprints
+import constraints
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
@@ -49,22 +50,40 @@ proc getConstraintValue*(node: GridNode, dir: GridDir, calc: CalcKind): Constrai
   of PADWH:
     node.cxPadSize[dir]
 
+proc getPadding*(node: GridNode): UiBox =
+  if node.isNil:
+    uiBox(0,0,0,0)
+  else:
+    node.bpad
+
+proc parentBox*(node: GridNode): UiBox =
+  let parent = node.getParent()
+  if parent.isNil:
+    node.getFrame()
+  else:
+    parent.box
+
 proc calcBasicConstraintImpl(
     node: GridNode,
     dir: GridDir,
     calc: CalcKind,
     f: var UiScalar,
     pf: UiScalar,
+    frameSize: UiScalar,
     f0 = 0.UiScalar, # starting point for field, e.g. for WH it'll be node XY's
     ppad = 0.UiScalar, # padding
+    cssVars: CssVariables, # Pass node.cssVars by default
 ) =
-  mixin getParentBoxOrWindows
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
   # debugPrint "calcBasicConstraintImpl: ", "name= ", node.name
-  let parentBox = node.getParentBoxOrWindows()
-  let isGridChild = not node.parent.isNil and not node.parent[].gridTemplate.isNil
+  let parent = node.getParent()
+  let frameBox = node.getFrameBox()
+  let parentBox = if parent.isNil: frameBox else: parent.box
+  let parentPadding = if parent.isNil: uiBox(0,0,0,0) else: parent.bpad
+
+  let isGridChild = not parent.isNil and not parent.gridTemplate.isNil
   proc calcBasic(val: ConstraintSize): UiScalar =
     block:
       var res: UiScalar
@@ -79,7 +98,10 @@ proc calcBasicConstraintImpl(
             res = frac.UiScalar * pf
         UiPerc(perc):
           if not isGridChild:
-            res = perc.UiScalar / 100.0.UiScalar * pf
+            res = perc.UiScalar * pf / 100.0.UiScalar
+        UiViewPort(view):
+          if not isGridChild:
+            res = view.UiScalar * frameSize / 100.0.UiScalar 
         UiContentMin():
           res = node.childBMins(dir)
         UiContentMax():
@@ -88,6 +110,14 @@ proc calcBasicConstraintImpl(
           # fit-content - calculate as max-content but clamped by available space
           res = node.childBMins(dir)
           res = min(res, pf)
+        UiVariable(varIdx):
+          # For variables, try to resolve them if there's a CSS variables container available
+          if not cssVars.isNil and varIdx in cssVars.variables:
+            let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
+            res = calcBasic(resolvedSize)
+          else:
+            # Default to auto if variable not found
+            res = if calc == WH: pf - f0 else: 0.UiScalar
       debugPrint "calcBasicCx:basic", "name=", node.name, "dir=", dir, "calc=", calc,
                   "val: ", val, "pf=", pf, "f0=", f0, "ppad=", ppad, "kind=", val.kind, " res: ", res
       res
@@ -120,7 +150,7 @@ proc calcBasicConstraintImpl(
 
   debugPrint "calcBasicCx:done: ", "name=", node.name, "dir=", dir, "calc=", calc, " val= ", f
 
-proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar) =
+proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f: var UiScalar, cssVars: CssVariables) =
   ## computes basic constraints for box'es when set
   ## this let's the use do things like set 90'pp (90 percent)
   ## of the box width post css grid or auto constraints layout
@@ -162,10 +192,14 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               debugPrint "calcBasicPost:fit-content: ", "res=", res, "childScreenSize=", childScreenSize
             if res == UiScalar.low():
               res = 0.0.UiScalar
-            #   # Clamp to available width (pf is parent width)
-            #   res = min(res, pf)
-            #   if res == UiScalar.low():
-            #     res = 0.0.UiScalar
+        UiVariable(varIdx):
+          # For variables, try to resolve them if there's a CSS variables container available
+          if not cssVars.isNil and varIdx in cssVars.variables:
+            let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
+            res = calcBasic(resolvedSize, f)
+          else:
+            # Default to the current value if variable not found
+            res = f
         _:
           res = f
       res
@@ -208,11 +242,12 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
 
 import std/typetraits
 
-proc calcBasicConstraint*(node: GridNode) =
+proc calcBasicConstraint*(node: GridNode, cssVars: CssVariables) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   var pboxes = node.getParentBoxOrWindows()
   var parentBox = pboxes.box
-  var parentPad = pboxes.padding
+  let parentPad = pboxes.padding
+  let frameBox = node.getFrameBox()
 
   when distinctBase(UiScalar) is SomeInteger:
     parentBox.wh = parentBox.wh.clamp(0) - parentPad.wh
@@ -225,35 +260,35 @@ proc calcBasicConstraint*(node: GridNode) =
   debugPrint "calcBasicConstraint:start", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
   # printLayout(node)
 
-  calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, parentPad.x)
-  calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, parentPad.y)
-  calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w, parentPad.w)
-  calcBasicConstraintImpl(node, drow, PADWH, node.bpad.h, parentBox.h, parentPad.h)
+  calcBasicConstraintImpl(node, dcol, PADXY, node.bpad.x, parentBox.x, frameSize=frameBox.x, parentPad.x, cssVars=cssVars)
+  calcBasicConstraintImpl(node, drow, PADXY, node.bpad.y, parentBox.y, frameSize=frameBox.y, parentPad.y, cssVars=cssVars)
+  calcBasicConstraintImpl(node, dcol, PADWH, node.bpad.w, parentBox.w, frameSize=frameBox.w, parentPad.w, cssVars=cssVars)
+  calcBasicConstraintImpl(node, drow, PADWH, node.bpad.h, parentBox.h, frameSize=frameBox.h, parentPad.h, cssVars=cssVars)
 
-  calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w)
-  calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h)
-  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w)
-  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h)
+  calcBasicConstraintImpl(node, dcol, MINSZ, node.bmin.w, parentBox.w, frameSize=frameBox.w, cssVars=cssVars)
+  calcBasicConstraintImpl(node, drow, MINSZ, node.bmin.h, parentBox.h, frameSize=frameBox.h, cssVars=cssVars)
+  calcBasicConstraintImpl(node, dcol, MAXSZ, node.bmax.w, parentBox.w, frameSize=frameBox.w, cssVars=cssVars)
+  calcBasicConstraintImpl(node, drow, MAXSZ, node.bmax.h, parentBox.h, frameSize=frameBox.h, cssVars=cssVars)
 
-  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, parentBox.x, parentPad.x)
-  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, parentBox.y, parentPad.y)
+  calcBasicConstraintImpl(node, dcol, XY, node.box.x, parentBox.w, frameSize=frameBox.w, parentBox.x, parentPad.x, cssVars=cssVars)
+  calcBasicConstraintImpl(node, drow, XY, node.box.y, parentBox.h, frameSize=frameBox.h, parentBox.y, parentPad.y, cssVars=cssVars)
   debugPrint "calcBasicConstraint:start:wh", "name=", node.name, "parentBox=", parentBox, node.box.w, parentBox.w, node.box.x-parentPad.x, -parentPad.w
-  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w-parentPad.w, node.box.x-parentPad.x, ppad= -parentPad.w)
-  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h-parentPad.h, node.box.y-parentPad.y, ppad= -parentPad.h)
+  calcBasicConstraintImpl(node, dcol, WH, node.box.w, parentBox.w-parentPad.w, frameSize=frameBox.w, parentBox.x, parentPad.x, cssVars=cssVars)
+  calcBasicConstraintImpl(node, drow, WH, node.box.h, parentBox.h-parentPad.h, frameSize=frameBox.h, parentBox.y, parentPad.y, cssVars=cssVars)
 
   # printLayout(node)
 
-proc calcBasicConstraintPost*(node: GridNode) =
+proc calcBasicConstraintPost*(node: GridNode, cssVars: CssVariables) =
   ## calcuate sizes of basic constraints per field x/y/w/h for each node
   debugPrint "calcBasicConstraintPost:start", "name=", node.name
-  calcBasicConstraintPostImpl(node, dcol, XY, node.box.w)
-  calcBasicConstraintPostImpl(node, drow, XY, node.box.h)
+  calcBasicConstraintPostImpl(node, dcol, XY, node.box.w, cssVars)
+  calcBasicConstraintPostImpl(node, drow, XY, node.box.h, cssVars)
 
-  calcBasicConstraintPostImpl(node, dcol, MINSZ, node.bmin.w)
-  calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h)
-  calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w)
-  calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h)
+  calcBasicConstraintPostImpl(node, dcol, MINSZ, node.bmin.w, cssVars)
+  calcBasicConstraintPostImpl(node, drow, MINSZ, node.bmin.h, cssVars)
+  calcBasicConstraintPostImpl(node, dcol, MAXSZ, node.bmax.w, cssVars)
+  calcBasicConstraintPostImpl(node, drow, MAXSZ, node.bmax.h, cssVars)
   # w & h need to run after x & y
-  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w)
-  calcBasicConstraintPostImpl(node, drow, WH, node.box.h)
+  calcBasicConstraintPostImpl(node, dcol, WH, node.box.w, cssVars)
+  calcBasicConstraintPostImpl(node, drow, WH, node.box.h, cssVars)
   debugPrint "calcBasicConstraintPost:done", "name=", node.name, "box=", node.box, "bmin=", node.bmin

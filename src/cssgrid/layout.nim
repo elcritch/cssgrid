@@ -371,33 +371,18 @@ proc initializeTrackSizes*(
     # 2. Set initial growth limit based on track type
     match track:
       UiValue(value):
-        case value.kind
-        of UiFixed:
-          # Fixed tracks have fixed growth limit
-          growthLimit = value.coord
-        of UiPerc:
-          # Percentage tracks limited by container * percentage
-          growthLimit = value.perc / 100.0.UiScalar * availableSpace
-        of UiViewPort:
-          # Viewport-relative tracks limited by viewport size
-          growthLimit = value.view * frameBox / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:viewportGrowthLimit", "dir=", dir, "i=", i, "growthLimit=", growthLimit, "value.view=", value.view, "viewportSize=", frameBox
-        of UiContentMin:
-          # min-content has min-content as growth limit
-          if i in trackSizes:
-            growthLimit = trackSizes[i].minContribution
-          else:
-            growthLimit = UiScalar.high()
-        of UiContentMax, UiContentFit:
-          # max-content has max-content as growth limit
-          if i in trackSizes:
-            growthLimit = trackSizes[i].maxContribution
-          else:
-            growthLimit = UiScalar.high()
-        of UiAuto, UiFrac:
+        # Use getBaseSize for growth limit calculation
+        if value.kind in {UiFixed, UiPerc, UiViewPort, UiContentMin, UiContentMax, UiContentFit}:
+          growthLimit = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
+          
+          # For viewport tracks, add debug information
+          if value.kind == UiViewPort:
+            debugPrint "initializeTrackSizes:viewportGrowthLimit", "dir=", dir, "i=", i, 
+                      "growthLimit=", growthLimit, "value.view=", value.view, "viewportSize=", frameBox
+        elif value.kind in {UiAuto, UiFrac}:
           # Auto and fr have infinity initially
           growthLimit = UiScalar.high()
-        of UiVariable:
+        elif value.kind == UiVariable:
           # For variables, use the base size of the variable
           if i in trackSizes:
             growthLimit = trackSizes[i].minContribution

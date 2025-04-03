@@ -354,6 +354,7 @@ proc initializeTrackSizes*(
       growthLimit = UiScalar.high()  # Infinity initially
     
     # 1. Set initial base size based on track type
+    baseSize = getTrackBaseSize(grid, cssVars, i, dir, trackSizes, frameSize=frameBox)
     match track:
       UiValue(value):
         baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
@@ -369,7 +370,7 @@ proc initializeTrackSizes*(
         baseSize = 0.UiScalar
     
     # 2. Set initial growth limit based on track type
-    growthLimit = getTrackBaseSize(grid, cssVars, i, dir, trackSizes, frameBox)
+    growthLimit = getTrackBaseSize(grid, cssVars, i, dir, trackSizes, frameSize=frameBox)
     match track:
       UiValue(value):
         if value.kind in {UiAuto, UiFrac}:
@@ -883,7 +884,7 @@ proc trackSizingAlgorithm*(
       
       if trackConstraint.isFixed():
         # This is a track with a definite size
-        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes, frameSize)
+        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes, frameSize=frameSize)
         debugPrint "trackSizingAlgorithm:fixedTrackSum", "dir=", dir, "i=", i, "fixedTrackSum=", fixedTrackSum
       elif trackConstraint.isFrac():
         hasFractionalTracks = true

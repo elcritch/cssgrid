@@ -130,7 +130,8 @@ proc getTrackBaseSize*(
     idx: int, 
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
-    frameSize: UiScalar
+    containerSize: UiScalar = 0.UiScalar,
+    frameSize: UiScalar = 0.UiScalar
 ): UiScalar =
   ## Get the base size for a track based on its constraint type and content contributions
   ## According to CSS Grid spec section 12.4

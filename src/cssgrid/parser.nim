@@ -109,6 +109,15 @@ macro gridTemplateImpl*(gridTmpl, args: untyped, field: untyped) =
       `cols`
   # echo "gt:result: ", result.repr
 
+# Add specific handling for minmax function to make sure it's treated correctly
+macro minmax*(min, max: untyped): untyped =
+  # Process 'auto' identifiers in both arguments
+  let processedMin = processAutoIdent(min)
+  let processedMax = processAutoIdent(max)
+  
+  result = quote do:
+    csMinMax(`processedMin`, `processedMax`)
+
 macro `!@`*(arg: untyped{nkBracket}): auto =
   result = nnkBracket.newTree()
   for a in arg:

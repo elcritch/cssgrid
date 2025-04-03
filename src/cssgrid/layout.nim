@@ -337,13 +337,14 @@ proc initializeTrackSizes*(
     grid: GridTemplate, 
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
+    cssVars: CssVariables,
     availableSpace: UiScalar,
     containerSize: UiScalar,
     node: GridNode = nil
 ) =
   ## Initialize each track's base size and growth limit (Step 12.4 in spec)
   ## This sets initial values before the rest of the algorithm runs
-  let frameBox = node.getFrameBox()
+  let frameBox = node.getFrameBox().wh[dir]
 
   for i, gridLine in grid.lines[dir].mpairs:
     # Get the track sizing constraint
@@ -355,141 +356,47 @@ proc initializeTrackSizes*(
     # 1. Set initial base size based on track type
     match track:
       UiValue(value):
-        case value.kind
-        of UiFixed:
-          # Fixed tracks start at their specified size
-          baseSize = value.coord
-        of UiPerc:
-          # Percentage tracks are based on container size
-          baseSize = value.perc * containerSize / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:baseSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.perc=", value.perc, "containerSize=", containerSize
-        of UiViewPort:
-          # Viewport-relative tracks are based on the viewport size
-          baseSize = value.view * frameBox.wh[dir] / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:viewportSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "value.view=", value.view, "viewportSize=", frameBox.wh[dir]
-        of UiContentMin, UiAuto:
-          # For intrinsic min sizing, use min-content contribution if available
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
-        of UiContentMax, UiContentFit:
-          # For max-content sizing, also use min-content initially
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
-        of UiFrac:
-          # Flexible tracks start at 0
-          baseSize = 0.UiScalar
-        of UiVariable:
-          # For variables, use the base size of the variable
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
+        baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
       UiMin(lmin, rmin):
-        # For minmax(), use min value for base size
         case lmin.kind
-        of UiFixed:
-          baseSize = lmin.coord
-        of UiPerc:
-          baseSize = lmin.perc / 100.0.UiScalar * availableSpace
-        of UiViewPort:
-          # Viewport-relative tracks are based on viewport size
-          baseSize = lmin.view * frameBox.wh[dir] / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:viewportSize", "dir=", dir, "i=", i, "baseSize=", baseSize, "availableSpace=", availableSpace, "viewportSize=", frameBox.wh[dir]
-        of UiContentMin, UiAuto:
-          # Intrinsic min sizing with content
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
-        of UiContentMax, UiContentFit:
-          # Max content as min value
-          if i in trackSizes:
-            baseSize = trackSizes[i].maxContribution
-          else:
-            baseSize = 0.UiScalar
         of UiFrac:
           # Min with fr is treated as 0
           baseSize = 0.UiScalar
-        of UiVariable:
-          # For variables, use the base size of the variable
-          if i in trackSizes:
-            baseSize = trackSizes[i].minContribution
-          else:
-            baseSize = 0.UiScalar
+        else:
+          # For min(), take the minimum of the two sizes
+          let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmin, containerSize, frameBox)
+          let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, rmin, containerSize, frameBox)
+          baseSize = min(lhsSize, rhsSize)
+      UiMax:
+        # For max(), take the maximum of the two sizes
+        let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.lmax, containerSize, frameBox)
+        let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.rmax, containerSize, frameBox)
+        baseSize = max(lhsSize, rhsSize)
+      UiMinMax(lmm, rmm):
+        # For minmax(), special handling according to CSS Grid spec
+        if lmm.kind == UiFrac:
+          # If min is fr and max is a fixed value, min is treated as 0
+          baseSize = 0.UiScalar
+        else:
+          baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmm, containerSize, frameBox)
+          let maxSize = getBaseSize(grid, cssVars, i, dir, trackSizes, rmm, containerSize, frameBox)
+          baseSize = min(maxSize, baseSize)
       _:
         baseSize = 0.UiScalar
     
     # 2. Set initial growth limit based on track type
+    growthLimit = getTrackBaseSize(grid, cssVars, i, dir, trackSizes, frameSize=frameBox)
     match track:
       UiValue(value):
-        case value.kind
-        of UiFixed:
-          # Fixed tracks have fixed growth limit
-          growthLimit = value.coord
-        of UiPerc:
-          # Percentage tracks limited by container * percentage
-          growthLimit = value.perc / 100.0.UiScalar * availableSpace
-        of UiViewPort:
-          # Viewport-relative tracks limited by viewport size
-          growthLimit = value.view * frameBox.wh[dir] / 100.0.UiScalar
-          debugPrint "initializeTrackSizes:viewportGrowthLimit", "dir=", dir, "i=", i, "growthLimit=", growthLimit, "value.view=", value.view, "viewportSize=", frameBox.wh[dir]
-        of UiContentMin:
-          # min-content has min-content as growth limit
-          if i in trackSizes:
-            growthLimit = trackSizes[i].minContribution
-          else:
-            growthLimit = UiScalar.high()
-        of UiContentMax, UiContentFit:
-          # max-content has max-content as growth limit
-          if i in trackSizes:
-            growthLimit = trackSizes[i].maxContribution
-          else:
-            growthLimit = UiScalar.high()
-        of UiAuto, UiFrac:
-          # Auto and fr have infinity initially
+        if value.kind in {UiAuto, UiFrac}:
           growthLimit = UiScalar.high()
-        of UiVariable:
-          # For variables, use the base size of the variable
-          if i in trackSizes:
-            growthLimit = trackSizes[i].minContribution
-          else:
-            growthLimit = UiScalar.high()
       UiMin(lmin, rmin):
-        # For minmax(), use max value for growth limit
-        case rmin.kind
-        of UiFixed:
-          growthLimit = rmin.coord
-        of UiPerc:
-          growthLimit = rmin.perc / 100.0.UiScalar * availableSpace
-        of UiViewPort:
-          # Viewport-relative tracks are limited by viewport size
-          growthLimit = rmin.view * frameBox.wh[dir] / 100.0.UiScalar
-        of UiContentMin:
-          # min-content has min-content as growth limit
-          if i in trackSizes:
-            growthLimit = trackSizes[i].minContribution
-          else:
-            growthLimit = UiScalar.high()
-        of UiContentMax, UiContentFit:
-          if i in trackSizes:
-            growthLimit = trackSizes[i].maxContribution
-          else:
-            growthLimit = UiScalar.high()
-        of UiAuto, UiFrac:
-          # Auto and fr max values are infinity
+        if rmin.kind in {UiAuto, UiFrac}:
           growthLimit = UiScalar.high()
-        of UiVariable:
-          # For variables, use the base size of the variable
-          if i in trackSizes:
-            growthLimit = trackSizes[i].minContribution
-          else:
-            growthLimit = UiScalar.high()
-      _:
-        growthLimit = baseSize
+      UiMinMax(lmm, rmm):
+        if rmm.kind in {UiAuto, UiFrac}:
+          growthLimit = UiScalar.high()
+      _: discard
     
     # 3. Ensure growth limit is at least as large as base size
     growthLimit = max(growthLimit, baseSize)
@@ -526,9 +433,9 @@ proc resolveIntrinsicTrackSizes*(
             gridLine.width = contentSize  # This is critical - set width directly
             gridLine.growthLimit = max(gridLine.growthLimit, contentSize)
             
-            # debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
-            #           "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
-            #           "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
+            debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
+                      "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
+                      "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
         
         # Handle other intrinsic sizing functions as before
         elif isIntrinsicSizing(value) and value.kind != UiFrac:
@@ -577,6 +484,14 @@ proc resolveIntrinsicTrackSizes*(
           if i in trackSizes:
             gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].maxContribution)
       
+      UiMinMax(lmm, rmm):
+        if rmm.kind in {UiContentMin, UiAuto}:
+          if i in trackSizes:
+            gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].minContribution)
+        elif rmm.kind in {UiContentMax, UiContentFit}:
+          if i in trackSizes:
+            gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].maxContribution)
+
       _: discard
       
     # Always ensure growth limit is at least as large as base size
@@ -980,6 +895,7 @@ proc trackSizingAlgorithm*(
   ## Track sizing algorithm as defined in Section 12.3 of the spec
   
   # Calculate available space using our container size calculation
+  let frameSize = node.getFrameBox().wh[dir]
   let containerSize = calculateContainerSize(node, dir)
   var availableSpace = containerSize
   debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
@@ -994,7 +910,7 @@ proc trackSizingAlgorithm*(
       
       if trackConstraint.isFixed():
         # This is a track with a definite size
-        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes)
+        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes, frameSize=frameSize)
         debugPrint "trackSizingAlgorithm:fixedTrackSum", "dir=", dir, "i=", i, "fixedTrackSum=", fixedTrackSum
       elif trackConstraint.isFrac():
         hasFractionalTracks = true
@@ -1015,7 +931,7 @@ proc trackSizingAlgorithm*(
   #   debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
 
   # Step 1: Initialize track sizes with base size and growth limit
-  initializeTrackSizes(grid, dir, trackSizes, availableSpace, containerSize, node)
+  initializeTrackSizes(grid, dir, trackSizes, cssVars, availableSpace, containerSize, node)
 
   # Step 2: Resolve sizes of intrinsic tracks (min-content/max-content)
   resolveIntrinsicTrackSizes(grid, dir, trackSizes, availableSpace)
@@ -1206,8 +1122,8 @@ proc runGridLayoutAlgorithm*(node: GridNode, cssVars: CssVariables) =
   computeOverflowSizes(node)
   
   # Debug output
-  prettyGridTemplate(gridTemplate)
-  printLayout(node)
+  # prettyGridTemplate(gridTemplate)
+  # printLayout(node)
 
   # 4. Lay out the grid items
   for child in node.children:
@@ -1280,7 +1196,7 @@ proc computeLayout*(node: GridNode, depth: int, cssVars: CssVariables, full = tr
     for n in node.children:
       computeLayout(n, depth + 1, cssVars)
 
-    printLayout(node)
+    # printLayout(node)
     node.box = node.gridTemplate.computeNodeLayout(node, cssVars).UiBox
 
     for n in node.children:

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Grid - Simple Grid Layout with Min Column</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 20px;
+            line-height: 1.5;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        
+        .grid-parent {
+            display: grid;
+            grid-template-columns: min(100px, 25%) 1fr;
+            /* grid-template-columns: 1fr max(25%, 100px); */
+            grid-template-rows: 100px;
+            gap: 0;
+            border: 2px solid #333;
+            position: relative;
+            margin-bottom: 40px;
+        }
+        
+        .grid-child {
+            position: relative;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .grid-child1 {
+            min-width: 25px;
+            grid-column: 1 / 2;
+            background: #8ecae6;
+            border: 1px solid #219ebc;
+        }
+        
+        .grid-child2 {
+            min-width: 25px;
+            grid-column: 2 / 3;
+            background: #ffb703;
+            border: 1px solid #fb8500;
+        }
+        
+        .dimensions {
+            position: absolute;
+            bottom: 5px;
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.7);
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .parent-size {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .code {
+            background: #f4f4f4;
+            border-left: 4px solid #333;
+            padding: 10px;
+            margin: 20px 0;
+            white-space: pre;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        .info-box {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .description {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Grid - Simple Grid Layout with Min Column</h1>
+    
+    <div class="description">
+        <p>This example demonstrates a two-column grid layout where:</p>
+        <ul>
+            <li>First column uses <code>min(100px, 1fr)</code> which means it will be at least 100px wide, but can grow to 1fr if there's space</li>
+            <li>Second column is <code>1fr</code> which means it will take up the remaining space</li>
+            <li>The grid has one row with a fixed height of 100px</li>
+        </ul>
+    </div>
+    
+    <div class="info-box">
+        <p>Test the behavior by resizing the grid container with the buttons below:</p>
+        <p>Notice how the first column stays at 100px minimum but grows to share space when the container is large enough.</p>
+    </div>
+    
+    <div class="controls">
+        <button onclick="setSize(400)">Set 400px Width</button>
+        <button onclick="setSize(1000)">Set 1000px Width</button>
+        <button onclick="setSize(150)">Set 150px Width</button>
+        <span class="parent-size">Current width: <span id="parent-width">400</span>px</span>
+    </div>
+    
+    <div class="grid-parent" id="grid-parent">
+        <div class="grid-child grid-child1" id="grid-child1">
+            <span>Grid Child 1</span>
+            <span class="dimensions" id="child1-dim">100px × 100px</span>
+        </div>
+        <div class="grid-child grid-child2" id="grid-child2">
+            <span>Grid Child 2</span>
+            <span class="dimensions" id="child2-dim">300px × 100px</span>
+        </div>
+    </div>
+    
+    <div class="code">Grid template:
+grid-template-columns: min(100px, 1fr) 1fr;
+grid-template-rows: 100px;</div>
+    
+    <div class="code">Test cases from the original Nim code:
+// Width: 400px
+child1.box.w == 100px
+child2.box.w == 300px
+
+// Width: 1000px
+child1.box.w == 125px
+child2.box.w == 875px
+
+// Width: 200px
+child1.box.w == 100px
+child2.box.w == 100px</div>
+    
+    <script>
+        function updateDimensions() {
+            const parent = document.getElementById('grid-parent');
+            const child1 = document.getElementById('grid-child1');
+            const child2 = document.getElementById('grid-child2');
+            
+            const child1Dim = document.getElementById('child1-dim');
+            const child2Dim = document.getElementById('child2-dim');
+            
+            child1Dim.textContent = `${child1.offsetWidth}px × ${child1.offsetHeight}px`;
+            child2Dim.textContent = `${child2.offsetWidth}px × ${child2.offsetHeight}px`;
+        }
+        
+        function setSize(width) {
+            const parent = document.getElementById('grid-parent');
+            parent.style.width = `${width}px`;
+            document.getElementById('parent-width').textContent = width;
+            updateDimensions();
+        }
+        
+        // Initialize with 400px width
+        window.onload = function() {
+            setSize(400);
+        };
+        
+        // Update dimensions when window is resized
+        window.addEventListener('resize', updateDimensions);
+    </script>
+</body>
+</html> 

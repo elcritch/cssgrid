@@ -141,6 +141,25 @@ suite "grids":
 
     # check gt.getLine(dcol, ln"first").track
 
+  test "compute others":
+    var gt: GridTemplate
+
+    expandMacros:
+      parseGridTemplateColumns gt, ["first"] 40'ux \
+        ["second", "line2"] 50'ux \
+        ["line3"] minmax(auto, 100'ux) \
+        ["col4-start"] 50'ux \
+        ["five"] 40'ux ["end"]
+      parseGridTemplateRows gt, repeat(6, 1'fr) auto ["end"]
+
+    check gt.lines[dcol].len() == 6
+    check gt.lines[drow].len() == 8
+    check gt.lines[dcol][2].track == csMinMax(csAuto(), 100'ux)
+    for i in 0..5:
+      check gt.lines[drow][i].track == csFrac(1.0)
+    check gt.lines[drow][6].track == csAuto()
+    check gt.lines[drow][7].track == csEnd()
+
   test "viewport units":
     # Test viewport-relative units
     let viewportConstraint = 50'vp

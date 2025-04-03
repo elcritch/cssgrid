@@ -310,8 +310,8 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       printLayout(parent, cmTerminal)
       prettyPrintWriteMode = cmNone
-      check child1.box.w == 38
-      check child2.box.w == 112
+      check child1.box.w.float32.round(0) == 38
+      check child2.box.w.float32.round(0) == 113
       
   test "Simple grid layout with max column":
       let parent = newTestNode("grid-parent")

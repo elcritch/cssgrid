@@ -363,7 +363,10 @@ proc initializeTrackSizes*(
           # Min with fr is treated as 0
           baseSize = 0.UiScalar
         else:
-          baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmin, containerSize, frameBox)
+          # For min(), take the minimum of the two sizes
+          let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmin, containerSize, frameBox)
+          let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, rmin, containerSize, frameBox)
+          baseSize = min(lhsSize, rhsSize)
       UiMax:
         # For max(), take the maximum of the two sizes
         let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.lmax, containerSize, frameBox)

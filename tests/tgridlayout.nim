@@ -293,16 +293,16 @@ suite "Compute Layout Tests":
       printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 100  # Half of parent width
-      check child2.box.w == 300  # Half of parent width
+      check child1.box.w == 100
+      check child2.box.w == 300
 
       parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 100  # Half of parent width
-      check child2.box.w == 900  # Half of parent width
+      check child1.box.w == 100
+      check child2.box.w == 900
 
       parent.cxSize = [150'ux, 300'ux]  # set fixed parent
       prettyPrintWriteMode = cmTerminal
@@ -310,8 +310,8 @@ suite "Compute Layout Tests":
       computeLayout(parent)
       printLayout(parent, cmTerminal)
       prettyPrintWriteMode = cmNone
-      check child1.box.w == 38  # Half of parent width
-      check child2.box.w == 112  # Half of parent width
+      check child1.box.w == 38
+      check child2.box.w == 112
       
   test "Simple grid layout with max column":
       let parent = newTestNode("grid-parent")
@@ -320,7 +320,7 @@ suite "Compute Layout Tests":
       
       # Setup grid template
 
-      parseGridTemplateColumns parent.gridTemplate, 1'fr max(100'ux, 25'pp)
+      parseGridTemplateColumns parent.gridTemplate, max(100'ux, 25'pp) 1'fr
       parseGridTemplateRows parent.gridTemplate, 100'ux
       
       # Setup grid items
@@ -337,23 +337,23 @@ suite "Compute Layout Tests":
       # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 300  # Half of parent width
-      check child2.box.w == 100  # Half of parent width
+      check child1.box.w == 100
+      check child2.box.w == 300
 
       parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      check child1.box.w == 750  # Half of parent width
-      check child2.box.w == 250  # Half of parent width
+      check child1.box.w == 250
+      check child2.box.w == 750
 
       parent.cxSize = [150'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
       
       # Children should each take up half the width
-      check child1.box.w == 50  # Half of parent width
-      check child2.box.w == 100  # Half of parent width
+      check child1.box.w == 100
+      check child2.box.w == 50
 
       
   test "Simple grid layout with minmax columns":

@@ -93,6 +93,8 @@ proc getBaseSize*(
     dir: GridDir,
     trackSizes: Table[int, ComputedTrackSize],
     cs: ConstraintSize,
+    containerSize: UiScalar = 0.UiScalar,
+    frameSize: UiScalar = 0.UiScalar
 ): UiScalar =
   # Handle different constraint size types
   case cs.kind
@@ -101,10 +103,10 @@ proc getBaseSize*(
   of UiPerc:
     # For percentage, we'd need container size
     # Just return the percentage as pixels for now
-    return 0.UiScalar
+    return cs.perc * containerSize / 100.0.UiScalar
   of UiViewPort:
     # For viewport units, similar to percentage but based on viewport
-    return 0.UiScalar
+    return cs.view * frameSize / 100.0.UiScalar
   of UiFrac:
     # For fractional, use min content if available
     if idx in trackSizes:
@@ -171,32 +173,30 @@ proc getTrackBaseSize*(
       if idx in trackSizes:
         # Use the max of min-content and any existing base size
         return max(trackSizes[idx].minContribution, grid.lines[dir][idx].baseSize)
-      return 0.UiScalar
-    of UiAuto, UiContentMin, UiContentMax, UiContentFit:
-      # For auto and content-sized tracks, use content contributions
+    of UiAuto:
+      # For auto tracks, use content contributions
       if idx in trackSizes:
-        # Start with min contribution as base size
         let baseSize = trackSizes[idx].minContribution
-        
-        # For auto tracks, consider existing base size too
-        if trackConstraint.value.kind == UiAuto and grid.lines[dir][idx].baseSize > 0:
+        # Consider existing base size too
+        if grid.lines[dir][idx].baseSize > 0:
           return max(baseSize, grid.lines[dir][idx].baseSize)
-        
-        # For min-content, just use min contribution
-        if trackConstraint.value.kind == UiContentMin:
-          return baseSize
-        
-        # For max-content, use max contribution
-        if trackConstraint.value.kind == UiContentMax or trackConstraint.value.kind == UiContentFit:
-          return max(baseSize, trackSizes[idx].maxContribution)
-        
         return baseSize
-      return 0.UiScalar
+    of UiContentMin:
+      # For min-content, just use min contribution
+      if idx in trackSizes:
+        return trackSizes[idx].minContribution
+    of UiContentMax:
+      # For max-content, use max contribution
+      if idx in trackSizes:
+        return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
+    of UiContentFit:
+      # For content-fit, use max contribution (same as max-content)
+      if idx in trackSizes:
+        return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
     of UiVariable:
       var resolvedSize: ConstraintSize
       if cssVars.lookupVariable(trackConstraint.value.varIdx, resolvedSize):
         return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
-      return 0.UiScalar
   of UiMin:
     # For min(), take the minimum of the two sizes
     let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmin)

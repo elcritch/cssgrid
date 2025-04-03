@@ -337,32 +337,32 @@ suite "Compute Layout Tests":
       child2.gridItem.column = 2
       child2.gridItem.row = 1
       
-      parent.cxSize = [100'ux, 300'ux]  # set fixed parent
+      parent.cxSize = [150'ux, 300'ux]  # set fixed parent
+      prettyPrintWriteMode = cmTerminal
       computeLayout(parent)
       # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
       check child1.box.w == 50  # Half of parent width
-      check child2.box.w == 50  # Half of parent width
+      check child2.box.w == 100  # Half of parent width
       check child1.box.h == 100  # Fixed height from grid
       check child2.box.h == 100  # Fixed height from grid
-      # check child1.box.x == 0  # Fixed height from grid
-      # check child2.box.x == 50  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 50  # Fixed height from grid
 
-      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
-      prettyPrintWriteMode = cmTerminal
+      parent.cxSize = [600'ux, 300'ux]  # set fixed parent
       defer: prettyPrintWriteMode = cmNone
       addPrettyPrintFilter("dir", "dcol")
       computeLayout(parent)
       printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
-      # check child1.box.w == 300  # Half of parent width
-      # check child2.box.w == 700  # Half of parent width
+      check child1.box.w == 300  # Half of parent width
+      check child2.box.w == 300  # Half of parent width
       check child1.box.h == 100  # Fixed height from grid
       check child2.box.h == 100  # Fixed height from grid
-      # check child1.box.x == 0  # Fixed height from grid
-      # check child2.box.x == 300  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 300  # Fixed height from grid
       
 
   test "Grid with mixed units":

@@ -354,7 +354,6 @@ proc initializeTrackSizes*(
       growthLimit = UiScalar.high()  # Infinity initially
     
     # 1. Set initial base size based on track type
-    baseSize = getTrackBaseSize(grid, cssVars, i, dir, trackSizes, frameSize=frameBox)
     match track:
       UiValue(value):
         baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
@@ -366,6 +365,11 @@ proc initializeTrackSizes*(
           baseSize = 0.UiScalar
         else:
           baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmin, containerSize, frameBox)
+      UiMax:
+        # For max(), take the maximum of the two sizes
+        let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.lmax)
+        let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.rmax)
+        baseSize = max(lhsSize, rhsSize)
       _:
         baseSize = 0.UiScalar
     
@@ -415,9 +419,9 @@ proc resolveIntrinsicTrackSizes*(
             gridLine.width = contentSize  # This is critical - set width directly
             gridLine.growthLimit = max(gridLine.growthLimit, contentSize)
             
-            # debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
-            #           "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
-            #           "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
+            debugPrint "resolveIntrinsicTrackSizes:contentMin", "dir=", dir, "track=", i,
+                      "contentSize=", contentSize, "baseSize=", gridLine.baseSize, 
+                      "width=", gridLine.width, "growthLimit=", gridLine.growthLimit
         
         # Handle other intrinsic sizing functions as before
         elif isIntrinsicSizing(value) and value.kind != UiFrac:

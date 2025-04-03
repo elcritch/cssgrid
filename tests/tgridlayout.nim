@@ -364,6 +364,76 @@ suite "Compute Layout Tests":
       check child1.box.x == 0  # Fixed height from grid
       check child2.box.x == 300  # Fixed height from grid
       
+  test "Simple grid layout with minmax columns":
+      let parent = newTestNode("grid-parent")
+      let child1 = newTestNode("grid-child1", parent)
+      let child2 = newTestNode("grid-child2", parent)
+      let child3 = newTestNode("grid-child3", parent)
+      
+      # Setup grid template with minmax
+      parseGridTemplateColumns parent.gridTemplate, minmax(200'ux, 500'ux) 1'fr 1'fr
+      parseGridTemplateRows parent.gridTemplate, 100'ux
+      
+      # Setup grid items
+      child1.gridItem = newGridItem()
+      child1.gridItem.column = 1
+      child1.gridItem.row = 1
+      
+      child2.gridItem = newGridItem()
+      child2.gridItem.column = 2
+      child2.gridItem.row = 1
+
+      child3.gridItem = newGridItem()
+      child3.gridItem.column = 3
+      child3.gridItem.row = 1
+      
+      # Test case 1: Small parent width where minmax is clamped to minimum
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
+      prettyPrintWriteMode = cmTerminal
+      computeLayout(parent)
+      # printLayout(parent, cmTerminal)
+      
+      # First column gets minimum width, remaining space distributed equally
+      check child1.box.w == 200  # Minimum size from minmax
+      check child2.box.w == 100  # Remaining space divided equally (1fr)
+      check child3.box.w == 100  # Remaining space divided equally (1fr)
+      check child1.box.h == 100  # Fixed height from grid
+      check child2.box.h == 100  # Fixed height from grid
+      check child3.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0    # First column position
+      check child2.box.x == 200  # Second column position
+      check child3.box.x == 300  # Third column position
+      
+      # Test case 2: Medium parent width where minmax is within range
+      parent.cxSize = [900'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      
+      # First column gets 500px (capped by max), remaining space divided equally
+      check child1.box.w == 500  # Maximum size from minmax
+      check child2.box.w == 200  # Remaining space divided equally (1fr)
+      check child3.box.w == 200  # Remaining space divided equally (1fr)
+      check child1.box.h == 100  # Fixed height from grid
+      check child2.box.h == 100  # Fixed height from grid
+      check child3.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0    # First column position
+      check child2.box.x == 500  # Second column position
+      check child3.box.x == 700  # Third column position
+      
+      # Test case 3: Large parent width where 1fr units have plenty of space
+      parent.cxSize = [1500'ux, 300'ux]  # set fixed parent
+      defer: prettyPrintWriteMode = cmNone
+      computeLayout(parent)
+      
+      # First column stays at max, remaining space divided equally
+      check child1.box.w == 500   # Maximum size from minmax
+      check child2.box.w == 500   # Remaining space divided equally (1fr)
+      check child3.box.w == 500   # Remaining space divided equally (1fr)
+      check child1.box.h == 100   # Fixed height from grid
+      check child2.box.h == 100   # Fixed height from grid
+      check child3.box.h == 100   # Fixed height from grid
+      check child1.box.x == 0     # First column position
+      check child2.box.x == 500   # Second column position
+      check child3.box.x == 1000  # Third column position
 
   test "Grid with mixed units":
     when true:

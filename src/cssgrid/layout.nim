@@ -358,7 +358,6 @@ proc initializeTrackSizes*(
       UiValue(value):
         baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
       UiMin(lmin, rmin):
-        # For minmax(), use min value for base size
         case lmin.kind
         of UiFrac:
           # Min with fr is treated as 0
@@ -372,15 +371,13 @@ proc initializeTrackSizes*(
         baseSize = max(lhsSize, rhsSize)
       UiMinMax(lmm, rmm):
         # For minmax(), special handling according to CSS Grid spec
-        if lmm.kind == UiFrac and not isContentSized(rmm):
+        if lmm.kind == UiFrac:
           # If min is fr and max is a fixed value, min is treated as 0
           baseSize = 0.UiScalar
         else:
           baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmm, containerSize, frameBox)
           let maxSize = getBaseSize(grid, cssVars, i, dir, trackSizes, rmm, containerSize, frameBox)
-          if maxSize < baseSize:
-            # If max < min, max is ignored
-            baseSize = baseSize
+          baseSize = min(maxSize, baseSize)
       _:
         baseSize = 0.UiScalar
     
@@ -484,6 +481,14 @@ proc resolveIntrinsicTrackSizes*(
           if i in trackSizes:
             gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].maxContribution)
       
+      UiMinMax(lmm, rmm):
+        if rmm.kind in {UiContentMin, UiAuto}:
+          if i in trackSizes:
+            gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].minContribution)
+        elif rmm.kind in {UiContentMax, UiContentFit}:
+          if i in trackSizes:
+            gridLine.growthLimit = max(gridLine.growthLimit, trackSizes[i].maxContribution)
+
       _: discard
       
     # Always ensure growth limit is at least as large as base size

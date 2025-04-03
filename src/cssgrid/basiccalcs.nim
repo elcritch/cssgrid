@@ -215,7 +215,7 @@ proc getTrackBaseSize*(
     let maxVal = trackConstraint.rmm
     
     var minSize: UiScalar
-    if minVal.kind == UiFrac and not isContentSized(maxVal):
+    if minVal.kind == UiFrac:
       # If min is fr and max is not content-sized, min is treated as 0
       minSize = 0.UiScalar
     else:

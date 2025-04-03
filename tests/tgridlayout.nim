@@ -68,6 +68,7 @@ suite "Compute Layout Tests":
     check child2.box.w == 280  # 70% of 400
     check child2.box.h == 120  # 40% of 300
 
+
   test "vertical layout auto":
     when true:
 
@@ -267,6 +268,56 @@ suite "Compute Layout Tests":
       check child2.box.h == 100  # Fixed height from grid
       check child1.box.x == 0  # Fixed height from grid
       check child2.box.x == 200  # Fixed height from grid
+
+  test "Simple grid layout with min column":
+      let parent = newTestNode("grid-parent")
+      let child1 = newTestNode("grid-child1", parent)
+      let child2 = newTestNode("grid-child2", parent)
+      
+      # Setup grid template
+
+      parseGridTemplateColumns parent.gridTemplate, min(100'ux, 1'fr) 7'fr
+      parseGridTemplateRows parent.gridTemplate, 100'ux
+      
+      # Setup grid items
+      child1.gridItem = newGridItem()
+      child1.gridItem.column = 1
+      child1.gridItem.row = 1
+      
+      child2.gridItem = newGridItem()
+      child2.gridItem.column = 2
+      child2.gridItem.row = 1
+      
+      parent.cxSize = [400'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      printLayout(parent, cmTerminal)
+      
+      # Children should each take up half the width
+      check child1.box.w == 100  # Half of parent width
+      check child2.box.w == 300  # Half of parent width
+      check child1.box.h == 100  # Fixed height from grid
+      check child2.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 100  # Fixed height from grid
+
+      parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      printLayout(parent, cmTerminal)
+      
+      # Children should each take up half the width
+      check child1.box.w == 125  # Half of parent width
+      check child2.box.w == 875  # Half of parent width
+      check child1.box.h == 100  # Fixed height from grid
+      check child2.box.h == 100  # Fixed height from grid
+      check child1.box.x == 0  # Fixed height from grid
+      check child2.box.x == 125  # Fixed height from grid
+
+      parent.cxSize = [200'ux, 300'ux]  # set fixed parent
+      computeLayout(parent)
+      printLayout(parent, cmTerminal)
+      check child1.box.w == 100  # Half of parent width
+      check child2.box.w == 100  # Half of parent width
+      
 
   test "Grid with mixed units":
     when true:

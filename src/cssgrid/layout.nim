@@ -366,8 +366,8 @@ proc initializeTrackSizes*(
           baseSize = getBaseSize(grid, cssVars, i, dir, trackSizes, lmin, containerSize, frameBox)
       UiMax:
         # For max(), take the maximum of the two sizes
-        let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.lmax)
-        let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.rmax)
+        let lhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.lmax, containerSize, frameBox)
+        let rhsSize = getBaseSize(grid, cssVars, i, dir, trackSizes, track.rmax, containerSize, frameBox)
         baseSize = max(lhsSize, rhsSize)
       UiMinMax(lmm, rmm):
         # For minmax(), special handling according to CSS Grid spec

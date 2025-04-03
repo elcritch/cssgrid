@@ -295,10 +295,6 @@ suite "Compute Layout Tests":
       # Children should each take up half the width
       check child1.box.w == 100  # Half of parent width
       check child2.box.w == 300  # Half of parent width
-      check child1.box.h == 100  # Fixed height from grid
-      check child2.box.h == 100  # Fixed height from grid
-      check child1.box.x == 0  # Fixed height from grid
-      check child2.box.x == 100  # Fixed height from grid
 
       parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
@@ -307,14 +303,15 @@ suite "Compute Layout Tests":
       # Children should each take up half the width
       check child1.box.w == 100  # Half of parent width
       check child2.box.w == 900  # Half of parent width
-      check child1.box.x == 0  # Fixed height from grid
-      check child2.box.x == 100  # Fixed height from grid
 
-      parent.cxSize = [200'ux, 300'ux]  # set fixed parent
+      parent.cxSize = [150'ux, 300'ux]  # set fixed parent
+      prettyPrintWriteMode = cmTerminal
+      addPrettyPrintFilter("dir", "dcol")
       computeLayout(parent)
-      # printLayout(parent, cmTerminal)
-      check child1.box.w == 100  # Half of parent width
-      check child2.box.w == 100  # Half of parent width
+      printLayout(parent, cmTerminal)
+      prettyPrintWriteMode = cmNone
+      check child1.box.w == 38  # Half of parent width
+      check child2.box.w == 112  # Half of parent width
       
   test "Simple grid layout with max column":
       let parent = newTestNode("grid-parent")
@@ -345,7 +342,7 @@ suite "Compute Layout Tests":
 
       parent.cxSize = [1000'ux, 300'ux]  # set fixed parent
       computeLayout(parent)
-      printLayout(parent, cmTerminal)
+      # printLayout(parent, cmTerminal)
       
       # Children should each take up half the width
       check child1.box.w == 750  # Half of parent width

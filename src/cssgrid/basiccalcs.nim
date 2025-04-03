@@ -196,13 +196,14 @@ proc getTrackBaseSize*(
         return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
   of UiMin:
     # For min(), take the minimum of the two sizes
-    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmin)
-    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmin)
+    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmin, containerSize, frameSize)
+    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmin, containerSize, frameSize)
     return min(lhsSize, rhsSize)
   of UiMax:
     # For max(), take the maximum of the two sizes
-    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmax)
-    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmax)
+    # Make sure to pass containerSize to both sides
+    let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmax, containerSize, frameSize)
+    let rhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.rmax, containerSize, frameSize)
     return max(lhsSize, rhsSize)
   of UiMinMax:
     # For minmax(), use the minimum as a floor and maximum as a ceiling

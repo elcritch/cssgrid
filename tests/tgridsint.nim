@@ -14,5 +14,5 @@ import macros
 
 import commontestutils
 
-import tgrids
+import tgridscore
 

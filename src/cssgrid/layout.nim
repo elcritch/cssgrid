@@ -980,6 +980,7 @@ proc trackSizingAlgorithm*(
   ## Track sizing algorithm as defined in Section 12.3 of the spec
   
   # Calculate available space using our container size calculation
+  let frameSize = node.getFrameBox().wh[dir]
   let containerSize = calculateContainerSize(node, dir)
   var availableSpace = containerSize
   debugPrint "trackSizingAlgorithm:availableSpace", "dir=", dir, "availableSpace=", availableSpace
@@ -994,7 +995,7 @@ proc trackSizingAlgorithm*(
       
       if trackConstraint.isFixed():
         # This is a track with a definite size
-        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes)
+        fixedTrackSum += grid.getTrackBaseSize(cssVars, i, dir, trackSizes, frameSize)
         debugPrint "trackSizingAlgorithm:fixedTrackSum", "dir=", dir, "i=", i, "fixedTrackSum=", fixedTrackSum
       elif trackConstraint.isFrac():
         hasFractionalTracks = true

@@ -131,7 +131,8 @@ proc getTrackBaseSize*(
     cssVars: CssVariables,
     idx: int, 
     dir: GridDir,
-    trackSizes: Table[int, ComputedTrackSize]
+    trackSizes: Table[int, ComputedTrackSize],
+    frameSize: UiScalar
 ): UiScalar =
   ## Get the base size for a track based on its constraint type and content contributions
   ## According to CSS Grid spec section 12.4
@@ -160,9 +161,10 @@ proc getTrackBaseSize*(
       # For viewport-relative tracks, we'd need viewport size
       # This should be properly handled in a full implementation
       # For now, return a default size or existing base size
-      if grid.lines[dir][idx].baseSize > 0:
-        return grid.lines[dir][idx].baseSize
-      return trackConstraint.value.view.UiScalar  # Return view percentage as pixels for now
+      # if grid.lines[dir][idx].baseSize > 0:
+      #   return grid.lines[dir][idx].baseSize
+      # return trackConstraint.value.view.UiScalar  # Return view percentage as pixels for now
+      return trackConstraint.value.view * frameSize / 100.0.UiScalar
     of UiFrac:
       # For fractional tracks, use content contributions
       # to determine base size before distribution

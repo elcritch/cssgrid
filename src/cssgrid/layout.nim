@@ -372,17 +372,13 @@ proc initializeTrackSizes*(
     match track:
       UiValue(value):
         # Use getBaseSize for growth limit calculation
-        if value.kind in {UiFixed, UiPerc, UiViewPort, UiContentMin, UiContentMax, UiContentFit}:
+        case value.kind
+        of UiFixed, UiPerc, UiViewPort, UiContentMin, UiContentMax, UiContentFit:
           growthLimit = getBaseSize(grid, cssVars, i, dir, trackSizes, value, containerSize, frameBox)
-          
-          # For viewport tracks, add debug information
-          if value.kind == UiViewPort:
-            debugPrint "initializeTrackSizes:viewportGrowthLimit", "dir=", dir, "i=", i, 
-                      "growthLimit=", growthLimit, "value.view=", value.view, "viewportSize=", frameBox
-        elif value.kind in {UiAuto, UiFrac}:
+        of UiAuto, UiFrac:
           # Auto and fr have infinity initially
           growthLimit = UiScalar.high()
-        elif value.kind == UiVariable:
+        of UiVariable:
           # For variables, use the base size of the variable
           if i in trackSizes:
             growthLimit = trackSizes[i].minContribution

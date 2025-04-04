@@ -101,7 +101,7 @@ proc calcBasicConstraintImpl(
         UiVariable(varIdx):
           # For variables, try to resolve them if there's a CSS variables container available
           if not cssVars.isNil and varIdx in cssVars.variables:
-            let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
+            let resolvedSize = cssVars.resolveVariable(val)
             res = calcBasic(resolvedSize)
           else:
             # Default to auto if variable not found

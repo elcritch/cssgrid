@@ -65,48 +65,61 @@ proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
       if idx == cs.varIdx:
         return name
 
-proc resolveVariable*(vars: CssVariables, cs: ConstraintSize): ConstraintSize =
+proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var ConstraintSize): bool =
   ## Resolves a constraint size, looking up variables if needed
   ## Returns the resolved constraint size
-  case cs.kind
-  of UiVariable:
-    if vars != nil and cs.varIdx in vars.variables:
-      result = vars.variables[cs.varIdx]
-      # Handle recursive variable resolution (up to a limit to prevent cycles)
-      var resolveCount = 0
-      while result.kind == UiVariable and resolveCount < 10:
-        if result.varIdx in vars.variables:
-          result = vars.variables[result.varIdx]
-          inc resolveCount
-        else:
-          break
-      if result.kind == UiVariable and resolveCount >= 10:
-        # Prevent infinite recursion, return a default value
-        result = ConstraintSize(kind: UiAuto)
+  if vars != nil and varIdx in vars.variables:
+    var res = vars.variables[varIdx]
+    # Handle recursive variable resolution (up to a limit to prevent cycles)
+    var resolveCount = 0
+    while res.kind == UiVariable and resolveCount < 10:
+      if res.varIdx in vars.variables:
+        res = vars.variables[res.varIdx]
+        inc resolveCount
+      else:
+        break
+    if res.kind == UiVariable:
+      # Prevent infinite recursion, return a default value
+      val = ConstraintSize(kind: UiAuto)
+      return true
     else:
-      # Variable not found, return a default value
-      result = ConstraintSize(kind: UiAuto)
+      val = res
+      return true
   else:
-    result = cs
+    return false
 
-proc resolveVariable*(vars: CssVariables, cx: Constraint): Constraint =
-  ## Resolves variables in a constraint
-  ## Returns a new constraint with all variables resolved
-  case cx.kind
-  of UiValue:
-    result = csValue(vars.resolveVariable(cx.value))
-  of UiMin:
-    result = csMin(vars.resolveVariable(cx.lmin), vars.resolveVariable(cx.rmin))
-  of UiMax:
-    result = csMax(vars.resolveVariable(cx.lmax), vars.resolveVariable(cx.rmax))
-  of UiAdd:
-    result = csAdd(vars.resolveVariable(cx.ladd), vars.resolveVariable(cx.radd))
-  of UiSub:
-    result = csSub(vars.resolveVariable(cx.lsub), vars.resolveVariable(cx.rsub))
-  of UiMinMax:
-    result = csMinMax(vars.resolveVariable(cx.lmm), vars.resolveVariable(cx.rmm))
-  of UiNone, UiEnd:
-    result = cx
+# proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var Constraint): bool =
+#   ## Resolves variables in a constraint
+#   ## Returns a new constraint with all variables resolved
+#   var lhs, rhs: ConstraintSize
+#   case val.kind
+#   of UiValue:
+#     if vars.resolveVariable(val.value, lhs):
+#       val = csValue(lhs)
+#       return true
+#   of UiMin:
+#     if vars.resolveVariable(val.lmin, lhs) or vars.resolveVariable(val.rmin, rhs):
+#       val = csMin(lhs, rhs)
+#       return true
+#   of UiMax:
+#     if vars.resolveVariable(val.lmax, lhs) or vars.resolveVariable(val.rmax, rhs):
+#       val = csMax(lhs, rhs)
+#       return true
+#   of UiAdd:
+#     if vars.resolveVariable(val.ladd, lhs) or vars.resolveVariable(val.radd, rhs):
+#       val = csAdd(lhs, rhs)
+#       return true
+#   of UiSub:
+#     if vars.resolveVariable(val.lsub, lhs) or vars.resolveVariable(val.rsub, rhs):
+#       val = csSub(lhs, rhs)
+#       return true
+#   of UiMinMax:
+#     if vars.resolveVariable(val.lmm, lhs) or vars.resolveVariable(val.rmm, rhs):
+#       val = csMinMax(lhs, rhs)
+#       return true
+#   of UiNone, UiEnd:
+#     val = cxNone()
+#     return true
 
 proc csVar*(vars: CssVariables, name: string): Constraint =
   ## Creates a constraint for a CSS variable by name

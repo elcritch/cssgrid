@@ -87,8 +87,11 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
   of UiVariable:
     if cssVars != nil:
       let name = cssVars.variableName(cs)
-      let value = cssVars.resolveVariable(cs)
-      mode.withStyle(fgRed, text = &"var({name}: {value})")
+      var value: ConstraintSize
+      if cssVars.resolveVariable(cs.varIdx, value):
+        mode.withStyle(fgRed, text = &"var({name}: {value})")
+      else:
+        mode.withStyle(fgRed, text = &"var({name})")
     else:
       mode.withStyle(fgRed, text = &"var({cs.varIdx})")
 

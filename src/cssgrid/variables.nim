@@ -78,7 +78,7 @@ proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var ConstraintS
     if res.kind == UiVariable:
       # Prevent infinite recursion, return a default value
       val = ConstraintSize(kind: UiAuto)
-      return true
+      return false
     else:
       val = res
       return true

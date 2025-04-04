@@ -2,7 +2,7 @@ import numberTypes
 export sets, tables, numberTypes
 
 type
-  CssVarId* = distinct int
+  CssVarId* = distinct int32
 
   ConstraintBehavior* = enum
     CxStretch

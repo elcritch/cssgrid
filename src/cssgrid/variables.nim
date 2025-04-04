@@ -17,18 +17,21 @@ proc newCssVariables*(): CssVariables =
   result.variables = initTable[CssVarId, ConstraintSize]()
   result.names = initTable[string, CssVarId]()
 
+proc registerVariable*(vars: CssVariables, name: string): CssVarId =
+  ## Registers a new CSS variable with the given name
+  ## Returns the variable index
+  if name in vars.names:
+    result = vars.names[name]
+  else:
+    result = CssVarId(vars.names.len + 1)
+    vars.names[name] = result
+
 proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize): CssVarId =
   ## Registers a new CSS variable with the given name and value
   ## Returns the variable index
-  if name in vars.names:
-    let idx = vars.names[name]
-    vars.variables[idx] = value
-    return idx
-  else:
-    let idx = CssVarId(vars.variables.len + 1)
-    vars.variables[idx] = value
-    vars.names[name] = idx
-    return idx
+  let idx = vars.registerVariable(name)
+  vars.variables[idx] = value
+  return idx
 
 proc registerVariable*(vars: CssVariables, name: string, value: Constraint): CssVarId =
   ## Registers a new CSS variable with the given name and constraint value

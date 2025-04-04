@@ -2,6 +2,8 @@ import numberTypes
 export sets, tables, numberTypes
 
 type
+  CssVarId* = distinct int
+
   ConstraintBehavior* = enum
     CxStretch
     CxStart
@@ -34,7 +36,7 @@ type
     of UiAuto:
       discard
     of UiVariable:
-      varIdx*: int
+      varIdx*: CssVarId
 
   Constraints* = enum
     UiNone
@@ -64,6 +66,8 @@ type
       lmm*, rmm*: ConstraintSize ## min-max of lhs and rhs (partially supported)
     of UiEnd: discard ## marks end track of a CSS Grid layout
 
+proc `==`*(a, b: CssVarId): bool {.borrow.}
+proc `$`*(a: CssVarId): string {.borrow.}
   
 proc csValue*(size: ConstraintSize): Constraint =
   Constraint(kind: UiValue, value: size)

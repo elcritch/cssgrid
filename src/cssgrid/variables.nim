@@ -3,10 +3,10 @@ import constraints
 
 type
   CssVariables* = ref object of RootObj
-    variables*: Table[int, ConstraintSize]
-    names*: Table[string, int]
+    variables*: Table[CssVarId, ConstraintSize]
+    names*: Table[string, CssVarId]
 
-proc csVar*(idx: int): Constraint =
+proc csVar*(idx: CssVarId): Constraint =
   ## Creates a constraint for a CSS variable by index
   csValue(ConstraintSize(kind: UiVariable, varIdx: idx))
 
@@ -14,8 +14,8 @@ proc csVar*(idx: int): Constraint =
 proc newCssVariables*(): CssVariables =
   ## Creates a new CSS variables container
   new(result)
-  result.variables = initTable[int, ConstraintSize]()
-  result.names = initTable[string, int]()
+  result.variables = initTable[CssVarId, ConstraintSize]()
+  result.names = initTable[string, CssVarId]()
 
 proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize): Constraint =
   ## Registers a new CSS variable with the given name and value
@@ -25,7 +25,7 @@ proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize):
     vars.variables[idx] = value
     return csVar(idx)
   else:
-    let idx = vars.variables.len + 1
+    let idx = CssVarId(vars.variables.len + 1)
     vars.variables[idx] = value
     vars.names[name] = idx
     return csVar(idx)
@@ -50,7 +50,7 @@ proc lookupVariable*(vars: CssVariables, name: string, size: var ConstraintSize)
       return true
   return false
 
-proc lookupVariable*(vars: CssVariables, idx: int, size: var ConstraintSize): bool =
+proc lookupVariable*(vars: CssVariables, idx: CssVarId, size: var ConstraintSize): bool =
   ## Looks up a CSS variable by index
   ## Returns Some(value) if found, None otherwise
   if idx in vars.variables:

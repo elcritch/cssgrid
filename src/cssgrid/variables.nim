@@ -2,7 +2,7 @@ import std/tables
 import constraints
 
 type
-  CssVariables* = ref object
+  CssVariables* = ref object of RootObj
     variables*: Table[int, ConstraintSize]
     names*: Table[string, int]
 

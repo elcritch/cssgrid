@@ -2,6 +2,7 @@ import numberTypes, constraints, gridtypes
 import basiccalcs
 import prettyprints
 import constraints
+import variables
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:

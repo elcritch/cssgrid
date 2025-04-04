@@ -1,7 +1,7 @@
 import std/unittest
 
 import cssgrid/constraints
-
+import cssgrid/variables
 suite "constraints":
 
 

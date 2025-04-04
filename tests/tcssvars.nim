@@ -4,7 +4,7 @@ import cssgrid/parser
 import cssgrid/constraints
 import cssgrid/layout
 import cssgrid/prettyprints
-
+import cssgrid/variables
 import commontestutils
 
 suite "CSS variables":

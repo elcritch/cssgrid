@@ -1,5 +1,5 @@
 import numberTypes, constraints, gridtypes
-
+import variables
 import prettyprints
 
 type

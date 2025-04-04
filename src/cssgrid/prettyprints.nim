@@ -1,7 +1,10 @@
 import strformat
 import terminal
 
-import numberTypes, constraints, gridtypes
+import numberTypes
+import constraints
+import gridtypes
+import variables
 
 import strformat
 import terminal

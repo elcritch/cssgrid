@@ -1,6 +1,9 @@
-import numberTypes, constraints, gridtypes
+import numberTypes
+import constraints
+import gridtypes
 import basiclayout
 import basiccalcs
+import variables
 import prettyprints
 
 proc createEndTracks*(grid: GridTemplate) =

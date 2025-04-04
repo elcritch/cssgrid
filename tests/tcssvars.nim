@@ -13,9 +13,12 @@ suite "CSS variables":
     let vars = newCssVariables()
     
     # Register some variables
-    let var1 = vars.registerVariable("width", 100'ux)
-    let var2 = vars.registerVariable("height", 50'pp)
-    let var3 = vars.registerVariable("gap", 1'fr)
+    let var1 = vars.registerVariable("width")
+    let var2 = vars.registerVariable("height")
+    let var3 = vars.registerVariable("gap")
+    vars.setVariable(var1, 100'ux)
+    vars.setVariable(var2, 50'pp)
+    vars.setVariable(var3, 1'fr)
     
     # Check registration worked
     check var1.int == 1
@@ -82,7 +85,8 @@ suite "CSS variables":
     
     # Create CSS variables container
     let cssVars = newCssVariables()
-    let widthVar = cssVars.registerVariable("width", 100'ux)
+    let widthVar = cssVars.registerVariable("width")
+    cssVars.setVariable(widthVar, 100'ux)
 
     # Create some children nodes
     var child1 = newTestNode("child1", parent)
@@ -100,7 +104,7 @@ suite "CSS variables":
     check(child2.box.w == 50.UiScalar)
     
     # Update the CSS variable
-    discard cssVars.registerVariable("width", ConstraintSize(kind: UiFixed, coord: 150.UiScalar))
+    cssVars.setVariable(widthVar, 150'ux)
     
     # Recompute layout
     computeLayout(parent, cssVars)
@@ -119,8 +123,10 @@ suite "CSS variables":
     
     # Create CSS variables container with nested references
     let cssVars = newCssVariables()
-    let baseVar = cssVars.registerVariable("base", 50'ux)
-    let widthVar = cssVars.registerVariable("width", csVar(baseVar))
+    let baseVar = cssVars.registerVariable("base")
+    cssVars.setVariable(baseVar, 50'ux)
+    let widthVar = cssVars.registerVariable("width")
+    cssVars.setVariable(widthVar, csVar(baseVar))
     
     # Set child's width to use the variable that references another variable
     child.cxSize[dcol] = csVar(widthVar)
@@ -133,7 +139,7 @@ suite "CSS variables":
     check(child.box.w == 50.UiScalar)
     
     # Update the base variable
-    discard cssVars.registerVariable("base", 120'ux)
+    cssVars.setVariable(baseVar, 120'ux)
     
     # Recompute layout
     computeLayout(parent, cssVars)

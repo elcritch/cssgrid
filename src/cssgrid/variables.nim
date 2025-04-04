@@ -17,20 +17,20 @@ proc newCssVariables*(): CssVariables =
   result.variables = initTable[CssVarId, ConstraintSize]()
   result.names = initTable[string, CssVarId]()
 
-proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize): Constraint =
+proc registerVariable*(vars: CssVariables, name: string, value: ConstraintSize): CssVarId =
   ## Registers a new CSS variable with the given name and value
   ## Returns the variable index
   if name in vars.names:
     let idx = vars.names[name]
     vars.variables[idx] = value
-    return csVar(idx)
+    return idx
   else:
     let idx = CssVarId(vars.variables.len + 1)
     vars.variables[idx] = value
     vars.names[name] = idx
-    return csVar(idx)
+    return idx
 
-proc registerVariable*(vars: CssVariables, name: string, value: Constraint): Constraint =
+proc registerVariable*(vars: CssVariables, name: string, value: Constraint): CssVarId =
   ## Registers a new CSS variable with the given name and constraint value
   ## Returns the variable index
   if value.kind == UiValue:
@@ -38,7 +38,7 @@ proc registerVariable*(vars: CssVariables, name: string, value: Constraint): Con
   else:
     # For complex constraints, we can't directly store them
     # We'd need an expanded CssVariables type to handle this
-    raise newException(ValueError, "Can only register simple constraint values as variables")
+    raise newException(ValueError, "Only simple constraint values can be registered as variables")
 
 proc lookupVariable*(vars: CssVariables, name: string, size: var ConstraintSize): bool =
   ## Looks up a CSS variable by name
@@ -85,10 +85,15 @@ proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var ConstraintS
   else:
     return false
 
-proc csVar*(vars: CssVariables, name: string): Constraint =
+proc resolveVariable*(vars: CssVariables, cx: Constraint, val: var ConstraintSize): bool =
+  ## Resolves a constraint, looking up variables if needed
+  if cx.kind == UiValue:
+    return vars.resolveVariable(cx.value.varIdx, val)
+  else:
+    return false
+
+proc csVar*(vars: CssVariables, name: string, value: Constraint = csAuto()): Constraint =
   ## Creates a constraint for a CSS variable by name
   ## If the variable doesn't exist, it will be created with a default value
-  if name in vars.names:
-    csVar(vars.names[name])
-  else:
-    return vars.registerVariable(name, ConstraintSize(kind: UiAuto))
+  let idx = vars.registerVariable(name, value)
+  return csVar(idx)

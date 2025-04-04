@@ -8,6 +8,72 @@ import cssgrid/variables
 import commontestutils
 
 suite "CSS variables":
+  test "css variables":
+    # Create a CSS variables container
+    let vars = newCssVariables()
+    
+    # Register some variables
+    let var1 = vars.registerVariable("width", 100'ux)
+    let var2 = vars.registerVariable("height", 50'pp)
+    let var3 = vars.registerVariable("gap", 1'fr)
+    
+    # Check registration worked
+    check var1.int == 1
+    check var2.int == 2
+    check var3.int == 3
+    
+    # Create constraints using variables
+    let widthVar = csVar(vars, "width", 100'ux)
+    let heightVar = csVar(vars, "height", 50'pp)
+    let gapVar = csVar(vars, "gap", 1'fr)
+    
+    # Verify variable constraints
+    check widthVar.kind == UiValue
+    check widthVar.value.kind == UiVariable
+    check widthVar.value.varIdx == var1
+    
+    # Resolve variables
+    var resolvedWidth: ConstraintSize
+    check vars.resolveVariable(widthVar, resolvedWidth)
+    var resolvedHeight: ConstraintSize
+    check vars.resolveVariable(heightVar, resolvedHeight)
+    var resolvedGap: ConstraintSize
+    check vars.resolveVariable(gapVar, resolvedGap)
+    
+    # Check resolution
+    check resolvedWidth.kind == UiFixed
+    check resolvedWidth.coord == 100.UiScalar
+    
+    check resolvedHeight.kind == UiPerc
+    check resolvedHeight.perc == 50.UiScalar
+    
+    check resolvedGap.kind == UiFrac
+    check resolvedGap.frac == 1.UiScalar
+    
+    # Test variable lookup by name
+    var widthSize: ConstraintSize
+    let widthOpt = vars.lookupVariable("width", widthSize)
+    check widthOpt
+    check widthSize.kind == UiFixed
+    check widthSize.coord == 100.UiScalar
+    
+    # Test variable name lookup
+    let widthVar2 = vars.csVar("width")
+    check widthVar2.kind == UiValue
+    check widthVar2.value.kind == UiVariable
+    check widthVar2.value.varIdx == var1
+    
+    # Test using variables in complex constraints
+    let minSize = csMin(widthVar, heightVar)
+    var resolvedMinSize: ConstraintSize
+    check vars.resolveVariable(minSize, resolvedMinSize)
+    
+    # The minimum of 100px and 50% should be equivalent to min(fixed(100), perc(50))
+    check resolvedMinSize.kind == UiFixed
+    check resolvedMinSize.coord == 100.UiScalar
+    check resolvedMinSize.kind == UiPerc
+    check resolvedMinSize.perc == 50.UiScalar
+
   test "CSS variables with computeLayout as parameter":
     # Create a node with a grid template
     var parent = newTestNode("parent")

@@ -6,6 +6,8 @@ import basiccalcs
 import variables
 import prettyprints
 
+# {.push stackTrace: off.}
+
 proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout
   if grid.lines[dcol].len() == 0 or

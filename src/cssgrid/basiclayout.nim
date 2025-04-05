@@ -19,7 +19,7 @@ import variables
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-{.push stackTrace: off.}
+# {.push stackTrace: off.}
 
 proc computeCssFuncs*(calc: Constraints, lhs, rhs: UiScalar): UiScalar =
     case calc:

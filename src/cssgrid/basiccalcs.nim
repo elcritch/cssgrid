@@ -2,6 +2,8 @@ import numberTypes, constraints, gridtypes
 import variables
 import prettyprints
 
+# {.push stackTrace: off.}
+
 type
   CalcKind* {.pure.} = enum
     PADXY, PADWH, XY, WH, MINSZ, MAXSZ
@@ -11,7 +13,6 @@ type
     minContribution*: UiScalar
     maxContribution*: UiScalar
 
-{.push stackTrace: off.}
 
 proc getPadding*(node: GridNode): UiBox =
   if node.isNil:

@@ -1186,13 +1186,14 @@ proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars: Css
 
 proc computeLayout*(node: GridNode, depth: int, cssVars: CssVariables, full = true) =
   ## Computes constraints and auto-layout.
+  mixin getSkipLayout
   debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
+  if getSkipLayout(node) and not full:
+    return
 
   # # simple constraints
   let prev = node.box
   calcBasicConstraint(node, cssVars)
-  if not full and prev == node.box:
-    return
 
   # css grid impl
   if not node.gridTemplate.isNil:

@@ -19,7 +19,8 @@ type
     content*: UiScalar
 
   GridNode* = concept node
-    getParent(node)
+    discard getParent(node)
+    discard getSkipLayout(node)
     typeof(getFrameBox(node)) is UiBox
     typeof(node.box) is UiBox
     typeof(node.bpad) is UiBox

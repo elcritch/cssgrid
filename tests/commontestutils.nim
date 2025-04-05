@@ -33,6 +33,9 @@ proc `box=`*[T](v: T, box: UiBox) =
 proc getParent*(node: TestNode): TestNode =
   node.parent
 
+proc getSkipLayout*(node: TestNode): bool =
+  false
+
 proc getFrameBox*(node: TestNode): UiBox =
   if node.frame.isNil:
     uiBox(0,0,0,0)

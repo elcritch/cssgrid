@@ -2,6 +2,7 @@ import numberTypes, constraints, gridtypes
 import basiccalcs
 import prettyprints
 import constraints
+import variables
 
 # The height: auto behavior for block-level elements is determined through several steps:
 # First, the element calculates the heights of all its children:
@@ -18,7 +19,7 @@ import constraints
 # Absolutely positioned elements (these don't contribute to height)
 # Elements with overflow other than visible create new block formatting contexts
 
-{.push stackTrace: off.}
+# {.push stackTrace: off.}
 
 proc computeCssFuncs*(calc: Constraints, lhs, rhs: UiScalar): UiScalar =
     case calc:
@@ -98,13 +99,13 @@ proc calcBasicConstraintImpl(
           res = node.childBMins(dir)
           res = min(res, pf)
         UiVariable(varIdx):
+          # Default to auto if variable not found
+          res = if calc == WH: pf - f0 else: 0.UiScalar
           # For variables, try to resolve them if there's a CSS variables container available
-          if not cssVars.isNil and varIdx in cssVars.variables:
-            let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
-            res = calcBasic(resolvedSize)
-          else:
-            # Default to auto if variable not found
-            res = if calc == WH: pf - f0 else: 0.UiScalar
+          if not cssVars.isNil:
+            var resolvedSize: ConstraintSize
+            if cssVars.resolveVariable(varIdx, resolvedSize):
+              res = calcBasic(resolvedSize)
       debugPrint "calcBasicCx:basic", "name=", node.name, "dir=", dir, "calc=", calc,
                   "val: ", val, "pf=", pf, "f0=", f0, "ppad=", ppad, "kind=", val.kind, " res: ", res
       res
@@ -181,12 +182,11 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               res = 0.0.UiScalar
         UiVariable(varIdx):
           # For variables, try to resolve them if there's a CSS variables container available
+          res = f
           if not cssVars.isNil and varIdx in cssVars.variables:
-            let resolvedSize = cssVars.resolveVariable(ConstraintSize(kind: UiVariable, varIdx: varIdx))
-            res = calcBasic(resolvedSize, f)
-          else:
-            # Default to the current value if variable not found
-            res = f
+            var resolvedSize: ConstraintSize
+            if cssVars.resolveVariable(varIdx, resolvedSize):
+              res = calcBasic(resolvedSize, f)
         _:
           res = f
       res

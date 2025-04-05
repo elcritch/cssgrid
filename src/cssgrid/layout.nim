@@ -1,7 +1,12 @@
-import numberTypes, constraints, gridtypes
+import numberTypes
+import constraints
+import gridtypes
 import basiclayout
 import basiccalcs
+import variables
 import prettyprints
+
+# {.push stackTrace: off.}
 
 proc createEndTracks*(grid: GridTemplate) =
   ## computing grid layout
@@ -125,10 +130,10 @@ proc computeBox*(
 
 
 proc distributeSpaceToSpannedTracks(
+    trackSizes: var Table[int, ComputedTrackSize],
     grid: GridTemplate, 
     dir: GridDir, 
     child: GridNode, 
-    trackSizes: var Table[int, ComputedTrackSize],
     spanCount: int
 ) =
   ## Distributes space needed by spanning items to multiple tracks
@@ -218,10 +223,11 @@ proc distributeSpaceToSpannedTracks(
         trackSizes[trackIdx] = computed
 
 proc collectTrackSizeContributions*(
+    contentSizes: var array[GridDir, Table[int, ComputedTrackSize]],
     grid: GridTemplate,
     padding: UiBox,
     children: seq[GridNode]
-): array[GridDir, Table[int, ComputedTrackSize]] =
+) =
   ## Collects min-content and max-content contributions from grid items
   
   # Find which tracks need content sizing
@@ -253,12 +259,12 @@ proc collectTrackSizeContributions*(
         #           "minContribution=", minContribution, "maxContribution=", maxContribution
         
         # Update track's computed size based on its type
-        var computed = result[dir].getOrDefault(trackIndex)
+        var computed = contentSizes[dir].getOrDefault(trackIndex)
         computed.minContribution = max(computed.minContribution, minContribution)
         computed.maxContribution = max(computed.maxContribution, maxContribution)
         computed.content = max(computed.content, minContribution)
         
-        result[dir][trackIndex] = computed
+        contentSizes[dir][trackIndex] = computed
   
   # Process spanning items following the spec algorithm:
   # First handle span=2, then span=3, etc.
@@ -268,9 +274,8 @@ proc collectTrackSizeContributions*(
       for dir in [dcol, drow]:
         if cspan[dir].len()-1 == spanCount:
           # Handle items spanning multiple tracks
-          distributeSpaceToSpannedTracks(grid, dir, child, result[dir], spanCount)
+          distributeSpaceToSpannedTracks(contentSizes[dir], grid, dir, child, spanCount)
   
-  return result
 
 proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars: CssVariables) =
   ## Implementation of the Grid Sizing Algorithm as defined in css-grid-level-2.md
@@ -288,21 +293,24 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars: CssVar
     contentSizes: array[GridDir, Table[int, ComputedTrackSize]]
     prevContentSizes: array[GridDir, Table[int, ComputedTrackSize]]
 
+  for dir in [dcol, drow]:
+    let cnt = grid.lines[dir].len()
+    contentSizes[dir] = initTable[int, ComputedTrackSize](cnt)
+    prevContentSizes[dir] = initTable[int, ComputedTrackSize](cnt)
+
   # 1. Resolve sizes of grid columns
   debugPrint "GridSizingAlgorithm:resolveColumns", "container=", node.cxSize[dcol]
-  contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
+  contentSizes.collectTrackSizeContributions(grid, node.bpad, node.children)
   grid.trackSizingAlgorithm(dcol, contentSizes[dcol], cssVars, node)
   
   # 2. Resolve sizes of grid rows
-  debugPrint "GridSizingAlgorithm:resolveRows", "container=", node.cxSize[drow]
   # Collect new contributions that might depend on column sizes
-  contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
+  # contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
   grid.trackSizingAlgorithm(drow, contentSizes[drow], cssVars, node)
   
   # 3. If min-content of any item changed based on row sizes, re-resolve columns (once)
-  debugPrint "GridSizingAlgorithm:reResolveColumnsIfNeeded", "container=", node.cxSize[dcol]
   prevContentSizes = contentSizes
-  contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
+  # contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
   
   # Check if min-content contributions changed
   var columnsNeedResize = false
@@ -318,7 +326,7 @@ proc runGridSizingAlgorithm*(node: GridNode, grid: GridTemplate, cssVars: CssVar
   # 4. If min-content of any item changed based on column sizes, re-resolve rows (once)
   debugPrint "GridSizingAlgorithm:reResolveRowsIfNeeded", "container=", node.cxSize[drow]
   prevContentSizes = contentSizes
-  contentSizes = collectTrackSizeContributions(grid, node.bpad, node.children)
+  contentSizes.collectTrackSizeContributions(grid, node.bpad, node.children)
   
   var rowsNeedResize = false
   for i, computedSize in contentSizes[drow]:
@@ -1181,13 +1189,14 @@ proc computeNodeLayout*(gridTemplate: GridTemplate, node: GridNode, cssVars: Css
 
 proc computeLayout*(node: GridNode, depth: int, cssVars: CssVariables, full = true) =
   ## Computes constraints and auto-layout.
+  mixin getSkipLayout
   debugPrint "computeLayout", "name=", node.name, " box = ", node.box.wh.repr
+  if getSkipLayout(node) and not full:
+    return
 
   # # simple constraints
   let prev = node.box
   calcBasicConstraint(node, cssVars)
-  if not full and prev == node.box:
-    return
 
   # css grid impl
   if not node.gridTemplate.isNil:

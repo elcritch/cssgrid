@@ -1,6 +1,8 @@
 import numberTypes, constraints, gridtypes
-
+import variables
 import prettyprints
+
+# {.push stackTrace: off.}
 
 type
   CalcKind* {.pure.} = enum
@@ -11,7 +13,6 @@ type
     minContribution*: UiScalar
     maxContribution*: UiScalar
 
-{.push stackTrace: off.}
 
 proc getPadding*(node: GridNode): UiBox =
   if node.isNil:
@@ -121,7 +122,7 @@ proc getBaseSize*(
       return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
   of UiVariable:
     var resolvedSize: ConstraintSize
-    if cssVars.lookupVariable(cs.varIdx, resolvedSize):
+    if cssVars.resolveVariable(cs.varIdx, resolvedSize):
       return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
 
 proc getTrackBaseSize*(
@@ -145,55 +146,8 @@ proc getTrackBaseSize*(
   # Handle different constraint types
   case trackConstraint.kind
   of UiValue:
-    case trackConstraint.value.kind
-    of UiFixed:
-      # For fixed-sized tracks, use the fixed size
-      return trackConstraint.value.coord
-    of UiPerc:
-      # For percentage tracks, we'd need container size
-      # This should be properly handled in a full implementation
-      # For now, return a default size or existing base size
-      if grid.lines[dir][idx].baseSize > 0:
-        return grid.lines[dir][idx].baseSize
-      return trackConstraint.value.perc.UiScalar  # Return percentage as pixels for now
-    of UiViewPort:
-      # For viewport-relative tracks, we'd need viewport size
-      # This should be properly handled in a full implementation
-      # For now, return a default size or existing base size
-      # if grid.lines[dir][idx].baseSize > 0:
-      #   return grid.lines[dir][idx].baseSize
-      # return trackConstraint.value.view.UiScalar  # Return view percentage as pixels for now
-      return trackConstraint.value.view * frameSize / 100.0.UiScalar
-    of UiFrac:
-      # For fractional tracks, use content contributions
-      # to determine base size before distribution
-      if idx in trackSizes:
-        # Use the max of min-content and any existing base size
-        return max(trackSizes[idx].minContribution, grid.lines[dir][idx].baseSize)
-    of UiAuto:
-      # For auto tracks, use content contributions
-      if idx in trackSizes:
-        let baseSize = trackSizes[idx].minContribution
-        # Consider existing base size too
-        if grid.lines[dir][idx].baseSize > 0:
-          return max(baseSize, grid.lines[dir][idx].baseSize)
-        return baseSize
-    of UiContentMin:
-      # For min-content, just use min contribution
-      if idx in trackSizes:
-        return trackSizes[idx].minContribution
-    of UiContentMax:
-      # For max-content, use max contribution
-      if idx in trackSizes:
-        return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
-    of UiContentFit:
-      # For content-fit, use max contribution (same as max-content)
-      if idx in trackSizes:
-        return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
-    of UiVariable:
-      var resolvedSize: ConstraintSize
-      if cssVars.lookupVariable(trackConstraint.value.varIdx, resolvedSize):
-        return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
+    # Use getBaseSize to handle all value types consistently
+    return getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.value, containerSize, frameSize)
   of UiMin:
     # For min(), take the minimum of the two sizes
     let lhsSize = getBaseSize(grid, cssVars, idx, dir, trackSizes, trackConstraint.lmin, containerSize, frameSize)
@@ -248,3 +202,59 @@ proc getTrackBaseSize*(
   of UiNone, UiEnd:
     # For none or end, return 0
     return 0.UiScalar
+
+proc getMinSize*(cs: ConstraintSize, contentSize: UiScalar = 0.UiScalar): UiScalar =
+  ## Extract the minimum size from a ConstraintSize
+  ## For intrinsic sizing, uses contentSize if provided
+  case cs.kind
+  of UiFixed:
+    # Fixed sizes are their own minimum
+    result = cs.coord
+  of UiPerc:
+    # Percentages are their own minimum
+    result = cs.perc
+  of UiViewPort:
+    # Viewport sizes are their own minimum
+    result = cs.view
+  of UiFrac:
+    # Flex units have a default minimum of 0
+    result = 0.UiScalar
+  of UiContentMin, UiAuto:
+    # For min-content and auto, use provided content size
+    result = contentSize
+  of UiContentMax, UiContentFit:
+    # For max-content and fit-content, also use content size
+    result = contentSize
+  of UiVariable:
+    # Variables are resolved during lookup - use 0 as default min
+    result = 0.UiScalar
+
+proc getMinSize*(cs: Constraint, contentSize: UiScalar): UiScalar =
+  ## Extract the minimum size from a Constraint
+  ## If constraint is a compound expression like minmax(), returns appropriate minimum
+  case cs.kind
+  of UiNone, UiEnd:
+    result = 0.UiScalar
+  of UiValue:
+    result = getMinSize(cs.value, contentSize)
+  of UiMin:
+    # For min(), take the smaller of the two minimums as the result could be the smaller
+    let lmin = getMinSize(cs.lmin, contentSize)
+    let rmin = getMinSize(cs.rmin, contentSize)
+    result = min(lmin, rmin)
+  of UiMax:
+    # For max(), the minimum is the larger of the two minimums
+    # since the result will always be at least the larger minimum
+    let lmin = getMinSize(cs.lmax, contentSize)
+    let rmin = getMinSize(cs.rmax, contentSize)
+    result = max(lmin, rmin)
+  of UiMinMax:
+    # For minmax(), the minimum is simply the first argument
+    result = getMinSize(cs.lmm, contentSize)
+  of UiAdd:
+    # For addition, the minimum is the sum of minimums
+    result = getMinSize(cs.ladd, contentSize) + getMinSize(cs.radd, contentSize)
+  of UiSub:
+    # For subtraction, the minimum is the difference of minimums
+    # with a floor of 0 to prevent negative sizes
+    result = max(0.UiScalar, getMinSize(cs.lsub, contentSize) - getMinSize(cs.rsub, contentSize))

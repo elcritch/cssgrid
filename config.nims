@@ -11,6 +11,6 @@ task test, "test all":
   
 
 # begin Nimble config (version 2)
-# when withDir(thisDir(), system.fileExists("nimble.paths")):
-#   include "nimble.paths"
+when withDir(thisDir(), system.fileExists("nimble.paths")):
+  include "nimble.paths"
 # end Nimble config

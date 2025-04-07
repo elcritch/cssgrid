@@ -90,17 +90,18 @@ suite "CSS variables":
 
     # Create some children nodes
     var child1 = newTestNode("child1", parent)
-    child1.cxSize = [csVar(widthVar), 75'ux]
+    child1.cxSize = [csVar(widthVar), csVar(widthVar)]
     
     var child2 = newTestNode("child2", parent)
     child2.cxSize = [50'ux, 0'ux]
     
     # Compute layout using the cssVars parameter
     computeLayout(parent, cssVars)
-    # printLayout(parent, cmTerminal)
+    printLayout(parent, cmTerminal)
 
     # Check that child1's width is using the CSS variable value
     check(child1.box.w == 100.UiScalar)
+    check(child1.box.h == 100.UiScalar)
     check(child2.box.w == 50.UiScalar)
     
     # Update the CSS variable
@@ -108,8 +109,9 @@ suite "CSS variables":
     
     # Recompute layout
     computeLayout(parent, cssVars)
-    
+    printLayout(parent, cmTerminal)
     check(child1.box.w == 150.UiScalar)
+    check(child1.box.h == 150.UiScalar)
     check(child2.box.w == 50.UiScalar)
 
   test "CSS variables with nested variable references":
@@ -136,7 +138,7 @@ suite "CSS variables":
     
     # Compute layout
     computeLayout(parent, cssVars)
-    printLayout(parent, cmTerminal, cssVars)
+    # printLayout(parent, cmTerminal, cssVars)
     
     # Check that child's width is correctly resolved through the chain of variables
     check(child.box.w == 50.UiScalar)
@@ -147,7 +149,7 @@ suite "CSS variables":
     
     # Recompute layout
     computeLayout(parent, cssVars)
-    printLayout(parent, cmTerminal, cssVars)
+    # printLayout(parent, cmTerminal, cssVars)
     
     # Check that child's width is updated through the chain
     check(child.box.w == 120.UiScalar)

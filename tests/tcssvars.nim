@@ -127,9 +127,12 @@ suite "CSS variables":
     cssVars.setVariable(baseVar, 50'ux)
     let widthVar = cssVars.registerVariable("width")
     cssVars.setVariable(widthVar, csVar(baseVar))
+    let heightVar = cssVars.registerVariable("height")
+    cssVars.setVariable(heightVar, csVar(baseVar))
     
     # Set child's width to use the variable that references another variable
     child.cxSize[dcol] = csVar(widthVar)
+    child.cxSize[drow] = csVar(heightVar)
     
     # Compute layout
     computeLayout(parent, cssVars)
@@ -137,12 +140,15 @@ suite "CSS variables":
     
     # Check that child's width is correctly resolved through the chain of variables
     check(child.box.w == 50.UiScalar)
+    check(child.box.h == 50.UiScalar)
     
     # Update the base variable
     cssVars.setVariable(baseVar, 120'ux)
     
     # Recompute layout
     computeLayout(parent, cssVars)
+    printLayout(parent, cmTerminal, cssVars)
     
     # Check that child's width is updated through the chain
     check(child.box.w == 120.UiScalar)
+    check(child.box.h == 120.UiScalar)

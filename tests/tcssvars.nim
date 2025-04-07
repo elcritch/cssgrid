@@ -192,7 +192,7 @@ suite "CSS variables":
     
     # Recompute layout
     computeLayout(parent, cssVars)
-    # printLayout(parent, cmTerminal, cssVars)
+    printLayout(parent, cmTerminal, cssVars)
     
     # Check that child's width is updated through the chain
     check(child.box.w == 240.UiScalar)

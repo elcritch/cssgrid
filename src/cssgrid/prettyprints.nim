@@ -89,11 +89,17 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
       let name = cssVars.variableName(cs)
       var value: ConstraintSize
       if cssVars.resolveVariable(cs.varIdx, cs.funcIdx, value):
-        mode.withStyle(fgRed, text = &"var({name}: {value})")
+        if cs.funcIdx != CssVarId(-1):
+          mode.withStyle(fgRed, text = &"var({name}: fun{cs.funcIdx}({value}))")
+        else:
+          mode.withStyle(fgRed, text = &"var({name}: {value})")
       else:
         mode.withStyle(fgRed, text = &"var({name})")
     else:
-      mode.withStyle(fgRed, text = &"var({cs.varIdx})")
+      if cs.funcIdx != CssVarId(-1):
+        mode.withStyle(fgRed, text = &"var(fun{cs.funcIdx}({cs.varIdx}))")
+      else:
+        mode.withStyle(fgRed, text = &"var({cs.varIdx})")
 
 proc prettyConstraint*(c: Constraint, indent = "", mode: ColorMode = cmNone, cssVars: CssVariables = nil) =
   if prettyPrintWriteMode == cmNone and mode == cmNone:

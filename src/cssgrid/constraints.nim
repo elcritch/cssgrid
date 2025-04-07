@@ -88,6 +88,10 @@ proc csContentMax*(): Constraint =
 proc csContentFit*(): Constraint =
   csValue(ConstraintSize(kind: UiContentFit))
 
+proc csVar*(idx: CssVarId): Constraint =
+  ## Creates a constraint for a CSS variable by index
+  csValue(ConstraintSize(kind: UiVariable, varIdx: idx))
+
 proc cssFuncArgs*(cx: Constraint): tuple[l, r: ConstraintSize] =
   match cx:
     UiMin(lmin, rmin):

@@ -6,10 +6,6 @@ type
     variables*: Table[CssVarId, ConstraintSize]
     names*: Table[string, CssVarId]
 
-proc csVar*(idx: CssVarId): Constraint =
-  ## Creates a constraint for a CSS variable by index
-  csValue(ConstraintSize(kind: UiVariable, varIdx: idx))
-
 # CSS Variable functions
 proc newCssVariables*(): CssVariables =
   ## Creates a new CSS variables container

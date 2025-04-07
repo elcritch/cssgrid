@@ -98,13 +98,13 @@ proc calcBasicConstraintImpl(
           # fit-content - calculate as max-content but clamped by available space
           res = node.childBMins(dir)
           res = min(res, pf)
-        UiVariable(varIdx):
+        UiVariable(varIdx, funcIdx):
           # Default to auto if variable not found
           res = if calc == WH: pf - f0 else: 0.UiScalar
           # For variables, try to resolve them if there's a CSS variables container available
           if not cssVars.isNil:
             var resolvedSize: ConstraintSize
-            if cssVars.resolveVariable(varIdx, resolvedSize):
+            if cssVars.resolveVariable(varIdx, funcIdx, resolvedSize):
               res = calcBasic(resolvedSize)
       debugPrint "calcBasicCx:basic", "name=", node.name, "dir=", dir, "calc=", calc,
                   "val: ", val, "pf=", pf, "f0=", f0, "ppad=", ppad, "kind=", val.kind, " res: ", res
@@ -180,12 +180,12 @@ proc calcBasicConstraintPostImpl(node: GridNode, dir: GridDir, calc: CalcKind, f
               debugPrint "calcBasicPost:fit-content: ", "res=", res, "childScreenSize=", childScreenSize
             if res == UiScalar.low():
               res = 0.0.UiScalar
-        UiVariable(varIdx):
+        UiVariable(varIdx, funcIdx):
           # For variables, try to resolve them if there's a CSS variables container available
           res = f
           if not cssVars.isNil and varIdx in cssVars.variables:
             var resolvedSize: ConstraintSize
-            if cssVars.resolveVariable(varIdx, resolvedSize):
+            if cssVars.resolveVariable(varIdx, funcIdx, resolvedSize):
               res = calcBasic(resolvedSize, f)
         _:
           res = f

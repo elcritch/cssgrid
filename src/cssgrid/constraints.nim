@@ -2,7 +2,7 @@ import numberTypes
 export sets, tables, numberTypes
 
 type
-  CssVarId* = distinct int32
+  CssVarId* = distinct int16
 
   ConstraintBehavior* = enum
     CxStretch
@@ -36,7 +36,8 @@ type
     of UiAuto:
       discard
     of UiVariable:
-      varIdx*: CssVarId
+      varIdx*: CssVarId = CssVarId(-1)
+      funcIdx*: CssVarId = CssVarId(-1)
 
   Constraints* = enum
     UiNone
@@ -88,9 +89,9 @@ proc csContentMax*(): Constraint =
 proc csContentFit*(): Constraint =
   csValue(ConstraintSize(kind: UiContentFit))
 
-proc csVar*(idx: CssVarId): Constraint =
+proc csVar*(idx: CssVarId, funcIdx: CssVarId = CssVarId(-1)): Constraint =
   ## Creates a constraint for a CSS variable by index
-  csValue(ConstraintSize(kind: UiVariable, varIdx: idx))
+  csValue(ConstraintSize(kind: UiVariable, varIdx: idx, funcIdx: funcIdx))
 
 proc cssFuncArgs*(cx: Constraint): tuple[l, r: ConstraintSize] =
   match cx:

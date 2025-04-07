@@ -2,8 +2,11 @@ import std/tables
 import constraints
 
 type
+  CssFunc* = proc(val: ConstraintSize): ConstraintSize {.nimcall.}
+
   CssVariables* = ref object of RootObj
     variables*: Table[CssVarId, ConstraintSize]
+    funcs*: Table[CssVarId, CssFunc]
     names*: Table[string, CssVarId]
 
 # CSS Variable functions
@@ -37,6 +40,11 @@ proc setVariable*(vars: CssVariables, idx: CssVarId, value: Constraint) =
     # We'd need an expanded CssVariables type to handle this
     raise newException(ValueError, "Only simple constraint values can be registered as variables")
 
+proc setFunction*(vars: CssVariables, idx: CssVarId, value: CssFunc) =
+  ## Registers a new CSS function with the given name and value
+  ## Returns the function index
+  vars.funcs[idx] = value
+
 proc lookupVariable*(vars: CssVariables, name: string, size: var ConstraintSize): bool =
   ## Looks up a CSS variable by name
   if name in vars.names:
@@ -53,6 +61,13 @@ proc lookupVariable*(vars: CssVariables, idx: CssVarId, size: var ConstraintSize
     return true
   return false
 
+proc lookupFunc*(vars: CssVariables, idx: CssVarId, fun: var CssFunc): bool =
+  ## Looks up a CSS function by index
+  if idx in vars.funcs:
+    fun = vars.funcs[idx]
+    return true
+  return false
+
 proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
   ## Returns the name of a CSS variable by index
   if cs.kind == UiVariable:
@@ -60,7 +75,7 @@ proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
       if idx == cs.varIdx:
         return name
 
-proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var ConstraintSize): bool =
+proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, funcIdx: CssVarId, val: var ConstraintSize): bool =
   ## Resolves a constraint size, looking up variables if needed
   if vars != nil and varIdx in vars.variables:
     var res = vars.variables[varIdx]
@@ -77,7 +92,10 @@ proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var ConstraintS
       val = ConstraintSize(kind: UiAuto)
       return false
     else:
-      val = res
+      if funcIdx in vars.funcs:
+        val = vars.funcs[funcIdx](res)
+      else:
+        val = res
       return true
   else:
     return false
@@ -85,13 +103,13 @@ proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, val: var ConstraintS
 proc resolveVariable*(vars: CssVariables, cx: Constraint, val: var ConstraintSize): bool =
   ## Resolves a constraint, looking up variables if needed
   if cx.kind == UiValue:
-    return vars.resolveVariable(cx.value.varIdx, val)
+    return vars.resolveVariable(cx.value.varIdx, cx.value.funcIdx, val)
   else:
     return false
 
-proc csVar*(vars: CssVariables, name: string, value: Constraint = csAuto()): Constraint =
+proc csVar*(vars: CssVariables, name: string, value: Constraint = csAuto(), funcIdx: CssVarId = CssVarId(-1)): Constraint =
   ## Creates a constraint for a CSS variable by name
   ## If the variable doesn't exist, it will be created with a default value
   let idx = vars.registerVariable(name)
   vars.setVariable(idx, value)
-  return csVar(idx)
+  return csVar(idx, funcIdx)

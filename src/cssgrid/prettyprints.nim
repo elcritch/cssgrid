@@ -88,7 +88,7 @@ proc prettyConstraintSize*(cs: ConstraintSize, indent = "", mode: ColorMode = cm
     if cssVars != nil:
       let name = cssVars.variableName(cs)
       var value: ConstraintSize
-      if cssVars.resolveVariable(cs.varIdx, value):
+      if cssVars.resolveVariable(cs.varIdx, cs.funcIdx, value):
         mode.withStyle(fgRed, text = &"var({name}: {value})")
       else:
         mode.withStyle(fgRed, text = &"var({name})")

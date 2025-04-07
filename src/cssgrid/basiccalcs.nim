@@ -122,7 +122,7 @@ proc getBaseSize*(
       return max(trackSizes[idx].minContribution, trackSizes[idx].maxContribution)
   of UiVariable:
     var resolvedSize: ConstraintSize
-    if cssVars.resolveVariable(cs.varIdx, resolvedSize):
+    if cssVars.resolveVariable(cs.varIdx, cs.funcIdx, resolvedSize):
       return getBaseSize(grid, cssVars, idx, dir, trackSizes, resolvedSize)
 
 proc getTrackBaseSize*(

@@ -154,3 +154,46 @@ suite "CSS variables":
     # Check that child's width is updated through the chain
     check(child.box.w == 120.UiScalar)
     check(child.box.h == 120.UiScalar)
+
+  test "CSS variables with functions":
+    # Create a node with a grid template
+    var parent = newTestNode("parent")
+    parent.cxSize = [300'ux, 200'ux]
+    
+    # Create some children nodes
+    var child = newTestNode("child", parent)
+    child.cxSize = [100'ux, 100'ux]
+    
+    # Create CSS variables container with nested references
+    let cssVars = newCssVariables()
+    let baseVar = cssVars.registerVariable("base")
+    cssVars.setVariable(baseVar, 50'ux)
+    let doubleFunc = cssVars.registerVariable("double")
+    cssVars.setFunction(doubleFunc, proc(val: ConstraintSize): ConstraintSize = ConstraintSize(kind: UiFixed, coord: val.coord * 2))
+    let widthVar = cssVars.registerVariable("width")
+    cssVars.setVariable(widthVar, csVar(baseVar))
+    let heightVar = cssVars.registerVariable("height")
+    cssVars.setVariable(heightVar, csVar(baseVar))
+    
+    # Set child's width to use the variable that references another variable
+    child.cxSize[dcol] = csVar(widthVar, doubleFunc)
+    child.cxSize[drow] = csVar(heightVar, doubleFunc)
+    
+    # Compute layout
+    computeLayout(parent, cssVars)
+    # printLayout(parent, cmTerminal, cssVars)
+    
+    # Check that child's width is correctly resolved through the chain of variables
+    check(child.box.w == 100.UiScalar)
+    check(child.box.h == 100.UiScalar)
+    
+    # Update the base variable
+    cssVars.setVariable(baseVar, 120'ux)
+    
+    # Recompute layout
+    computeLayout(parent, cssVars)
+    # printLayout(parent, cmTerminal, cssVars)
+    
+    # Check that child's width is updated through the chain
+    check(child.box.w == 240.UiScalar)
+    check(child.box.h == 240.UiScalar)

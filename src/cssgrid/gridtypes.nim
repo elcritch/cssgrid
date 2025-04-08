@@ -85,6 +85,9 @@ type
 proc atom*(a: static string): Atom =
   result.add a
 
+proc toAtom*(a: string): Atom =
+  result.add a
+
 proc `[]`*(r: UiPos, dir: GridDir): UiScalar =
   case dir
   of dcol: return r.x

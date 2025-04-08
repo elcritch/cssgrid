@@ -1,5 +1,6 @@
 import std/tables
 import constraints
+import gridtypes
 
 type
   CssFunc* = proc(val: ConstraintSize): ConstraintSize {.nimcall.}
@@ -7,16 +8,16 @@ type
   CssVariables* = ref object of RootObj
     variables*: Table[CssVarId, ConstraintSize]
     funcs*: Table[CssVarId, CssFunc]
-    names*: Table[string, CssVarId]
+    names*: Table[Atom, CssVarId]
 
 # CSS Variable functions
 proc newCssVariables*(): CssVariables =
   ## Creates a new CSS variables container
   new(result)
   result.variables = initTable[CssVarId, ConstraintSize]()
-  result.names = initTable[string, CssVarId]()
+  result.names = initTable[Atom, CssVarId]()
 
-proc registerVariable*(vars: CssVariables, name: string): CssVarId =
+proc registerVariable*(vars: CssVariables, name: Atom): CssVarId =
   ## Registers a new CSS variable with the given name
   ## Returns the variable index
   if name in vars.names:
@@ -24,6 +25,12 @@ proc registerVariable*(vars: CssVariables, name: string): CssVarId =
   else:
     result = CssVarId(vars.names.len + 1)
     vars.names[name] = result
+
+proc registerVariable*(vars: CssVariables, name: static string): CssVarId =
+  ## Registers a new CSS variable with the given name
+  ## Returns the variable index
+  let nameAtom = atom(name)
+  result = vars.registerVariable(nameAtom)
 
 proc setVariable*(vars: CssVariables, idx: CssVarId, value: ConstraintSize) =
   ## Registers a new CSS variable with the given name and value
@@ -45,7 +52,7 @@ proc setFunction*(vars: CssVariables, idx: CssVarId, value: CssFunc) =
   ## Returns the function index
   vars.funcs[idx] = value
 
-proc lookupVariable*(vars: CssVariables, name: string, size: var ConstraintSize): bool =
+proc lookupVariable*(vars: CssVariables, name: Atom, size: var ConstraintSize): bool =
   ## Looks up a CSS variable by name
   if name in vars.names:
     let idx = vars.names[name]
@@ -53,6 +60,11 @@ proc lookupVariable*(vars: CssVariables, name: string, size: var ConstraintSize)
       size = vars.variables[idx]
       return true
   return false
+
+proc lookupVariable*(vars: CssVariables, name: static string, size: var ConstraintSize): bool =
+  ## Looks up a CSS variable by name
+  let nameAtom = atom(name)
+  return vars.lookupVariable(nameAtom, size)
 
 proc lookupVariable*(vars: CssVariables, idx: CssVarId, size: var ConstraintSize): bool =
   ## Looks up a CSS variable by index
@@ -73,7 +85,7 @@ proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
   if cs.kind == UiVariable:
     for name, idx in vars.names:
       if idx == cs.varIdx:
-        return name
+        return $name
 
 proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, funcIdx: CssVarId, val: var ConstraintSize): bool =
   ## Resolves a constraint size, looking up variables if needed
@@ -107,9 +119,15 @@ proc resolveVariable*(vars: CssVariables, cx: Constraint, val: var ConstraintSiz
   else:
     return false
 
-proc csVar*(vars: CssVariables, name: string, value: Constraint = csAuto(), funcIdx: CssVarId = CssVarId(-1)): Constraint =
+proc csVar*(vars: CssVariables, name: Atom, value: Constraint = csAuto(), funcIdx: CssVarId = CssVarId(-1)): Constraint =
   ## Creates a constraint for a CSS variable by name
   ## If the variable doesn't exist, it will be created with a default value
   let idx = vars.registerVariable(name)
   vars.setVariable(idx, value)
   return csVar(idx, funcIdx)
+
+proc csVar*(vars: CssVariables, name: static string, value: Constraint = csAuto(), funcIdx: CssVarId = CssVarId(-1)): Constraint =
+  ## Creates a constraint for a CSS variable by name
+  ## If the variable doesn't exist, it will be created with a default value
+  let nameAtom = atom(name)
+  return vars.csVar(nameAtom, value, funcIdx)

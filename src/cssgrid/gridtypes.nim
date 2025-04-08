@@ -9,7 +9,7 @@ import numberTypes, constraints
 export numberTypes, constraints, stack_strings
 export options
 
-const CssGridAtomSize {.intdefine.} = 32
+const CssGridAtomSize {.intdefine.} = 64
 
 type
   Atom* = StackString[CssGridAtomSize]
@@ -83,7 +83,7 @@ type
     align*: Option[ConstraintBehavior]
 
 proc atom*(a: static string): Atom =
-  discard result.addTruncate a
+  result.add a
 
 proc `[]`*(r: UiPos, dir: GridDir): UiScalar =
   case dir

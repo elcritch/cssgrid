@@ -632,7 +632,7 @@ suite "grids":
     check nodes[2].box == uiBox(200, 0, 50, 50)
     check nodes[3].box == uiBox(300, 0, 50, 50)
 
-  test "compute layout auto flow overflow colums":
+  test "compute layout auto flow overflow colums and equal size":
 
     var gridTemplate: GridTemplate
     parseGridTemplateColumns gridTemplate, 1'fr
@@ -667,7 +667,7 @@ suite "grids":
     # prettyPrintWriteMode = cmTerminal
     # defer: prettyPrintWriteMode = cmNone
     computeLayout(parent)
-    printLayout(parent, cmTerminal)
+    # printLayout(parent, cmTerminal)
 
     # TODO: FIXME!!!
     # check box.w == 750

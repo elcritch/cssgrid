@@ -107,15 +107,20 @@ proc computeBox*(
   template calcBoxFor(position, size, direction, alignment) =
     result.`position` = grid.lines[`direction`].getGrid(node.gridItem.span[`direction`].a)
     let spanEnd = grid.lines[`direction`].getGrid(node.gridItem.span[`direction`].b)
-    let spanSize = (spanEnd - result.`position`) - grid.gaps[`direction`]
+    let spanSize = spanEnd - result.`position`
+    # Only subtract the gap if this is not the last track in the grid
+    let effectiveSpanSize = if node.gridItem.span[`direction`].b >= grid.lines[`direction`].len(): 
+                              spanSize 
+                            else: 
+                              spanSize - grid.gaps[`direction`]
     let contentSizeInDirection = contentSize.`size` + node.bpad.wh[`direction`]
-    let visibleContentSize = min(contentSizeInDirection, spanSize)
-    debugPrint "calcBoxFor:", "name=", node.name, "dir=", direction, "spanEnd=", spanEnd, "spanSize=", spanSize, "visibleContentSize=", visibleContentSize, "contentSize=", contentSizeInDirection
+    let visibleContentSize = min(contentSizeInDirection, effectiveSpanSize)
+    debugPrint "calcBoxFor:", "name=", node.name, "dir=", direction, "spanEnd=", spanEnd, "spanSize=", spanSize, "effectiveSpanSize=", effectiveSpanSize, "visibleContentSize=", visibleContentSize, "contentSize=", contentSizeInDirection
     case `alignment`:
     of CxStretch:
-      result.`size` = spanSize
+      result.`size` = effectiveSpanSize
     of CxCenter:
-      result.`position` = (spanSize/2 - visibleContentSize/2) + result.`position`
+      result.`position` = (effectiveSpanSize/2 - visibleContentSize/2) + result.`position`
       result.`size` = visibleContentSize
     of CxStart:
       result.`size` = visibleContentSize

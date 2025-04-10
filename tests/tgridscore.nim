@@ -632,6 +632,62 @@ suite "grids":
     check nodes[2].box == uiBox(200, 0, 50, 50)
     check nodes[3].box == uiBox(300, 0, 50, 50)
 
+  test "compute layout auto flow overflow colums":
+
+    var gridTemplate: GridTemplate
+    parseGridTemplateColumns gridTemplate, 1'fr
+    parseGridTemplateRows gridTemplate, 1'fr
+    gridTemplate.autos[dcol] = csFixed 100.0
+    gridTemplate.gaps[dcol] = 10.0.UiScalar
+    gridTemplate.justifyItems = CxStart
+    gridTemplate.alignItems = CxStart
+    gridTemplate.autoFlow = grColumn
+
+    var parent = TestNode()
+    parent.cxOffset = [0'ux, 0'ux]
+    parent.cxSize = [400'ux, 50'ux]
+    parent.frame = Frame(windowSize: uiBox(0, 0, 400, 50))
+    parent.gridTemplate = gridTemplate
+
+    var nodes = newSeq[TestNode](4)
+
+    # ==== item a's ====
+    nodes[0] = newTestNode("b0", parent=parent)
+    nodes[1] = newTestNode("b1", parent=parent)
+    nodes[2] = newTestNode("b2", parent=parent)
+    nodes[3] = newTestNode("b3", parent=parent)
+
+    nodes[0].cxSize = [100'ux, 40'ux]
+    nodes[1].cxSize = [100'ux, 50'ux]
+    nodes[2].cxSize = [100'ux, 50'ux]
+    nodes[3].cxSize = [100'ux, 50'ux]
+
+    # ==== process grid ====
+    parent.children = nodes
+    # prettyPrintWriteMode = cmTerminal
+    # defer: prettyPrintWriteMode = cmNone
+    computeLayout(parent)
+    printLayout(parent, cmTerminal)
+
+    # TODO: FIXME!!!
+    # check box.w == 750
+    check parent.box.h == 50
+    check nodes[0].gridItem.span[dcol] == 1'i16 .. 2'i16
+    check nodes[0].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[1].gridItem.span[dcol] == 2'i16 .. 3'i16
+    check nodes[1].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[2].gridItem.span[dcol] == 3'i16 .. 4'i16
+    check nodes[2].gridItem.span[drow] == 1'i16 .. 2'i16
+    check nodes[3].gridItem.span[dcol] == 4'i16 .. 5'i16
+    check nodes[3].gridItem.span[drow] == 1'i16 .. 2'i16
+
+    # TODO: FIXME!!!
+    # the min fr track len should account for the min-content size
+    check nodes[0].box == uiBox(0, 0, 100, 40)
+    check nodes[1].box == uiBox(110, 0, 100, 50)
+    check nodes[2].box == uiBox(220, 0, 100, 50)
+    check nodes[3].box == uiBox(330, 0, 100, 50)
+
   test "compute layout overflow columns":
 
     var gridTemplate: GridTemplate

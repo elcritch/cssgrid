@@ -212,7 +212,7 @@ proc prettyLayout*(node: GridNode, indent = "", mode: ColorMode = cmNone, cssVar
   if prettyPrintWriteMode == cmNone and mode == cmNone:
     return
   mode.withStyle(fgWhite, {styleBright}, text = indent & "Node: ")
-  mode.withStyle(fgGreen, text = node.name & "\n")
+  mode.withStyle(fgGreen, text = $node.name & "\n")
   
   # Constraints
   for i, constraint in node.cxSize:

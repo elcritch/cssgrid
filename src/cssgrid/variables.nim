@@ -1,4 +1,5 @@
 import std/tables
+import std/strutils
 import constraints
 import gridtypes
 
@@ -80,12 +81,18 @@ proc lookupFunc*(vars: CssVariables, idx: CssVarId, fun: var CssFunc): bool =
     return true
   return false
 
+proc variableName*(vars: CssVariables, id: CssVarId): string =
+  ## Returns the name of a CSS variable by index
+  for name, idx in vars.names:
+    if idx == id:
+      return $name
+  return ""
+
 proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
   ## Returns the name of a CSS variable by index
   if cs.kind == UiVariable:
-    for name, idx in vars.names:
-      if idx == cs.varIdx:
-        return $name
+    return vars.variableName(cs.varIdx)
+  return ""
 
 proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, funcIdx: CssVarId, val: var ConstraintSize): bool =
   ## Resolves a constraint size, looking up variables if needed
@@ -131,3 +138,25 @@ proc csVar*(vars: CssVariables, name: static string, value: Constraint = csAuto(
   ## If the variable doesn't exist, it will be created with a default value
   let nameAtom = atom(name)
   return vars.csVar(nameAtom, value, funcIdx)
+
+proc `$`*(vars: CssVariables): string =
+  ## Returns a string representation of the CSS variables
+  result = "CssVariables:\n"
+  # Add names table
+  result.add "  Names:\n"
+  for name, id in vars.names:
+    result.add "    " & $name & " => " & $id & "\n"
+  
+  # Add variables table
+  result.add "  Variables:\n"
+  for id, value in vars.variables:
+    let varName = vars.variableName(id)
+    let nameStr = if varName != "": " (" & varName & ")" else: ""
+    result.add "    " & $id & nameStr & " => " & $value & "\n"
+  
+  # Add functions table
+  result.add "  Functions:\n"
+  for id, _ in vars.funcs:
+    let varName = vars.variableName(id)
+    let nameStr = if varName != "": " (" & varName & ")" else: ""
+    result.add "    " & $id & nameStr & " => <function>\n"

@@ -82,6 +82,13 @@ type
     justify*: Option[ConstraintBehavior]
     align*: Option[ConstraintBehavior]
 
+proc repr*(a: Atom): string =
+  let str = $a
+  if ' ' in str or str.len == 0:
+    result = ":'" & str & "'"
+  else:
+    result = ":" & str
+
 proc atom*(a: static string): Atom =
   result.add a
 

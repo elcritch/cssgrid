@@ -183,6 +183,8 @@ suite "CSS variables":
     computeLayout(parent, cssVars)
     # printLayout(parent, cmTerminal, cssVars)
     
+    echo "cssVars: ", $cssVars
+
     # Check that child's width is correctly resolved through the chain of variables
     check(child.box.w == 100.UiScalar)
     check(child.box.h == 100.UiScalar)

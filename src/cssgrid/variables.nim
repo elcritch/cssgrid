@@ -1,4 +1,5 @@
 import std/tables
+import std/strutils
 import constraints
 import gridtypes
 
@@ -131,3 +132,33 @@ proc csVar*(vars: CssVariables, name: static string, value: Constraint = csAuto(
   ## If the variable doesn't exist, it will be created with a default value
   let nameAtom = atom(name)
   return vars.csVar(nameAtom, value, funcIdx)
+
+proc `$`*(vars: CssVariables): string =
+  ## Returns a string representation of the CSS variables
+  result = "CssVariables:\n"
+  # Add names table
+  result.add "  Names:\n"
+  for name, id in vars.names:
+    result.add "    " & $name & " => " & $id & "\n"
+  
+  # Add variables table
+  result.add "  Variables:\n"
+  for id, value in vars.variables:
+    var varName = ""
+    for name, varId in vars.names:
+      if varId == id:
+        varName = $name
+        break
+    let nameStr = if varName != "": " (" & varName & ")" else: ""
+    result.add "    " & $id & nameStr & " => " & $value & "\n"
+  
+  # Add functions table
+  result.add "  Functions:\n"
+  for id, _ in vars.funcs:
+    var varName = ""
+    for name, varId in vars.names:
+      if varId == id:
+        varName = $name
+        break
+    let nameStr = if varName != "": " (" & varName & ")" else: ""
+    result.add "    " & $id & nameStr & " => <function>\n"

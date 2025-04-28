@@ -81,12 +81,18 @@ proc lookupFunc*(vars: CssVariables, idx: CssVarId, fun: var CssFunc): bool =
     return true
   return false
 
+proc variableName*(vars: CssVariables, id: CssVarId): string =
+  ## Returns the name of a CSS variable by index
+  for name, idx in vars.names:
+    if idx == id:
+      return $name
+  return ""
+
 proc variableName*(vars: CssVariables, cs: ConstraintSize): string =
   ## Returns the name of a CSS variable by index
   if cs.kind == UiVariable:
-    for name, idx in vars.names:
-      if idx == cs.varIdx:
-        return $name
+    return vars.variableName(cs.varIdx)
+  return ""
 
 proc resolveVariable*(vars: CssVariables, varIdx: CssVarId, funcIdx: CssVarId, val: var ConstraintSize): bool =
   ## Resolves a constraint size, looking up variables if needed
@@ -144,21 +150,13 @@ proc `$`*(vars: CssVariables): string =
   # Add variables table
   result.add "  Variables:\n"
   for id, value in vars.variables:
-    var varName = ""
-    for name, varId in vars.names:
-      if varId == id:
-        varName = $name
-        break
+    let varName = vars.variableName(ConstraintSize(kind: UiVariable, varIdx: id))
     let nameStr = if varName != "": " (" & varName & ")" else: ""
     result.add "    " & $id & nameStr & " => " & $value & "\n"
   
   # Add functions table
   result.add "  Functions:\n"
   for id, _ in vars.funcs:
-    var varName = ""
-    for name, varId in vars.names:
-      if varId == id:
-        varName = $name
-        break
+    let varName = vars.variableName(ConstraintSize(kind: UiVariable, varIdx: id))
     let nameStr = if varName != "": " (" & varName & ")" else: ""
     result.add "    " & $id & nameStr & " => <function>\n"

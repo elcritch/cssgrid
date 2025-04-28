@@ -150,13 +150,13 @@ proc `$`*(vars: CssVariables): string =
   # Add variables table
   result.add "  Variables:\n"
   for id, value in vars.variables:
-    let varName = vars.variableName(ConstraintSize(kind: UiVariable, varIdx: id))
+    let varName = vars.variableName(id)
     let nameStr = if varName != "": " (" & varName & ")" else: ""
     result.add "    " & $id & nameStr & " => " & $value & "\n"
   
   # Add functions table
   result.add "  Functions:\n"
   for id, _ in vars.funcs:
-    let varName = vars.variableName(ConstraintSize(kind: UiVariable, varIdx: id))
+    let varName = vars.variableName(id)
     let nameStr = if varName != "": " (" & varName & ")" else: ""
     result.add "    " & $id & nameStr & " => <function>\n"

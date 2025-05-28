@@ -1,5 +1,5 @@
 # Package
-version       = "0.13.6"
+version       = "0.13.7"
 author        = "Jaremy Creechley"
 description   = "pure Nim CSS Grid layout engine"
 license       = "MIT"
@@ -13,4 +13,3 @@ requires "bumpy >= 1.1.0"
 requires "macroutils"
 requires "stack_strings"
 requires "pretty"
-requires "pixie"
